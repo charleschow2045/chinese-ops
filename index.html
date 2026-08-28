@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="中文學習" />
+  <title>中文學習</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Sans+HK:wght@400;500;700;900&family=Baloo+2:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', '"Noto Sans HK"', '"Baloo 2"', "ui-rounded", "system-ui", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body { font-family: "Noto Sans TC", "Noto Sans HK", "Baloo 2", ui-rounded, system-ui, sans-serif; }
+  </style>
+</head>
+<body class="bg-amber-50">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" src="./src/storage.jsx"></script>
+  <script type="text/babel" src="./src/theme.jsx"></script>
+  <script type="text/babel" src="./src/quizUtils.jsx"></script>
+  <script type="text/babel" src="./src/speechUtils.jsx"></script>
+  <script type="text/babel" src="./src/AudioButtons.jsx"></script>
+  <script type="text/babel" src="./src/QuizQuestion.jsx"></script>
+  <script type="text/babel" src="./src/content/poetryContent.jsx"></script>
+  <script type="text/babel" src="./src/content/essayContent.jsx"></script>
+  <script type="text/babel" src="./src/content/cangjieContent.jsx"></script>
+  <script type="text/babel" src="./src/content/mandarinContent.jsx"></script>
+  <script type="text/babel" src="./src/content/pinyinImeContent.jsx"></script>
+  <script type="text/babel" src="./src/content/idiomContent.jsx"></script>
+  <script type="text/babel" src="./src/content/historyContent.jsx"></script>
+  <script type="text/babel" src="./src/content/readingContent.jsx"></script>
+  <script type="text/babel" src="./src/content/rhetoricContent.jsx"></script>
+  <script type="text/babel" src="./src/content/punctuationContent.jsx"></script>
+  <script type="text/babel" src="./src/PoetryModule.jsx"></script>
+  <script type="text/babel" src="./src/EssayModule.jsx"></script>
+  <script type="text/babel" src="./src/CangjieModule.jsx"></script>
+  <script type="text/babel" src="./src/MandarinModule.jsx"></script>
+  <script type="text/babel" src="./src/IdiomModule.jsx"></script>
+  <script type="text/babel" src="./src/HistoryModule.jsx"></script>
+  <script type="text/babel" src="./src/ReadingModule.jsx"></script>
+  <script type="text/babel" src="./src/RhetoricModule.jsx"></script>
+  <script type="text/babel" src="./src/PunctuationModule.jsx"></script>
+  <script type="text/babel" src="./src/Home.jsx"></script>
+  <script type="text/babel" src="./src/Root.jsx"></script>
+  <script type="text/babel" src="./src/main.jsx"></script>
+</body>
+</html>
