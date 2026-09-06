@@ -84,20 +84,20 @@ window.App = window.App || {};
     }
 
     return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-amber-50 via-rose-50 to-sky-50 text-stone-800">
+      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "#F7F0E3", color: "#241F1B" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-red-200 opacity-30 blur-3xl" />
-          <div className="absolute top-24 -right-20 w-80 h-80 rounded-full bg-amber-200 opacity-40 blur-3xl" />
-          <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-sky-200 opacity-30 blur-3xl" />
-          <span className="absolute top-16 right-8 text-4xl opacity-20">🏮</span>
-          <span className="absolute top-48 left-6 text-3xl opacity-20">📜</span>
-          <span className="absolute bottom-24 right-12 text-4xl opacity-20">🖌️</span>
-          <span className="absolute bottom-64 left-10 text-3xl opacity-20">🐉</span>
+          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#B0342A" }} />
+          <div className="absolute top-24 -right-20 w-80 h-80 rounded-full opacity-[0.14] blur-3xl" style={{ backgroundColor: "#A9812F" }} />
+          <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#37485B" }} />
+          <span className="absolute top-16 right-8 text-4xl opacity-[0.14]">🏮</span>
+          <span className="absolute top-48 left-6 text-3xl opacity-[0.14]">📜</span>
+          <span className="absolute bottom-24 right-12 text-4xl opacity-[0.14]">🖌️</span>
+          <span className="absolute bottom-64 left-10 text-3xl opacity-[0.14]">🐉</span>
         </div>
 
         <div className="relative px-4 pb-10">
           <header className="pt-6 pb-4">
-            <h1 className="text-3xl font-extrabold tracking-tight text-red-600">🏮 中文學習</h1>
+            <h1 className="text-3xl font-serif font-black tracking-tight" style={{ color: "#B0342A" }}>🏮 中文學習</h1>
           </header>
 
           <main>

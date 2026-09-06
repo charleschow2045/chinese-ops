@@ -11,10 +11,18 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { Card, Button } = window.App.UI;
+  const { Card, Button, PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, TYPE } = window.App.UI;
+  const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
   const { AudioButtons } = window.App;
+
+  // First two characters of `source`'s book title (skipping the leading
+  // 《) — used as the seal-stamp abbreviation on the passage detail card,
+  // e.g. "《韓非子．五蠹》" → "韓非".
+  function sourceAbbrev(source) {
+    return (source || "").replace(/[《》]/g, "").slice(0, 2);
+  }
 
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
@@ -27,59 +35,101 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-lime-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.source} · {CLASSICAL_PROSE_LEVEL_LABEL[item.level]}
           </span>
         </div>
 
-        <Card>
-          <h2 className="text-xl font-extrabold text-stone-800">{item.title}</h2>
-          <p className="text-sm font-bold text-stone-400 mb-3">{item.dynasty}</p>
-          <div className="text-lg leading-loose text-stone-800 font-medium">
-            {item.lines.map((l, i) => (
-              <p key={i}>{l}</p>
-            ))}
+        {/* Original-text card: a "scroll" treatment — a warmer inset panel
+            with top/bottom rule lines standing in for scroll rollers, plus
+            a seal-stamp corner badge citing the source book, and the
+            classical text itself set in the serif face to read as more
+            literary than the surrounding UI chrome. */}
+        <PaperCard accent={ACCENT} className="overflow-visible">
+          <Seal label={sourceAbbrev(item.source)} accent={ACCENT} className="absolute -top-3 -right-3 z-10" />
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </h2>
+          <p className={`text-sm mb-3 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            {item.dynasty}
+          </p>
+          <div
+            className="rounded-2xl px-4 py-4"
+            style={{
+              backgroundColor: ACCENT.tint,
+              borderTop: `3px double ${ACCENT.tintBorder}`,
+              borderBottom: `3px double ${ACCENT.tintBorder}`,
+            }}
+          >
+            <div className="text-lg leading-loose font-serif" style={{ color: INK.ink }}>
+              {item.lines.map((l, i) => (
+                <p key={i}>{l}</p>
+              ))}
+            </div>
           </div>
           <AudioButtons text={item.lines.join("")} color="lime" className="mt-3" />
-        </Card>
+        </PaperCard>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">重點文言字詞</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            重點文言字詞
+          </p>
           <div className="flex flex-col gap-2">
             {item.glossary.map((g, i) => (
-              <p key={i} className="text-sm text-stone-700">
-                <span className="font-extrabold text-lime-600">{g.term}</span>
-                {g.jyutping && <span className="text-lime-600 font-bold"> （粵音：{g.jyutping}）</span>}
+              <p key={i} className={`text-sm ${TYPE.body}`} style={{ color: INK.ink }}>
+                <span className={TYPE.heading} style={{ color: ACCENT.solid }}>
+                  {g.term}
+                </span>
+                {g.jyutping && (
+                  <span className="font-bold" style={{ color: ACCENT.solid }}>
+                    {" "}
+                    （粵音：{g.jyutping}）
+                  </span>
+                )}
                 {" — "}
                 {g.meaning}
               </p>
             ))}
           </div>
-        </Card>
+        </PaperCard>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">白話語譯（逐句對照）</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            白話語譯（逐句對照）
+          </p>
           <div className="flex flex-col gap-2">
             {item.lineExplanations.map((exp, i) => (
-              <div key={i} className="rounded-xl bg-lime-50 border-4 border-lime-100 p-3">
-                <p className="text-sm font-bold text-stone-700 mb-1">{item.lines[i]}</p>
-                <p className="text-sm text-stone-600">{exp}</p>
+              <div
+                key={i}
+                className="rounded-xl p-3"
+                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
+              >
+                <p className="text-sm font-serif font-bold mb-1" style={{ color: INK.ink }}>
+                  {item.lines[i]}
+                </p>
+                <p className={`text-sm ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+                  {exp}
+                </p>
               </div>
             ))}
           </div>
-        </Card>
+        </PaperCard>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-1">出處及背景</p>
-          <p className="text-stone-700 leading-relaxed">{item.background}</p>
-        </Card>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            出處及背景
+          </p>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {item.background}
+          </p>
+        </PaperCard>
 
-        <Button color="lime" className="w-full" onClick={onStartQuestions}>
+        <InkButton accent={ACCENT} className="w-full" onClick={onStartQuestions}>
           開始問答 ✏️
-        </Button>
+        </InkButton>
       </div>
     );
   }
@@ -88,12 +138,24 @@ window.App = window.App || {};
     return (
       <button
         onClick={onOpen}
-        className="w-full flex items-center gap-3 bg-white border-4 border-lime-100 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        style={{
+          backgroundColor: INK.paperCard,
+          border: `1.5px solid ${ACCENT.tintBorder}`,
+          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
+        }}
       >
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 bg-lime-50">📜</div>
+        <div
+          className="w-11 h-11 rounded-md flex items-center justify-center text-sm font-serif font-black shrink-0"
+          style={{ backgroundColor: ACCENT.solid, color: ACCENT.on, transform: "rotate(-4deg)" }}
+        >
+          {sourceAbbrev(item.source)}
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="font-extrabold text-stone-800 truncate">{item.title}</p>
-          <p className="text-xs font-bold text-stone-400 truncate">
+          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </p>
+          <p className={`text-xs truncate ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.source} · {CLASSICAL_PROSE_LEVEL_LABEL[item.level]}
           </p>
         </div>
@@ -148,42 +210,51 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-lime-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回主頁
           </button>
-          <span className="text-sm font-extrabold text-stone-400">文言文選讀</span>
+          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+            文言文選讀
+          </span>
         </div>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">程度</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            程度
+          </p>
           <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => setFilterLevel(l.key)}
-                className={`flex-1 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
-                  filterLevel === l.key
-                    ? "bg-lime-400 border-lime-600 text-lime-950"
-                    : "bg-white border-lime-100 text-lime-500"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVEL_FILTERS.map((l) => {
+              const active = filterLevel === l.key;
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setFilterLevel(l.key)}
+                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+                  style={
+                    active
+                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
+                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
+                  }
+                >
+                  {l.label}
+                </button>
+              );
+            })}
           </div>
           {(mistakes || []).length > 0 && (
             <button
               onClick={() => setOnlyMistakes((v) => !v)}
-              className={`w-full mt-2 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
+              className={`w-full mt-2 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+              style={
                 onlyMistakes
-                  ? "bg-amber-400 border-amber-600 text-amber-950"
-                  : "bg-white border-amber-200 text-amber-500"
-              }`}
+                  ? { backgroundColor: INK.ochre, color: INK.ink }
+                  : { backgroundColor: INK.paper, color: "#7A5D20", border: "1.5px solid #E2CE9E" }
+              }
             >
               📝 只看錯題 ({mistakes.length})
             </button>
           )}
-        </Card>
+        </PaperCard>
 
         <div className="flex flex-col gap-3">
           {filtered.map((item) => (

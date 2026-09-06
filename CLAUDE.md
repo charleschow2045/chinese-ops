@@ -76,13 +76,143 @@ Full spec for each module (practice mechanics, content requirements) is in
 the original project brief — see "Module details" below for what's already
 decided for Module 1; ask before assuming details for unbuilt modules.
 
+## UI redesign — "文房" (scholar's-study) style, IN PROGRESS (sample stage)
+Started per explicit user request to move away from "Tailwind template
+blocks" (flat saturated `sky`/`rose`/`violet`/etc. colors, plain white cards
+with a thick red border and a hard flat offset shadow) toward a warmer,
+more layered look themed around Chinese ink/paper/seal materials. This is a
+**staged rollout with an explicit review gate** — the user asked to see only
+3 representative screens first (Home, one list-type module, the new
+文言文選讀 passage detail) and stop for their review before touching the
+remaining 7 modules. Do not extend the new system to any other module
+without the user asking for the next stage.
+
+- **Two parallel systems currently coexist in `src/theme.jsx`** — this is
+  intentional, not leftover cruft:
+  - LEGACY (`COLORS`, `Button`, `Card`) — completely unchanged, still used
+    by Poetry/Essay/Cangjie/Mandarin/History/Reading/Rhetoric/Punctuation,
+    by `AudioButtons.jsx` everywhere (including inside the 3 restyled
+    screens — see below), and by the shared quiz UI (`QuizQuestion.jsx`'s
+    `QuestionBlock`/`FixedQuizFlow`, used by every module's practice flow).
+  - NEW "文房" system (`INK`, `MODULE_ACCENTS`, `TYPE`, `PaperCard`,
+    `InkButton`, `Seal`) — used so far only by `Home.jsx`, `IdiomModule.jsx`
+    (list + detail views only, NOT its practice/quiz session), and
+    `ClassicalProseModule.jsx` (list + passage detail, NOT its questions
+    flow). Practice/quiz screens were deliberately left on the legacy
+    system this round because they're rendered through the shared
+    `QuizQuestion.jsx` component used by all 10 modules — touching that
+    would have cascaded the redesign to every module at once, defeating the
+    "3 screens only" ask.
+  - **Known, deliberate visual seam during this sample stage**: inside the
+    2 restyled modules, `AudioButtons` (🔊 普通話/粵語) still renders in its
+    old legacy color (`violet` for idiom, `lime` for classicalProse)
+    because it's a shared component read by `window.App.UI.Button`
+    (legacy) internally — touching it would again cascade to all modules.
+    It sits slightly oddly next to the new bamboo/indigo palette around it;
+    this is expected and left for a follow-up pass, not a bug.
+- **Color system** — 5 core colors from the user's spec, in `INK`:
+  `paper` #F7F0E3 (宣紙白, page bg), `paperCard` #FBF7EC (derived — slightly
+  lighter tone for cards sitting on the page), `ink` #241F1B (墨黑, primary
+  text), `mutedInk` #8A7F6D (derived — warm gray-brown for captions/meta,
+  not a flat UI gray), `vermillion` #B0342A (印泥紅), `bamboo` #48603E
+  (竹青), `ochre` #A9812F (赭金 — reserved mainly for badges/achievement UI,
+  see IdiomModule's `MasteryBadge`/`BADGE_ACCENT`), `indigo` #37485B (靛青).
+  - `MODULE_ACCENTS` keeps **all 10 modules individually distinct** (the
+    user explicitly said not to collapse them into one look) but groups
+    each into a tonal variant of one of 4 families rather than an arbitrary
+    Tailwind hue: indigo family (poetry, classicalProse — cool/literary
+    contrast per spec), bamboo family (idiom, history — tradition/story),
+    vermillion family (essay, mandarin, punctuation — active/expressive),
+    ochre family (cangjie, reading, rhetoric — craft/mastery). Each entry
+    has `solid`/`dark`/`tint`/`tintBorder`/`on` (text-on-solid color)/
+    `family`. Keyed by **module key** (`idiom`, `classicalProse`, …), not by
+    the legacy color name — don't confuse the two lookup tables.
+  - Colors are applied via inline `style` (not Tailwind arbitrary-value
+    classes) throughout the new components, specifically to avoid
+    depending on the Tailwind Play CDN's bracket-syntax parsing for
+    anything beyond what the legacy `Button`'s single-layer
+    `shadow-[0_6px_0_#hex]` already proved works — safer given this is a
+    no-build-step app with no way to typecheck a broken class string
+    before shipping.
+- **Typography** — added Google Font "Noto Serif TC" alongside the existing
+  "Noto Sans TC" (`index.html`'s font `<link>` and `tailwind.config`'s
+  `fontFamily.serif`). A 4-level type scale lives in `theme.jsx`'s `TYPE`
+  (font family + weight only; each call site still picks its own text-size
+  utility for context): `display` (大標題 — app title, big page headers,
+  serif black), `heading` (小標題 — card section titles, item titles,
+  serif bold), `body` (內文 — sans), `caption` (輔助文字 — meta labels/tags,
+  sans bold uppercase). Serif is used for the app title (`Root.jsx`),
+  module/item headings, and — per the spec's "文言文" case specifically —
+  the classical original-text lines themselves in `ClassicalProseModule.jsx`
+  (`font-serif` on that one block), not just titles.
+- **`PaperCard`** (replaces flat-white+thick-red-border+hard-shadow `Card`
+  for the migrated screens): warm paper-tinted background (`paperCard`,
+  slightly lighter than the page's `paper`), a thin 1.5px border (tinted
+  toward the module's accent via an optional `accent` prop), and a
+  3-layer soft shadow (tight contact shadow + diffuse ambient shadow + a
+  faint inset top highlight suggesting slight paper convexity) instead of
+  one flat hard offset shadow.
+- **`InkButton`** (replaces flat-color+thick-border+hard-shadow `Button` on
+  the migrated screens' primary actions): keeps the existing chunky
+  "press-down" affordance (`active:translate-y-[3px]`) but the resting
+  shadow is now layered — an inner top highlight, a solid "thickness" layer
+  in the module's own `dark` shade, and a soft diffuse drop shadow — so it
+  reads as a raised lacquered/stamped object rather than a flat block.
+  Takes an `accent` prop (a `MODULE_ACCENTS` entry); defaults to essay's
+  vermillion tone if omitted.
+- **`Seal`** — small rotated square "chop" badge, used for the optional
+  bonus visual-identity items (see below).
+- **Per-module bonus visuals** (2 of the 3 suggested were done, per the
+  user's "揀最容易見效果嘅 2-3 個先" framing):
+  - 文言文選讀: `Seal` renders a 2-character source-book abbreviation (e.g.
+    "《韓非子．五蠹》" → "韓非", via `sourceAbbrev()`) as a corner-stamp
+    badge on the passage detail card, and the original-text block sits in
+    an inset accent-tinted panel with `border-top/bottom: 3px double` rules
+    standing in for a scroll's rollers — no actual vertical-text layout,
+    per the user's "唔一定要真係做紋理圖" allowance. The same `sourceAbbrev`
+    stamp (smaller, unrotated corner-less version) also appears on each
+    list row in place of the old plain emoji-circle icon.
+  - 成語學習: list rows use a small rotated square stamp showing the
+    idiom's first character in serif, instead of a plain rounded emoji
+    circle — same "seal imprint" idea as above, applied to idiom rather
+    than a source citation.
+- **Global/shared changes** (unavoidable — these sit in the app shell used
+  by every screen, restyled or not, since request #1 explicitly asked for
+  the base palette to change everywhere): `index.html`'s `<body>` background
+  and `Root.jsx`'s outer gradient wrapper + decorative blur blobs now use
+  the new `INK.paper`/vermillion/ochre/indigo tones instead of
+  `bg-amber-50`/rose/sky; the app's `<h1>` title is now `font-serif
+  font-black` in vermillion instead of `text-red-600`. This means even the
+  7 not-yet-migrated modules now sit on the new paper-colored background —
+  confirmed in-browser that their own `Card`/`Button`/list-row styling is
+  otherwise completely unchanged (e.g. History module still renders its
+  original flat-orange/thick-border/hard-shadow look).
+- Verified in-browser: Home (module grid with family-grouped accent colors
+  + colored bottom-edge strip per card), IdiomModule (mastery badge in
+  ochre, level chips, stamp-style list rows, detail view with all cards
+  migrated, practice quiz still on legacy style), ClassicalProseModule
+  (list with stamps, passage detail with seal badge + scroll-style original
+  text + glossary/translation/background cards, questions flow still on
+  legacy style) — all render correctly with no console errors (one
+  false-positive: the dev server's documented single-threaded overload on
+  first load produced stale connection-reset errors in one browser tab;
+  confirmed via a fresh tab that the actual app has zero errors).
+- **Next step is explicitly gated on user review** — report the 3 sample
+  screens back and wait for direction before restyling Poetry, Essay,
+  Cangjie, Mandarin, History, Reading, Rhetoric, or Punctuation, and before
+  touching the shared `QuizQuestion.jsx`/`AudioButtons.jsx` components that
+  the practice/quiz flows and audio buttons still depend on.
+
 ## Design notes
 - Bright, encouraging, age-appropriate tone (Primary 5 to Secondary 1 student)
-- Red/gold accent colours (auspicious Chinese palette) on a warm cream
-  background (`bg-amber-50`), decorative low-opacity emoji (🏮📜🖌️🐉) and
-  blurred colour blobs behind content, all `pointer-events-none`
+- **Base background/accent colors superseded by the "文房" redesign above**
+  (`bg-amber-50` → `INK.paper` #F7F0E3, red/gold → the 5-core-color system)
+  — this bullet describes the original pre-redesign look; kept for history,
+  not current behavior.
 - Font: "Noto Sans TC" / "Noto Sans HK" (Traditional Chinese, Google Fonts),
-  falling back to "Baloo 2" for latin characters/numerals
+  falling back to "Baloo 2" for latin characters/numerals — **"Noto Serif
+  TC" was added alongside this for headings/titles/classical text, see the
+  UI redesign section above**
 - Since the child cannot type Chinese fluently yet, prefer selection-based
   input (multiple choice, drag, tap-to-build) over free typing in modules
   1, 2, 5, 7, 8, 9 — free typing is only appropriate within module 3 (Cangjie
