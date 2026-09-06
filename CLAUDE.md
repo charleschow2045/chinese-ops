@@ -66,6 +66,11 @@ within the module; content items are individually tagged with a level.
 7. **閱讀理解 (Reading Comprehension)** — ✅ built
 8. **修辭手法 (Rhetorical Devices)** — ✅ built
 9. **標點符號練習 (Punctuation Practice)** — ✅ built
+10. **文言文選讀 (Classical Chinese Reading)** — ✅ built, standalone, 17
+    texts across 2 batches (see Module 10 details below) — added after the
+    original 9 modules, per explicit user feedback that none of them
+    actually present original classical-Chinese text with translation +
+    glossary + comprehension questions together
 
 Full spec for each module (practice mechanics, content requirements) is in
 the original project brief — see "Module details" below for what's already
@@ -251,24 +256,47 @@ decided for Module 1; ask before assuming details for unbuilt modules.
   難 special group, echoing the "五色學倉頡" visual teaching style. Also holds
   **12 verified compound-character examples** (明=AB, 林=DD, 森=DDD, 炎=FF,
   品=RRR, 早=AJ, 旦=AM, 圭=GG, 昌=AA, 淼=EEE, 二=MM, 三=MMM — expanded from an
-  initial 5 after user feedback asked for more), **6 verified 輔助字形
-  (auxiliary shapes)** (水/氵, 火/灬, 人/亻, 心/忄, 手/扌, 竹/⺮, each with
-  common-character examples), and one 速成 (Quick Cangjie) example (體: full
-  BBTW → quick BW).
+  initial 5 after user feedback asked for more), **8 verified 輔助字形
+  (auxiliary shapes)** (水/氵, 火/灬, 人/亻, 心/忄, 手/扌, 竹/⺮, 金/丷, 土/士,
+  each with common-character examples), and one 速成 (Quick Cangjie) example
+  (體: full BBTW → quick BW).
   **Every letter/code in this file was cross-checked against multiple
   independent Cangjie references via web search before being written** —
   unlike a poem's interpretation, a wrong keystroke mapping here would
   actively mis-teach the child, so don't hand-edit these without re-verifying.
 - **The 輔助字形 list is deliberately a small verified subset, not a complete
-  table** — every Cangjie reference site stores the full 24-key auxiliary
-  shape table as an image (hkcards, wikibooks, ifreesite all confirmed
-  unextractable as text), and a WebFetch summarization pass over them
-  produces vague, unverifiable paraphrases, not exact glyphs. Rather than
-  fabricate uncertain entries, only shapes independently confirmed via
-  multiple text-based sources are included. If asked to "complete" this
-  table, don't guess at the remaining ~18 keys' auxiliary shapes from
-  general knowledge — verify each one the same way (targeted search
-  quoting the exact glyph) before adding it, or leave it out.
+  table** — every Cangjie reference site stores most of its full auxiliary
+  shape table as images (hkcards, wikibooks, ifreesite all confirmed
+  unextractable as text for most entries), and a WebFetch summarization
+  pass over them produces vague, unverifiable paraphrases, not exact
+  glyphs. Rather than fabricate uncertain entries, only shapes
+  independently confirmed via multiple text-based sources — **and** with a
+  concrete example-character list found in text (not guessed from general
+  knowledge of the shape) — are included.
+  - A second expansion pass (6→8 entries) found `cangjieking.com` — a
+    dedicated Cangjie learning site with a genuinely comprehensive
+    text-based table (`/learn/radicals-intro`, "119 輔助字形") — which
+    cross-confirmed all 6 existing entries verbatim (same examples: 你/他/
+    位/作 for 亻, 海/湖/游/泡 for 氵, etc.) and surfaced two new shapes with
+    usable text examples: **丷 (金/C)**, examples 公/分/半, and **士
+    (土/G)**, examples self-derived from character decomposition (吉=士+口,
+    志=士+心, 壯=士+爿) rather than a source's own example list, same
+    method already used for the original 6 entries' examples.
+  - That same pass also *confirmed the existence* of several more
+    auxiliary shapes across 2+ sources — 又 and 氺 (both 水/E), 冂/冖/爫 (all
+    月/B), 辶 (卜/Y) — but every source's example-character list for these
+    is image-only, so they were deliberately left out rather than paired
+    with guessed examples. One source (hkcards.com) separately claimed 亠
+    as an auxiliary of 卜/Y, but `cangjieking.com`'s comprehensive table
+    lists Y's full auxiliary set *without* 亠 — a direct contradiction
+    between sources — so that one was dropped entirely rather than trusted
+    either way.
+  - If asked to expand this table further, don't guess at any of the
+    ~111 remaining auxiliary shapes from general knowledge — the same two
+    conditions apply: the shape-to-root mapping needs 2+ independent
+    sources, and the example characters need to come from a text source
+    (or be individually decomposition-verified, as done for 士 above), not
+    assumed from familiarity with the shape.
 - Composing arbitrary multi-root characters beyond the 12 verified examples
   is still **out of scope for v1** (would need a verified full Cangjie code
   dictionary); the typing drill's phase 2 samples 8 of the 12 compound
@@ -348,9 +376,13 @@ decided for Module 1; ask before assuming details for unbuilt modules.
   - **拼音輸入法 (Pinyin IME)** — added after user feedback asking for a
     section teaching how to type Chinese via pinyin (distinct from 拼音默寫,
     which only tests knowing a word's pinyin spelling). Content lives in
-    `src/content/pinyinImeContent.jsx`: an intro (`PINYIN_IME_INTRO`,
-    `PINYIN_IME_EXAMPLE`, `PINYIN_IME_WHY_CANDIDATES`) shown once via
-    `PinyinIMEIntro` before the drill, then `PINYIN_IME_HOMOPHONE_ITEMS` (13
+    `src/content/pinyinImeContent.jsx`: a foundational **`PINYIN_IME_BASICS`**
+    card (added after a follow-up review found the intro "開門見山" jumped
+    straight to the typing mechanic without ever explaining what pinyin
+    *is* — a real gap for a complete beginner), then the operational intro
+    (`PINYIN_IME_INTRO`, `PINYIN_IME_EXAMPLE`, `PINYIN_IME_WHY_CANDIDATES`),
+    both shown via `PinyinIMEIntro` before the drill, then
+    `PINYIN_IME_HOMOPHONE_ITEMS` (13
     items) — each a `clue` sentence with a blanked character, that
     character's toneless `pinyin`, and 4 `candidates` (real 同音字 —
     homophones sharing that *exact* toneless spelling) including the
@@ -364,6 +396,18 @@ decided for Module 1; ask before assuming details for unbuilt modules.
     target** — this is what makes the drill realistic (in real pinyin IMEs,
     homophone confusion is the whole reason candidate lists exist), so
     verify any new item's candidates the same way before adding them.
+  - **`PINYIN_IME_BASICS`** covers three things, deliberately non-overlapping
+    with `EXAMPLE` (demonstrates picking a candidate for a whole word) and
+    `WHY_CANDIDATES` (explains 同音字): (1) `whatIsPinyin` — pinyin is a
+    romanization system for Mandarin pronunciation, not English spelling;
+    (2) `syllableStructure` + `examples` (an array, currently 好=h+ao and
+    媽=m+a) — a syllable is 聲母 (initial, consonant-like) + 韻母 (final,
+    vowel-like); (3) `toneNote` — clarifies that "不需要輸入聲調" in this
+    drill means typing bare romanized letters only, no tone-mark diacritics
+    (ā/á/ǎ/à), not that pinyin itself lacks tones. If adding more example
+    syllables, keep the `{ syllable, initial, final, char }` shape so
+    `PinyinIMEIntro`'s render (splits into 聲母/韻母 tiles) doesn't need
+    changes.
   - Verified end-to-end in-browser including the mic-denied path (this
     sandbox has no real microphone) — confirms the catch block engages
     cleanly with no console errors, not just that the code looks right.
@@ -371,9 +415,9 @@ decided for Module 1; ask before assuming details for unbuilt modules.
   eligible — difficulty comes entirely from which items are in the content
   file at each level, same as Modules 1–2.
 
-## Module 5 details — 成語學習 (built, expanded twice after user feedback)
-- Content: `src/content/idiomContent.jsx` — **534 idioms total**. Two tiers
-  of depth, both sharing the same base fields (`idiom`, `pinyin`, `level`,
+## Module 5 details — 成語學習 (built, expanded three times after user feedback)
+- Content: `src/content/idiomContent.jsx` — **653 idioms total**. Three tiers
+  of depth, all sharing the same base fields (`idiom`, `pinyin`, `level`,
   `meaning`, `clue`):
   - **The original 39** (curated, first expansion) additionally carry
     `origin` (the story/背景, deliberately never names the idiom itself —
@@ -392,10 +436,27 @@ decided for Module 1; ask before assuming details for unbuilt modules.
     the smaller curated set was, treat this batch's pinyin as best-effort
     rather than dictionary-checked — spot-check before relying on any
     single entry for teaching a hard reading.
+  - **119 more** (third expansion, "修改要求4" — user compared `IDIOM_ITEMS`
+    against a real P6 chengyu textbook's table of contents, organised by
+    stroke count, and named 122 specific idioms present in the textbook but
+    missing here). Unlike the 495-item lighter-schema batch, this tier
+    **does carry `origin`**, and every `meaning`/`origin` pair was
+    individually web-verified (not written from memory) against Taiwan's
+    Ministry of Education 《成語典》 (dict.idioms.moe.edu.tw) and/or 漢典
+    (zdic.net), per the user's explicit no-fabrication instruction for this
+    batch ("每個成語嘅 meaning、origin 一定要上網核實，唔好靠記憶老作"). All
+    119 are tagged `level: "p6"` per user instruction (no per-item level
+    judgment). 3 of the user's original 122 named idioms were skipped as
+    variant-character duplicates of existing entries, confirmed via
+    `AskUserQuestion` (user chose to skip rather than add near-duplicates):
+    卧薪嘗膽/**臥薪嘗膽** (already present), 螳臂擋車/**螳臂當車** (already
+    present), 鷸蚌相持/**鷸蚌相爭** (already present) — bold form is the one
+    already in the file.
   - **`origin` and `annotations` are both optional now** — `IdiomDetail` in
     `IdiomModule.jsx` renders the 出處及故事 card and the 難字讀音 card only
     `{item.origin && (...)}` / `{item.annotations && (...)}`. Don't assume
-    every idiom has a background story; most of the 495 don't.
+    every idiom has a background story; most of the 495-item lighter-schema
+    batch don't (the 119-item batch above does).
   - **No idiom in this file may contain a comma or non-4/5/6-character
     punctuation** — the practice game's fill-the-missing-character question
     blanks out one character by array index (`item.idiom.split("")`), so a
@@ -403,9 +464,10 @@ decided for Module 1; ask before assuming details for unbuilt modules.
     "頭痛醫頭，腳痛醫腳") would sometimes blank the comma itself. One such
     entry was caught and removed during content review; check for this
     before adding idioms outside the standard 4-character form.
-  - Level split across the full file: 94×p5, 194×p6, 246×s1 (heuristic
-    difficulty judgment for the 495-item batch, not individually reasoned
-    per item the way the original 39's levels were).
+  - Level split heuristics: the 495-item batch spans 94×p5, 194×p6, 246×s1
+    (heuristic difficulty judgment, not individually reasoned per item like
+    the original 39); the 119-item batch is entirely `p6` per explicit user
+    instruction, not a difficulty judgment call.
 - **`pinyin` (Hanyu Pinyin, with tone marks, one space-separated syllable
   per character)** — the one-syllable-per-character spacing convention is
   load-bearing: `CharacterPinyinCard` in `IdiomModule.jsx` does
@@ -572,21 +634,69 @@ decided for Module 1; ask before assuming details for unbuilt modules.
   4-option MC. If this reconciliation ever turns out to be wrong (i.e. the
   user actually wants typed short answers here), that's a deliberate
   decision to revisit, not a bug.
-- Content: `src/content/readingContent.jsx` — **16 passages** (expanded from
-  an initial 8 — user feedback called it "too easy", asked to level up and
-  lengthen), each tagged `level: "p5"|"p6"|"s1"` with `title`, `passage`,
-  and a fixed **5-question** `questions` array (3 `recall` + 2 `inference`
-  per passage — bumped up from the original 3 per passage after a later
-  round of feedback said this module had "too little question"; every one
-  of the 16 passages got the same +1 recall/+1 inference treatment, so the
-  passage count didn't need to grow, only the question depth per passage).
-  The 8 new passages (the earlier expansion) are longer (~200–350
-  characters vs. the original ~100–250) and cover more mature,
-  secondary-level themes — cyberbullying, community service, academic
-  honesty, water conservation, resilience after failure, heritage
-  conservation, misinformation online, and teamwork — skewing p6/s1 rather
-  than p5. All content is original, not adapted from any existing
-  copyrighted text.
+- Content: `src/content/readingContent.jsx` — **22 passages** across three
+  expansion rounds, each tagged `level: "p5"|"p6"|"s1"` with `title`,
+  `passage`, and a fixed **5-question** `questions` array (3 `recall` + 2
+  `inference` per passage).
+  - Round 1 (8→16 passages): user feedback called the original 8 "too
+    easy", asked to level up and lengthen. The 8 new passages are longer
+    (~200–350 characters vs. the original ~100–250) and cover more mature,
+    secondary-level themes — cyberbullying, community service, academic
+    honesty, water conservation, resilience after failure, heritage
+    conservation, misinformation online, and teamwork — skewing p6/s1
+    rather than p5.
+  - Round 2 (3→5 questions per passage): a later round of feedback said
+    this module had "too little question"; every one of the 16 passages at
+    the time got the same +1 recall/+1 inference treatment, so the passage
+    count didn't need to grow, only the question depth per passage.
+  - Round 3 (16→22 passages, all p5): a code-review pass found (a) 7
+    passages where two of the five questions substantively overlapped
+    (tested the exact same fact/moral just reworded — not merely similar
+    wording, but no distinct information point), and (b) the level split
+    was unbalanced (2×p5 vs 6×p6 vs 8×s1). Fixed by: rewriting the
+    duplicate half of each overlapping pair to test a genuinely different
+    angle (a different fact, a "what if" counterfactual, or a character's
+    emotional arc instead of restating the same "moral of the story"), and
+    adding 6 new p5 passages (彩虹的秘密, 貓咪為什麼經常在睡覺, 星星為什麼只
+    在晚上出現, 香港的叮叮車, 蜜蜂的重要工作, 為什麼會打嗝) — deliberately
+    informational/science/local-culture topics rather than more
+    moral-story fiction, since the existing passages (across all levels)
+    already clustered heavily around 助人/誠實/堅持/換位思考-style themes.
+    **The 香港的叮叮車 passage's facts (1904 opening, Hong Kong Island-only
+    route, originally single-deck, "叮叮" nickname from the bell) were
+    verified via web search before writing** — same rigor this project
+    applies to any fact/reading that isn't common knowledge (see Module
+    1/3/5's verification notes) — don't assume a fact like this is safe to
+    write from memory without the same check.
+  - **When rewriting an "overlapping question," change what fact/angle is
+    being tested, not just the wording** — two questions with different
+    phrasing but the same underlying answer content are still duplicates
+    from the child's perspective. Recall questions were shifted at the
+    same distinct level of angle (a different named detail, not just a
+    reworded time), and duplicate inference questions were shifted toward
+    counterfactuals ("如果...就會...") or character-growth framing rather
+    than re-asking "what's the moral of the story" a second time.
+  - Round 4 (same 22 passages, prompt-only rewrite): a further review found
+    that Round 3's fix hadn't gone far enough — across the passages
+    untouched by Round 3, one inference question per passage was still a
+    generic "一句萬能問題" reused near-verbatim: "這個故事想帶出什麼道理？"
+    (5×), "這個故事想帶出什麼訊息？" (3×), plus near-duplicate variants
+    "這個故事最想帶出什麼道理/訊息？" and "...想提醒讀者什麼？" (5× more,
+    including one **within-passage** duplicate this review caught in
+    `wangluo-shijie-de-xianjing` that Round 3 had missed — its Q3 and Q5
+    were both "network safety" advice questions with the same underlying
+    answer). All 13 were rewritten to test something specific to that
+    passage: a character's motivation, what a specific action/quote reveals
+    about someone's personality, or a counterfactual grounded in a named
+    detail — never a template question that could be dropped into any
+    other passage unchanged. **This is the real test for "is an inference
+    question generic": could this exact prompt be copy-pasted into a
+    different passage in this file and still make sense?** If yes, it needs
+    a detail specific to this passage folded into the question itself (a
+    character's name, a quoted line, a specific action), not just reworded
+    to sound different.
+  - All content is original, not adapted from any existing copyrighted
+    text.
 - `src/ReadingModule.jsx` mirrors `HistoryModule.jsx`'s structure closely
   (list/passage/questions) — if the two ever drift in behavior, that's
   worth reconciling rather than treating as two independent designs.
@@ -742,6 +852,107 @@ correctly since, and lets them specifically re-practice just those.
     inside the review session cleared the mistake — with no console errors
     on any of the three points per module.
 
+## Module 10 details — 文言文選讀 (new module, 17 texts across 2 batches)
+- Added after the original 9 modules, following explicit user feedback
+  ("修改要求5") that neither `poetryContent.jsx` (poems + a handful of prose
+  excerpts folded into Module 1's generated MC-quiz flow) nor
+  `historyContent.jsx` (vernacular-retold stories, no original classical
+  text at all) actually deliver "read real classical-Chinese text with
+  translation + glossary + comprehension questions" as its own standalone
+  experience — hence a dedicated new module rather than extending either.
+- Content: `src/content/classicalProseContent.jsx` — `CLASSICAL_PROSE_ITEMS`,
+  17 entries (6×p5, 6×p6, 5×s1) with fixed fields: `id`, `title`, `source`
+  (出處，e.g. "《韓非子．五蠹》"), `dynasty`, `level`, `lines` (原文, split
+  into sentence-level chunks — same "one array entry per rendered
+  paragraph" convention as the `prose`-type entries in `poetryContent.jsx`),
+  `lineExplanations` (白話語譯, parallel array to `lines`), `glossary`
+  (重點文言字詞, array of `{term, jyutping?, meaning}` — same shape as
+  `annotations` elsewhere in the app, just named `glossary` in this file),
+  `background` (出處及故事背景), and `questions` (2-3 fixed comprehension
+  MC questions, `{prompt, options, correctIndex}` — same shape as
+  `HISTORY_ITEMS`' questions).
+- **The user's reference material was a real textbook's 26-week classical-
+  reading curriculum outline, given explicitly as a starting-point
+  reference, not a list to copy verbatim in the same arrangement.** That
+  outline named: 世說新語．假譎, 列子．湯問, 左傳．襄公十五年, 戰國策．魏策一,
+  韓非子．外儲說左上, 後漢書．列女傳.
+  - Batch 1 (8 texts) reuses 韓非子．外儲說左上 and 列子．湯問 exactly (same
+    book and chapter — 鄭人買履 and 兩小兒辯日 respectively), uses a
+    different 世說新語 chapter (言語, alongside 假譎 itself for 望梅止渴),
+    substitutes a different 左傳 chapter (莊公十年 — 曹劌論戰 — instead of
+    襄公十五年, since it's far more level-appropriate for P5–S1 and is one
+    of Hong Kong's most commonly taught classical passages), and adds
+    韓非子．五蠹 (守株待兔), 呂氏春秋．察今 (刻舟求劍), and 戰國策．楚策一
+    (狐假虎威, a different 策 than the referenced 魏策一) as comparable
+    classical sources.
+  - Batch 2 (9 more texts, total now 17) was added after the user reviewed
+    batch 1 and asked to keep expanding toward the referenced ~26-text
+    scope. The user no longer had the original textbook's full 26-week
+    title list, so this batch was self-selected (with the user's explicit
+    go-ahead) from the same six referenced books (different chapters again
+    — 韓非子．難一 for 自相矛盾, 韓非子．內儲說上 for 濫竽充數, 韓非子．
+    外儲說左上 reused a second time for 買櫝還珠) plus other comparable
+    classical sources not in the original list (淮南子．人間訓 for 塞翁
+    失馬, 說苑．正諫 for 螳螂捕蟬黃雀在後, 晏子春秋 for 晏子使楚, 左傳．
+    僖公三十年 for 燭之武退秦師, and 清代彭端淑〈為學一首示子姪〉). This
+    batch finally uses 後漢書．列女傳 (樂羊子妻), which batch 1 didn't reach.
+  - 左傳．襄公十五年 (the specific chapter originally referenced) still
+    hasn't been used in either batch — if expanding further, that plus any
+    other untouched chapters of the six referenced books are the first
+    places to check.
+- **Every 原文 excerpt was verified via `WebSearch` against multiple
+  independent sources before being written** (ctext.org-adjacent classical-
+  text sites, cross-referenced against Hong Kong Education Bureau or
+  HKedCity curriculum material where available) — not recalled from memory,
+  per the user's explicit no-fabrication instruction for this module.
+  Several entries happened to surface HK-education-authority sources
+  directly, a useful independent confirmation that level tagging is
+  age-appropriate rather than a guess: 鄭人買履 and 自相矛盾 both match
+  passages listed on `edb.gov.hk`'s official curriculum-resource PDFs
+  (KS2/primary), and 望梅止渴 and 塞翁失馬 both appear in HKedCity-hosted
+  primary-school classical-reading compilations.
+- Component: `src/ClassicalProseModule.jsx` — structurally a copy of
+  `HistoryModule.jsx`'s list → detail → `FixedQuizFlow` → list flow (fixed
+  per-item questions, not runtime-generated, since each passage's
+  comprehension questions are hand-authored and passage-specific). The
+  detail view additionally renders two cards not present in
+  `HistoryModule.jsx`: a 重點文言字詞 glossary card and a 白話語譯（逐句對照）
+  card that pairs each `lines[i]` with `lineExplanations[i]` side by side —
+  styled after the `type === "prose"` branch of `PoetryModule.jsx`'s detail
+  view (`rounded-xl bg-{color}-50` blocks), not copied from it. No changes
+  were needed to this component for batch 2 — it was already fully
+  data-driven off `CLASSICAL_PROSE_ITEMS`.
+- New color: `theme.jsx`'s `COLORS` had exactly 9 entries (one per existing
+  module, all already in use) — added a 10th, `lime`, for this module
+  specifically so it doesn't share a color with any existing module card.
+- Wiring: `src/content/classicalProseContent.jsx` and
+  `src/ClassicalProseModule.jsx` script tags added to `index.html` (content
+  file alongside the other `src/content/*.jsx` tags, module file alongside
+  the other `src/*Module.jsx` tags — both before `Home.jsx`/`Root.jsx` per
+  the existing dependency order); `classicalProse` module entry added to
+  `Storage.MODULES` (`Home.jsx` needs no changes — it already renders
+  whatever `Storage.MODULES` lists) and to `Storage.defaultModuleProgress`'s
+  auto-initialization loop; `Root.jsx` gained the
+  `recordClassicalProsePractice` handler and a `view === "classicalProse"`
+  branch, following the exact same per-module pattern as every other module.
+- Mistake tracking (📝 只看錯題) works identically to History/Reading — a
+  per-passage toggle chip on the list view, not a separate review mode.
+- Verified end-to-end in-browser after both batches: all items render in the
+  "全部" filter view under the correct level, with correct counts (17 total,
+  6×p5/6×p6/5×s1, no duplicate `id`s) and balanced braces in the content
+  file. Opened 曹劌論戰（節錄）(batch 1) and 燭之武退秦師（節錄）(batch 2, the
+  longest/most complex new entry) in detail view — confirmed original text,
+  glossary, line-by-line translation, and background all render correctly
+  with no console errors. Ran 曹劌論戰's 3-question quiz forcing one
+  deliberate wrong answer, confirmed the ✅/💛 feedback states, the "答對了
+  2 / 3 題" finish screen, and — after returning to the list — the "📝 只看
+  錯題 (1)" chip appeared, confirming the mistake was written to
+  `localStorage` correctly.
+- **Per the user's original scope-limiting instruction, expansion beyond
+  this 17-text state should still wait for the user to ask again** — they
+  explicitly asked for batch 2 after reviewing batch 1, but don't add a
+  batch 3 to `CLASSICAL_PROSE_ITEMS` unprompted.
+
 ## Build status
 - [x] Project scaffold — theme, storage, Home dashboard (3×3 module grid), hub-and-spoke nav
 - [x] Module 1 — 詩詞學習 (Classical Poetry + 文言文)
@@ -753,21 +964,24 @@ correctly since, and lets them specifically re-practice just those.
 - [x] Module 7 — 閱讀理解
 - [x] Module 8 — 修辭手法
 - [x] Module 9 — 標點符號練習
+- [x] Module 10 — 文言文選讀 (17 texts across 2 batches; see Module 10 notes)
 
-**All 9 core modules are built.** Remaining known gaps (content depth, not
+**All 10 modules are built.** Remaining known gaps (content depth, not
 missing features):
 - [ ] Expand poem library further beyond the current 38+5 curated items (spec target: ~150)
 - [ ] Expand essay golden sentence library further beyond the current 60 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
-- [ ] Idiom library now at 534 (39 fully-verified + 495 lighter-schema, per
-      explicit user choice — see Module 5 notes); could still grow toward
-      the upper end of the requested 500-800 range, or have `origin` added
-      back to more of the 495 lighter-schema entries if depth matters more
-      than volume later
+- [ ] Idiom library now at 653 (39 fully-verified + 495 lighter-schema + 119
+      curriculum-gap batch with verified `origin` — see Module 5 notes);
+      could still have `origin` added back to more of the 495 lighter-schema
+      entries if depth matters more than volume later
 - [ ] Expand history story library further beyond the current 36 curated items
 - [ ] Expand reading passage library further beyond the current 16 curated items (now 5 questions each)
 - [ ] Expand rhetoric practice sentences further beyond the current 63 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
+- [ ] Classical prose library at 17 texts (2 batches so far) — expand
+      further toward the referenced ~26-text curriculum only if the user
+      asks again, per Module 10 notes
 - [ ] Composing arbitrary multi-root Cangjie characters (currently scoped to
       the 24 basic roots + 5 verified compound examples — see Module 3 notes)
 - [ ] Cross-module linking from other modules back to Cangjie if a child

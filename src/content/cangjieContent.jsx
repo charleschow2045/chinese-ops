@@ -77,6 +77,21 @@ window.App.Content = window.App.Content || {};
   // so this list is deliberately scoped to shapes independently confirmed
   // via multiple sources rather than a complete (but unverifiable) table —
   // see CLAUDE.md Module 3 notes before adding more entries here.
+  //
+  // 丷(金/C) and 士(土/G) were added after a follow-up verification pass —
+  // both confirmed via 2+ independent domains (hkcards.com, cangjieking.com,
+  // and cangjieking.com's separate 119-shape reference table). That same
+  // pass also confirmed the *existence* of 又/氺 (水/E), 冂/冖/爫 (月/B), and
+  // 辶 (卜/Y) as real auxiliary shapes across multiple sources, but every
+  // source renders its example-character lists as images with no
+  // extractable text — rather than guess plausible-sounding example words
+  // for those, they were deliberately left out. One source (hkcards.com)
+  // also claimed 亠 as an auxiliary of 卜/Y, but a more comprehensive
+  // independent table (cangjieking.com) lists Y's full auxiliary set
+  // without 亠 at all — a direct contradiction between sources, so that
+  // one was dropped rather than trusted either way. If revisiting this
+  // list later, a text-based example-character source for those shapes is
+  // needed before adding them, not visual/general-knowledge guessing.
   const AUXILIARY_SHAPES = [
     { rootLetter: "E", rootChar: "水", shape: "氵", examples: ["海", "湖", "游", "泡"] },
     { rootLetter: "F", rootChar: "火", shape: "灬", examples: ["熱", "煮", "熟", "黑"] },
@@ -84,6 +99,8 @@ window.App.Content = window.App.Content || {};
     { rootLetter: "P", rootChar: "心", shape: "忄", examples: ["快", "怕", "情", "想"] },
     { rootLetter: "Q", rootChar: "手", shape: "扌", examples: ["打", "拉", "推", "提"] },
     { rootLetter: "H", rootChar: "竹", shape: "⺮", examples: ["筆", "答", "節", "笑"] },
+    { rootLetter: "C", rootChar: "金", shape: "丷", examples: ["公", "分", "半"] },
+    { rootLetter: "G", rootChar: "土", shape: "士", examples: ["吉", "志", "壯"] },
   ];
 
   // 速成 (Quick Cangjie): take only the FIRST and LAST code of the full

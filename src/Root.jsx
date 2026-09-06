@@ -15,6 +15,7 @@ window.App = window.App || {};
     ReadingModule,
     RhetoricModule,
     PunctuationModule,
+    ClassicalProseModule,
   } = window.App;
 
   function Root() {
@@ -67,6 +68,10 @@ window.App = window.App || {};
 
     function recordPunctuationPractice(correctCount, total) {
       setState((s) => Storage.recordPracticeResult(s, "punctuation", correctCount, total));
+    }
+
+    function recordClassicalProsePractice(correctCount, total) {
+      setState((s) => Storage.recordPracticeResult(s, "classicalProse", correctCount, total));
     }
 
     // Powers 練習錯題 (mistake review) — called by a module whenever the
@@ -165,6 +170,15 @@ window.App = window.App || {};
                 onBack={() => setView("home")}
                 onRecordPractice={recordPunctuationPractice}
                 onAnswerItem={(itemId, isCorrect) => answerItem("punctuation", itemId, isCorrect)}
+              />
+            )}
+            {view === "classicalProse" && (
+              <ClassicalProseModule
+                level={state.level}
+                mistakes={state.moduleProgress.classicalProse.mistakes}
+                onBack={() => setView("home")}
+                onRecordPractice={recordClassicalProsePractice}
+                onAnswerItem={(itemId, isCorrect) => answerItem("classicalProse", itemId, isCorrect)}
               />
             )}
           </main>

@@ -8,6 +8,26 @@ window.App = window.App || {};
 window.App.Content = window.App.Content || {};
 
 (function () {
+  // Foundational "what is pinyin" content, shown BEFORE `INTRO` below.
+  // `INTRO` explains the *typing mechanic* (type pinyin, pick a candidate)
+  // assuming the reader already knows what pinyin itself is — for a true
+  // beginner that assumption doesn't hold, so this fills that gap. Kept
+  // deliberately separate from `EXAMPLE` (demonstrates picking a candidate
+  // for a whole word) and `WHY_CANDIDATES` (explains 同音字) — this only
+  // covers what pinyin is and how 聲母/韻母 combine into a syllable.
+  const BASICS = {
+    whatIsPinyin:
+      "拼音是用羅馬字母（即a、b、c等英文字母）記錄普通話讀音的系統，用來標示漢字應該怎樣讀。雖然拼音使用英文字母的寫法，但它並不是英文串法——「拼音」和「英文」是兩套不同的系統，讀音規則完全不同，同一個字母在拼音裏的讀法，未必和英文相同。",
+    syllableStructure:
+      "一個普通話音節，通常由「聲母」和「韻母」兩部分組成：聲母在音節的前面，讀音短促，作用有點像英文的輔音；韻母在音節的後面，讀音較長，作用有點像英文的元音。將聲母和韻母合起來讀，就是一個完整音節的讀音。",
+    examples: [
+      { syllable: "hao", initial: "h", final: "ao", char: "好" },
+      { syllable: "ma", initial: "m", final: "a", char: "媽" },
+    ],
+    toneNote:
+      "拼音本來每個音節都帶有聲調（例如陰平、陽平、上聲、去聲），用來標示讀音的高低升降。不過在這個打字練習中，「不需要輸入聲調」是指打字時只需要輸入羅馬字母本身（例如「hao」），不用輸入聲調符號（例如 ā、á、ǎ、à），電腦就會自動列出所有讀音相同或相近的字，讓你從中選出正確的一個。",
+  };
+
   const INTRO =
     "拼音輸入法是根據漢字的普通話讀音來打字：只需要輸入該字的拼音（不需要輸入聲調），電腦就會列出所有讀音相同或相近的字，讓你從中選出正確的一個。";
 
@@ -133,6 +153,7 @@ window.App.Content = window.App.Content || {};
 
   const PINYIN_IME_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
 
+  window.App.Content.PINYIN_IME_BASICS = BASICS;
   window.App.Content.PINYIN_IME_INTRO = INTRO;
   window.App.Content.PINYIN_IME_EXAMPLE = EXAMPLE;
   window.App.Content.PINYIN_IME_WHY_CANDIDATES = WHY_CANDIDATES;

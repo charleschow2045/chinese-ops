@@ -22,6 +22,7 @@ window.App = window.App || {};
     { key: "reading", label: "閱讀理解", emoji: "📖", color: "teal", implemented: true },
     { key: "rhetoric", label: "修辭手法", emoji: "🎭", color: "indigo", implemented: true },
     { key: "punctuation", label: "標點符號", emoji: "。", color: "fuchsia", implemented: true },
+    { key: "classicalProse", label: "文言文選讀", emoji: "🏺", color: "lime", implemented: true },
   ];
 
   // `mistakes` is an array of content-item ids the child has answered

@@ -16,6 +16,7 @@ window.App = window.App || {};
     teal: { bg: "bg-teal-400", border: "border-teal-600", shadow: "shadow-[0_6px_0_#115e59]", text: "text-teal-950" },
     indigo: { bg: "bg-indigo-400", border: "border-indigo-600", shadow: "shadow-[0_6px_0_#312e81]", text: "text-indigo-950" },
     fuchsia: { bg: "bg-fuchsia-400", border: "border-fuchsia-600", shadow: "shadow-[0_6px_0_#701a75]", text: "text-fuchsia-950" },
+    lime: { bg: "bg-lime-400", border: "border-lime-600", shadow: "shadow-[0_6px_0_#3f6212]", text: "text-lime-950" },
   };
 
   function Button({ children, onClick, color = "rose", className = "", disabled = false, type = "button" }) {

@@ -234,7 +234,8 @@ window.App = window.App || {};
   // (同音字) that all share that exact spelling — the actual skill a pinyin
   // typing beginner needs, since many characters sound identical.
   function PinyinIMEIntro({ onBack, onStart }) {
-    const { PINYIN_IME_INTRO, PINYIN_IME_EXAMPLE, PINYIN_IME_WHY_CANDIDATES } = window.App.Content;
+    const { PINYIN_IME_BASICS, PINYIN_IME_INTRO, PINYIN_IME_EXAMPLE, PINYIN_IME_WHY_CANDIDATES } = window.App.Content;
+    const basics = PINYIN_IME_BASICS;
     const ex = PINYIN_IME_EXAMPLE;
     return (
       <div className="flex flex-col gap-4">
@@ -244,6 +245,23 @@ window.App = window.App || {};
           </button>
           <span className="text-sm font-extrabold text-stone-400">拼音輸入法</span>
         </div>
+
+        <Card>
+          <p className="text-sm font-extrabold text-stone-400 mb-1">什麼是拼音？</p>
+          <p className="text-stone-700 leading-relaxed mb-3">{basics.whatIsPinyin}</p>
+          <p className="text-stone-700 leading-relaxed mb-3">{basics.syllableStructure}</p>
+          <div className="flex flex-col gap-2 mb-3">
+            {basics.examples.map((item, i) => (
+              <div key={i} className="rounded-xl bg-emerald-50 border-4 border-emerald-100 p-3 text-center">
+                <p className="font-extrabold text-stone-800">
+                  {item.char}（{item.syllable}） = <span className="text-emerald-600">{item.initial}</span>
+                  （聲母） + <span className="text-emerald-600">{item.final}</span>（韻母）
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-stone-700 leading-relaxed">{basics.toneNote}</p>
+        </Card>
 
         <Card>
           <p className="text-stone-700 leading-relaxed">{PINYIN_IME_INTRO}</p>
