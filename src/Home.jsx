@@ -84,7 +84,7 @@ window.App = window.App || {};
           <LevelSelector level={state.level} onChangeLevel={onChangeLevel} />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {Storage.MODULES.map((mod) => (
             <ModuleCard key={mod.key} mod={mod} onOpen={() => onOpenModule(mod.key)} />
           ))}

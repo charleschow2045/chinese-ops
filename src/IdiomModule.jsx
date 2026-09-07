@@ -7,13 +7,13 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { Card, Button, PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, TYPE } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.idiom;
   // 赭金 (ochre) is the spec's dedicated "badge/achievement" color, kept
   // distinct from the module's own bamboo accent used everywhere else on
   // this screen — a mastery badge should read as "achievement", not just
   // "this is the idiom module".
-  const BADGE_ACCENT = { solid: INK.ochre, dark: "#7A5D20", tint: "#F1E7CF", tintBorder: "#E2CE9E", on: INK.ink };
+  const BADGE_ACCENT = REVIEW_ACCENT;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { IDIOM_ITEMS, IDIOM_LEVEL_LABEL, getIdiomMasteryTier, getNextIdiomMasteryTier } = window.App.Content;
@@ -137,7 +137,7 @@ window.App = window.App || {};
             </div>
           ))}
         </div>
-        <AudioButtons text={item.idiom} color="violet" className="mt-3" />
+        <AudioButtons text={item.idiom} accent={ACCENT} className="mt-3" />
       </PaperCard>
     );
   }
@@ -242,40 +242,40 @@ window.App = window.App || {};
       const afterTier = getIdiomMasteryTier(priorStages + 1);
       const leveledUp = afterTier.title !== beforeTier.title;
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">{leveledUp ? afterTier.emoji : "🎉"}</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
             {leveledUp ? `恭喜！你晉升為「${afterTier.title}」了！` : "練習完成！"}
           </h2>
-          <p className="text-lg font-bold text-violet-600 mb-4">
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <Button color="violet" className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-violet-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
 
-        <Card>
-          <QuestionBlock q={q} selected={selected} onSelect={selectOption} />
+        <PaperCard accent={ACCENT}>
+          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
           {answered && (
-            <Button color="violet" className="w-full mt-4" onClick={handleNext}>
+            <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
-            </Button>
+            </InkButton>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }

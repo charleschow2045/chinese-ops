@@ -10,28 +10,36 @@ window.App = window.App || {};
     return selected !== null && selected === q.correctIndex;
   }
 
-  function QuestionBlock({ q, selected, onSelect }) {
+  // `accent` is a MODULE_ACCENTS entry (see theme.jsx) — the calling
+  // module's own color family, used for the default (unanswered) option
+  // style; correct/wrong feedback always uses the shared FEEDBACK tones
+  // (bamboo/vermillion) regardless of module, so "right vs wrong" reads
+  // consistently everywhere.
+  function QuestionBlock({ q, selected, onSelect, accent }) {
+    const { INK, TYPE, FEEDBACK, MODULE_ACCENTS } = window.App.UI;
+    const a = accent || MODULE_ACCENTS.essay;
     const correct = isCorrectAnswer(q, selected);
     return (
       <div>
-        <div className="text-xl font-extrabold text-stone-800">{q.prompt}</div>
+        <div className={`text-xl ${TYPE.heading}`} style={{ color: INK.ink }}>
+          {q.prompt}
+        </div>
         <div className="mt-3 flex flex-col gap-2">
           {q.options.map((opt, i) => {
             const isSelected = selected === i;
             const showCorrect = isSelected && correct;
             const showWrong = isSelected && !correct;
+            const style = showCorrect
+              ? { backgroundColor: FEEDBACK.correct.tint, border: `2px solid ${FEEDBACK.correct.solid}`, color: INK.ink }
+              : showWrong
+              ? { backgroundColor: FEEDBACK.incorrect.tint, border: `2px solid ${FEEDBACK.incorrect.solid}`, color: INK.ink }
+              : { backgroundColor: INK.paperCard, border: `1.5px solid ${a.tintBorder}`, color: INK.ink };
             return (
               <button
                 key={i}
                 onClick={() => onSelect(i)}
-                className={`text-left rounded-xl border-4 font-bold text-lg px-4 py-3 transition-all
-                  ${
-                    showCorrect
-                      ? "bg-emerald-400 border-emerald-600 text-emerald-950"
-                      : showWrong
-                      ? "bg-amber-300 border-amber-500 text-amber-950"
-                      : "bg-white border-stone-200 text-stone-700"
-                  }`}
+                className="text-left rounded-xl font-bold text-lg px-4 py-3 transition-all"
+                style={style}
               >
                 {opt}
               </button>
@@ -39,7 +47,10 @@ window.App = window.App || {};
           })}
         </div>
         {selected !== null && (
-          <p className={`mt-3 font-extrabold text-lg ${correct ? "text-emerald-600" : "text-amber-600"}`}>
+          <p
+            className="mt-3 font-extrabold text-lg"
+            style={{ color: correct ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}
+          >
             {correct ? "✅ 答對了，做得好！" : `💛 答錯了，正確答案是：${q.options[q.correctIndex]}`}
           </p>
         )}
@@ -47,30 +58,15 @@ window.App = window.App || {};
     );
   }
 
-  // Text-color classes per module color key, written as literal strings
-  // (not template-interpolated) so the Tailwind Play CDN's runtime scanner
-  // reliably picks them up — see the note on window.App.UI.COLORS for why
-  // dynamic `text-${color}-600` class names are avoided throughout this app.
-  const LINK_TEXT_CLASS = {
-    sky: "text-sky-600",
-    rose: "text-rose-600",
-    violet: "text-violet-600",
-    emerald: "text-emerald-600",
-    orange: "text-orange-600",
-    amber: "text-amber-600",
-    teal: "text-teal-600",
-    indigo: "text-indigo-600",
-    fuchsia: "text-fuchsia-600",
-  };
-
   // Steps through a FIXED array of questions one at a time (immediate
   // feedback via QuestionBlock), ending on a score screen. Used by any
   // module where questions are hand-authored per content item rather than
   // generated at runtime (e.g. History's per-story questions, Reading's
   // per-passage questions) — see CLAUDE.md for which modules work this way.
-  function FixedQuizFlow({ questions, color, onBack, onFinish, headerLabel }) {
-    const { Card, Button } = window.App.UI;
-    const linkClass = LINK_TEXT_CLASS[color] || LINK_TEXT_CLASS.sky;
+  // `accent` is a MODULE_ACCENTS entry for the calling module.
+  function FixedQuizFlow({ questions, accent, onBack, onFinish, headerLabel }) {
+    const { PaperCard, InkButton, INK, TYPE, MODULE_ACCENTS } = window.App.UI;
+    const a = accent || MODULE_ACCENTS.essay;
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -96,38 +92,40 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={a} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">問答完成！</h2>
-          <p className={`text-lg font-bold mb-4 ${linkClass}`}>
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            問答完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: a.solid }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <Button color={color} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={a} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm font-extrabold ${linkClass}`}>
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: a.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className="text-sm font-bold" style={{ color: INK.mutedInk }}>
             {headerLabel} · 第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
 
-        <Card>
-          <QuestionBlock q={q} selected={selected} onSelect={selectOption} />
+        <PaperCard accent={a}>
+          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={a} />
           {answered && (
-            <Button color={color} className="w-full mt-4" onClick={handleNext}>
+            <InkButton accent={a} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
-            </Button>
+            </InkButton>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }

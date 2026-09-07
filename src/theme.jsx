@@ -1,17 +1,15 @@
 // Shared UI primitives.
 //
-// This file now carries TWO parallel systems during a staged visual
-// redesign (see CLAUDE.md "UI redesign" notes):
+// This file carries TWO systems (see CLAUDE.md "UI redesign" notes):
 //   - LEGACY: `COLORS`, `Button`, `Card` — the original bright Tailwind-
 //     palette look (flat saturated bg + thick border + hard offset shadow).
-//     Left completely unchanged so the 7 modules not yet migrated keep
-//     rendering exactly as before with zero risk.
-//   - NEW ("文房" / scholar's-study system): `INK`, `MODULE_ACCENTS`, `TYPE`,
-//     `PaperCard`, `InkButton`, `Seal` — a warmer, more layered look built
-//     around 5 ink/seal-inspired core colors instead of arbitrary Tailwind
-//     hues. Only Home.jsx, IdiomModule.jsx, and ClassicalProseModule.jsx use
-//     these so far (the 3 sample screens); the rest still use the legacy
-//     system until the direction is approved and rolled out further.
+//     Kept only for reference/rollback; as of the full rollout, no module
+//     or shared component (AudioButtons, QuizQuestion) uses it any more.
+//   - "文房" (scholar's-study system): `INK`, `MODULE_ACCENTS`, `FEEDBACK`,
+//     `TYPE`, `PaperCard`, `InkButton`, `Seal` — a warmer, more layered look
+//     built around 5 ink/seal-inspired core colors instead of arbitrary
+//     Tailwind hues. Used by all 10 modules and both shared quiz/audio
+//     components after the full-rollout pass.
 window.App = window.App || {};
 
 (function () {
@@ -99,6 +97,24 @@ window.App = window.App || {};
     reading: { solid: "#8C6B28", dark: "#5F491A", tint: "#EDE3CB", tintBorder: "#D9C592", on: INK.paper, family: "ochre" },
     rhetoric: { solid: "#BE9648", dark: "#8C6D30", tint: "#F4EBD6", tintBorder: "#E6D4A8", on: INK.ink, family: "ochre" },
   };
+
+  // Canonical correct/incorrect feedback tones for quiz UI (QuestionBlock/
+  // FixedQuizFlow), reusing the same 5-core-color vocabulary rather than
+  // inventing new Tailwind-style greens/ambers: bamboo (green) reads as
+  // "growth/correct", vermillion (red) reads as "correction ink/wrong" —
+  // a fitting callback to marking mistakes in red pen. Shape matches
+  // MODULE_ACCENTS entries so both can be passed to the same components.
+  const FEEDBACK = {
+    correct: { solid: INK.bamboo, dark: "#2F4028", tint: "#E4E9DE", tintBorder: "#9DB48C", on: INK.paper },
+    incorrect: { solid: INK.vermillion, dark: "#7A211A", tint: "#F6E4E1", tintBorder: "#D89C93", on: INK.paper },
+  };
+
+  // Shared "review mistakes" (練習錯題) accent — the same cross-cutting
+  // ochre/achievement tone as a mastery badge, reused by every module's
+  // 練習錯題 button so "review mode" reads as one consistent affordance
+  // app-wide, distinct from each module's own accent color rather than a
+  // different ad hoc color per module.
+  const REVIEW_ACCENT = { solid: INK.ochre, dark: "#7A5D20", tint: "#F1E7CF", tintBorder: "#E2CE9E", on: INK.ink };
 
   // A minimal, deliberately-named type scale (4 levels, per spec): pair the
   // font family + weight here, let each call site pick its own text-size
@@ -196,6 +212,8 @@ window.App = window.App || {};
     // new "文房" system
     INK,
     MODULE_ACCENTS,
+    FEEDBACK,
+    REVIEW_ACCENT,
     TYPE,
     PaperCard,
     InkButton,

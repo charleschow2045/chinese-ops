@@ -6,7 +6,8 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { Card, Button } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
+  const ACCENT = MODULE_ACCENTS.history;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { HISTORY_ITEMS, HISTORY_LEVEL_LABEL } = window.App.Content;
   const { AudioButtons } = window.App;
@@ -22,23 +23,27 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-orange-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.period} · {HISTORY_LEVEL_LABEL[item.level]}
           </span>
         </div>
 
-        <Card>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-3">{item.title}</h2>
-          <p className="text-stone-700 leading-relaxed">{item.story}</p>
-          <AudioButtons text={item.story} color="orange" className="mt-3" />
-        </Card>
+        <PaperCard accent={ACCENT}>
+          <h2 className={`text-xl mb-3 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </h2>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {item.story}
+          </p>
+          <AudioButtons text={item.story} accent={ACCENT} className="mt-3" />
+        </PaperCard>
 
-        <Button color="orange" className="w-full" onClick={onStartQuestions}>
+        <InkButton accent={ACCENT} className="w-full" onClick={onStartQuestions}>
           開始問答 ✏️
-        </Button>
+        </InkButton>
       </div>
     );
   }
@@ -47,12 +52,24 @@ window.App = window.App || {};
     return (
       <button
         onClick={onOpen}
-        className="w-full flex items-center gap-3 bg-white border-4 border-orange-100 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        style={{
+          backgroundColor: INK.paperCard,
+          border: `1.5px solid ${ACCENT.tintBorder}`,
+          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
+        }}
       >
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 bg-orange-50">🏯</div>
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+          style={{ backgroundColor: ACCENT.tint }}
+        >
+          🏯
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="font-extrabold text-stone-800 truncate">{item.title}</p>
-          <p className="text-xs font-bold text-stone-400">
+          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </p>
+          <p className={`text-xs ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.period} · {HISTORY_LEVEL_LABEL[item.level]}
           </p>
         </div>
@@ -96,7 +113,7 @@ window.App = window.App || {};
       return (
         <FixedQuizFlow
           questions={selectedItem.questions}
-          color="orange"
+          accent={ACCENT}
           headerLabel={selectedItem.title}
           onBack={() => setView("story")}
           onFinish={finishQuestions}
@@ -107,42 +124,51 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-orange-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回主頁
           </button>
-          <span className="text-sm font-extrabold text-stone-400">中國歷史故事</span>
+          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+            中國歷史故事
+          </span>
         </div>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">程度</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            程度
+          </p>
           <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => setFilterLevel(l.key)}
-                className={`flex-1 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
-                  filterLevel === l.key
-                    ? "bg-orange-400 border-orange-600 text-orange-950"
-                    : "bg-white border-orange-100 text-orange-300"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVEL_FILTERS.map((l) => {
+              const active = filterLevel === l.key;
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setFilterLevel(l.key)}
+                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+                  style={
+                    active
+                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
+                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
+                  }
+                >
+                  {l.label}
+                </button>
+              );
+            })}
           </div>
           {(mistakes || []).length > 0 && (
             <button
               onClick={() => setOnlyMistakes((v) => !v)}
-              className={`w-full mt-2 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
+              className={`w-full mt-2 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+              style={
                 onlyMistakes
-                  ? "bg-amber-400 border-amber-600 text-amber-950"
-                  : "bg-white border-amber-200 text-amber-500"
-              }`}
+                  ? { backgroundColor: REVIEW_ACCENT.solid, color: REVIEW_ACCENT.on }
+                  : { backgroundColor: INK.paper, color: REVIEW_ACCENT.dark, border: `1.5px solid ${REVIEW_ACCENT.tintBorder}` }
+              }
             >
               📝 只看錯題 ({mistakes.length})
             </button>
           )}
-        </Card>
+        </PaperCard>
 
         <div className="flex flex-col gap-3">
           {filtered.map((item) => (

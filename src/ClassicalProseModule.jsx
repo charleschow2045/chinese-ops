@@ -11,7 +11,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { Card, Button, PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, TYPE } = window.App.UI;
+  const { PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
@@ -70,7 +70,7 @@ window.App = window.App || {};
               ))}
             </div>
           </div>
-          <AudioButtons text={item.lines.join("")} color="lime" className="mt-3" />
+          <AudioButtons text={item.lines.join("")} accent={ACCENT} className="mt-3" />
         </PaperCard>
 
         <PaperCard accent={ACCENT}>
@@ -199,7 +199,7 @@ window.App = window.App || {};
       return (
         <FixedQuizFlow
           questions={selectedItem.questions}
-          color="lime"
+          accent={ACCENT}
           headerLabel={selectedItem.title}
           onBack={() => setView("passage")}
           onFinish={finishQuestions}

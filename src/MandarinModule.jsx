@@ -7,7 +7,8 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useEffect } = React;
-  const { Card, Button } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE } = window.App.UI;
+  const ACCENT = MODULE_ACCENTS.mandarin;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { SpeechUtils } = window.App;
@@ -27,6 +28,10 @@ window.App = window.App || {};
     { key: "speaking", label: "說話練習", emoji: "🗣️" },
     { key: "pinyinIME", label: "拼音輸入法", emoji: "⌨️" },
   ];
+
+  const inputClass =
+    "w-full text-center text-xl tracking-wide rounded-xl font-extrabold px-4 py-3 outline-none disabled:opacity-60";
+  const inputStyle = { border: "1.5px solid #E9DFC7", backgroundColor: INK.paperCard, color: INK.ink };
 
   function withFallback(pool, kind, minCount) {
     const filtered = pool.filter((it) => it.kind === kind);
@@ -86,25 +91,30 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">練習完成！</h2>
-          <p className="text-lg font-bold text-emerald-600 mb-4">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <Button color="emerald" className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     const prompt = (
       <div>
-        <p className="text-xs font-extrabold text-stone-400 mb-2">請聽清楚，選出正確的字</p>
+        <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+          請聽清楚，選出正確的字
+        </p>
         <button
           onClick={playCurrent}
-          className="rounded-xl border-4 border-emerald-200 bg-emerald-50 text-emerald-600 font-extrabold px-4 py-2 mb-1"
+          className="rounded-xl font-extrabold px-4 py-2 mb-1"
+          style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}`, color: ACCENT.solid }}
         >
           🔊 重播
         </button>
@@ -114,21 +124,21 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
-        <Card>
-          <QuestionBlock q={{ ...q, prompt }} selected={selected} onSelect={selectOption} />
+        <PaperCard accent={ACCENT}>
+          <QuestionBlock q={{ ...q, prompt }} selected={selected} onSelect={selectOption} accent={ACCENT} />
           {answered && (
-            <Button color="emerald" className="w-full mt-4" onClick={handleNext}>
+            <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
-            </Button>
+            </InkButton>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }
@@ -166,33 +176,39 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">練習完成！</h2>
-          <p className="text-lg font-bold text-emerald-600 mb-4">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <Button color="emerald" className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
-        <Card>
+        <PaperCard accent={ACCENT}>
           <div className="text-center">
-            <p className="text-6xl font-extrabold text-stone-800 mb-1">{q.hanzi}</p>
-            <p className="text-sm font-bold text-stone-400 mb-4">請輸入這個詞語的拼音（不需要輸入聲調）</p>
+            <p className="text-6xl font-extrabold mb-1" style={{ color: INK.ink }}>
+              {q.hanzi}
+            </p>
+            <p className="text-sm font-bold mb-4" style={{ color: INK.mutedInk }}>
+              請輸入這個詞語的拼音（不需要輸入聲調）
+            </p>
           </div>
           <input
             type="text"
@@ -200,28 +216,24 @@ window.App = window.App || {};
             onChange={(e) => setInputValue(e.target.value)}
             disabled={checked}
             placeholder="例如：nihao"
-            className="w-full text-center text-xl tracking-wide rounded-xl border-4 border-stone-300 bg-white text-stone-800 font-extrabold px-4 py-3 outline-none focus:border-emerald-400 disabled:bg-stone-50"
+            className={inputClass}
+            style={inputStyle}
           />
           {!checked ? (
-            <Button
-              color="emerald"
-              className="w-full mt-3"
-              onClick={handleCheck}
-              disabled={inputValue.trim().length === 0}
-            >
+            <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheck} disabled={inputValue.trim().length === 0}>
               核對 ✓
-            </Button>
+            </InkButton>
           ) : (
             <>
-              <p className={`mt-3 font-extrabold ${isCorrect ? "text-emerald-600" : "text-amber-600"}`}>
+              <p className="mt-3 font-extrabold" style={{ color: isCorrect ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}>
                 {isCorrect ? "✅ 答對了，做得好！" : `💛 答錯了，正確拼音是：${q.pinyin}`}
               </p>
-              <Button color="emerald" className="w-full mt-3" onClick={handleNext}>
+              <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
                 {isLast ? "完成 🎉" : "下一題 →"}
-              </Button>
+              </InkButton>
             </>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }
@@ -240,51 +252,76 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">拼音輸入法</span>
+          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+            拼音輸入法
+          </span>
         </div>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-1">什麼是拼音？</p>
-          <p className="text-stone-700 leading-relaxed mb-3">{basics.whatIsPinyin}</p>
-          <p className="text-stone-700 leading-relaxed mb-3">{basics.syllableStructure}</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            什麼是拼音？
+          </p>
+          <p className={`leading-relaxed mb-3 ${TYPE.body}`} style={{ color: INK.ink }}>
+            {basics.whatIsPinyin}
+          </p>
+          <p className={`leading-relaxed mb-3 ${TYPE.body}`} style={{ color: INK.ink }}>
+            {basics.syllableStructure}
+          </p>
           <div className="flex flex-col gap-2 mb-3">
             {basics.examples.map((item, i) => (
-              <div key={i} className="rounded-xl bg-emerald-50 border-4 border-emerald-100 p-3 text-center">
-                <p className="font-extrabold text-stone-800">
-                  {item.char}（{item.syllable}） = <span className="text-emerald-600">{item.initial}</span>
-                  （聲母） + <span className="text-emerald-600">{item.final}</span>（韻母）
+              <div
+                key={i}
+                className="rounded-xl p-3 text-center"
+                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
+              >
+                <p className="font-extrabold" style={{ color: INK.ink }}>
+                  {item.char}（{item.syllable}） ={" "}
+                  <span style={{ color: ACCENT.solid }}>{item.initial}</span>（聲母） +{" "}
+                  <span style={{ color: ACCENT.solid }}>{item.final}</span>（韻母）
                 </p>
               </div>
             ))}
           </div>
-          <p className="text-stone-700 leading-relaxed">{basics.toneNote}</p>
-        </Card>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {basics.toneNote}
+          </p>
+        </PaperCard>
 
-        <Card>
-          <p className="text-stone-700 leading-relaxed">{PINYIN_IME_INTRO}</p>
-        </Card>
+        <PaperCard accent={ACCENT}>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {PINYIN_IME_INTRO}
+          </p>
+        </PaperCard>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">例子</p>
-          <div className="rounded-xl bg-emerald-50 border-4 border-emerald-100 p-3">
-            <p className="font-extrabold text-stone-800">
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            例子
+          </p>
+          <div className="rounded-xl p-3" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}>
+            <p className="font-extrabold" style={{ color: INK.ink }}>
               輸入「{ex.pinyin}」 → 候選：{ex.candidates.join("／")}
             </p>
-            <p className="text-sm text-stone-600 mt-1">{ex.note}</p>
+            <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
+              {ex.note}
+            </p>
           </div>
-        </Card>
+        </PaperCard>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-1">為什麼要選字？</p>
-          <p className="text-stone-700 leading-relaxed">{PINYIN_IME_WHY_CANDIDATES}</p>
-        </Card>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            為什麼要選字？
+          </p>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {PINYIN_IME_WHY_CANDIDATES}
+          </p>
+        </PaperCard>
 
-        <Button color="emerald" className="w-full" onClick={onStart}>
+        <InkButton accent={ACCENT} className="w-full" onClick={onStart}>
           開始練習 🎯
-        </Button>
+        </InkButton>
       </div>
     );
   }
@@ -343,79 +380,93 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">練習完成！</h2>
-          <p className="text-lg font-bold text-emerald-600 mb-4">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             答對了 {correctCount} / {totalSteps} 步
           </p>
-          <Button color="emerald" className="w-full" onClick={() => onFinish(correctCount, totalSteps)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, totalSteps)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
-    const selectQ = { prompt: <p className="leading-relaxed">{q.clue}</p>, options: candidateOptions, correctIndex: candidateOptions.indexOf(q.correct) };
+    const selectQ = {
+      prompt: <p className="leading-relaxed">{q.clue}</p>,
+      options: candidateOptions,
+      correctIndex: candidateOptions.indexOf(q.correct),
+    };
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             第 {qIndex + 1} / {questions.length} 題 · {stage === "pinyin" ? "打拼音" : "選字"}
           </span>
         </div>
 
-        <Card>
+        <PaperCard accent={ACCENT}>
           {stage === "pinyin" ? (
             <>
-              <p className="leading-relaxed text-stone-700 mb-3">{q.clue}</p>
-              <p className="text-sm font-bold text-stone-400 mb-3">請輸入空格中那個字的拼音（不需要輸入聲調）</p>
+              <p className="leading-relaxed mb-3" style={{ color: INK.ink }}>
+                {q.clue}
+              </p>
+              <p className="text-sm font-bold mb-3" style={{ color: INK.mutedInk }}>
+                請輸入空格中那個字的拼音（不需要輸入聲調）
+              </p>
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={pinyinChecked}
                 placeholder="例如：ni"
-                className="w-full text-center text-xl tracking-wide rounded-xl border-4 border-stone-300 bg-white text-stone-800 font-extrabold px-4 py-3 outline-none focus:border-emerald-400 disabled:bg-stone-50"
+                className={inputClass}
+                style={inputStyle}
               />
               {!pinyinChecked ? (
-                <Button
-                  color="emerald"
+                <InkButton
+                  accent={ACCENT}
                   className="w-full mt-3"
                   onClick={handleCheckPinyin}
                   disabled={inputValue.trim().length === 0}
                 >
                   核對 ✓
-                </Button>
+                </InkButton>
               ) : (
                 <>
-                  <p className={`mt-3 font-extrabold ${pinyinCorrect ? "text-emerald-600" : "text-amber-600"}`}>
+                  <p
+                    className="mt-3 font-extrabold"
+                    style={{ color: pinyinCorrect ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}
+                  >
                     {pinyinCorrect ? "✅ 答對了！" : `💛 答錯了，正確拼音是：${q.pinyin}`}
                   </p>
-                  <p className="text-sm text-stone-500 mt-2">
+                  <p className="text-sm mt-2" style={{ color: INK.mutedInk }}>
                     現在請從候選字中選出正確的字——這就是拼音輸入法實際運作的方式。
                   </p>
-                  <Button color="emerald" className="w-full mt-3" onClick={goToSelectStage}>
+                  <InkButton accent={ACCENT} className="w-full mt-3" onClick={goToSelectStage}>
                     繼續 →
-                  </Button>
+                  </InkButton>
                 </>
               )}
             </>
           ) : (
             <>
-              <QuestionBlock q={selectQ} selected={selected} onSelect={selectCandidate} />
+              <QuestionBlock q={selectQ} selected={selected} onSelect={selectCandidate} accent={ACCENT} />
               {selected !== null && (
-                <Button color="emerald" className="w-full mt-4" onClick={handleNext}>
+                <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
                   {isLast ? "完成 🎉" : "下一題 →"}
-                </Button>
+                </InkButton>
               )}
             </>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }
@@ -520,84 +571,102 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">練習完成！</h2>
-          <p className="text-lg font-bold text-emerald-600 mb-4">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             完成了 {attempted} 個，成功辨識 {correctCount} 個
           </p>
-          <Button color="emerald" className="w-full" onClick={() => onFinish(correctCount, attempted)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, attempted)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     const answered = status !== "idle";
+    const statusColor =
+      status === "correct" ? FEEDBACK.correct.solid : status === "manual" ? ACCENT.solid : FEEDBACK.incorrect.solid;
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {title} {index + 1} / {list.length}
           </span>
         </div>
 
-        <Card>
-          <p className="text-xs font-extrabold text-stone-400 mb-2">{instructionLabel}</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            {instructionLabel}
+          </p>
           <div className="text-center mb-3">
-            <p className="text-4xl font-extrabold text-stone-800 mb-1">{item.hanzi}</p>
-            {showPinyin && <p className="text-sm text-emerald-500 font-bold">{item.pinyin}</p>}
-            <button onClick={() => setShowPinyin((v) => !v)} className="text-xs font-extrabold text-emerald-500 underline mt-1">
+            <p className="text-4xl font-extrabold mb-1" style={{ color: INK.ink }}>
+              {item.hanzi}
+            </p>
+            {showPinyin && (
+              <p className="text-sm font-bold" style={{ color: ACCENT.solid }}>
+                {item.pinyin}
+              </p>
+            )}
+            <button
+              onClick={() => setShowPinyin((v) => !v)}
+              className="text-xs font-extrabold underline mt-1"
+              style={{ color: ACCENT.solid }}
+            >
               {showPinyin ? "隱藏拼音" : "顯示拼音"}
             </button>
           </div>
 
           <div className="flex gap-2 mb-3">
-            <Button color="emerald" className="flex-1 !px-2 !py-2 !text-base" onClick={playModel}>
+            <InkButton accent={ACCENT} className="flex-1 !px-2 !py-2 !text-base" onClick={playModel}>
               🔊 播放示範
-            </Button>
-            <Button
-              color="emerald"
+            </InkButton>
+            <InkButton
+              accent={ACCENT}
               className="flex-1 !px-2 !py-2 !text-base"
               onClick={startListening}
               disabled={listening || !recognitionSupported}
             >
               {listening ? "🎙️ 錄音中..." : "🎙️ 開始錄音"}
-            </Button>
+            </InkButton>
           </div>
 
           {!recognitionSupported && (
-            <p className="text-xs text-stone-400 mb-2">這部裝置未必支援語音辨識，可以使用下面的按鈕確認你已朗讀。</p>
+            <p className="text-xs mb-2" style={{ color: INK.mutedInk }}>
+              這部裝置未必支援語音辨識，可以使用下面的按鈕確認你已朗讀。
+            </p>
           )}
-          {message && <p className="text-xs text-amber-600 mb-2">{message}</p>}
+          {message && (
+            <p className="text-xs mb-2" style={{ color: FEEDBACK.incorrect.solid }}>
+              {message}
+            </p>
+          )}
 
           {!answered && (
-            <button onClick={manualConfirm} className="text-sm font-extrabold text-stone-400 underline">
+            <button onClick={manualConfirm} className="text-sm font-extrabold underline" style={{ color: INK.mutedInk }}>
               我已經讀了（不使用錄音）
             </button>
           )}
 
           {answered && (
             <>
-              <p
-                className={`font-extrabold ${
-                  status === "correct" ? "text-emerald-600" : status === "manual" ? "text-sky-600" : "text-amber-600"
-                }`}
-              >
+              <p className="font-extrabold" style={{ color: statusColor }}>
                 {status === "correct" && "✅ 讀得好標準！"}
                 {status === "tryagain" && "💛 與錄音不相符，可以再試一次！"}
                 {status === "manual" && "👍 好，繼續加油！"}
               </p>
-              <Button color="emerald" className="w-full mt-3" onClick={handleNext}>
+              <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
                 {isLast ? "完成 🎉" : "下一個 →"}
-              </Button>
+              </InkButton>
             </>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }
@@ -608,42 +677,60 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-emerald-600">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回主頁
           </button>
-          <span className="text-sm font-extrabold text-stone-400">普通話練習</span>
+          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+            普通話練習
+          </span>
         </div>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">程度</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            程度
+          </p>
           <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => setFilterLevel(l.key)}
-                className={`flex-1 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
-                  filterLevel === l.key
-                    ? "bg-emerald-400 border-emerald-600 text-emerald-950"
-                    : "bg-white border-emerald-100 text-emerald-300"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVEL_FILTERS.map((l) => {
+              const active = filterLevel === l.key;
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setFilterLevel(l.key)}
+                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+                  style={
+                    active
+                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
+                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
+                  }
+                >
+                  {l.label}
+                </button>
+              );
+            })}
           </div>
-        </Card>
+        </PaperCard>
 
         <div className="grid grid-cols-2 gap-3">
           {ACTIVITIES.map((a) => (
             <button
               key={a.key}
               onClick={() => onOpenActivity(a.key, filterLevel)}
-              className="flex flex-col items-center justify-center gap-2 bg-white border-4 border-emerald-100 rounded-2xl p-4 text-center active:translate-y-[2px] transition-all aspect-square"
+              className="flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center active:translate-y-[2px] transition-all aspect-square"
+              style={{
+                backgroundColor: INK.paperCard,
+                border: `1.5px solid ${ACCENT.tintBorder}`,
+                boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 8px 18px -8px rgba(36,31,27,0.16)",
+              }}
             >
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0 bg-emerald-50">
+              <div
+                className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0"
+                style={{ backgroundColor: ACCENT.tint }}
+              >
                 {a.emoji}
               </div>
-              <p className="font-extrabold text-stone-800 text-sm">{a.label}</p>
+              <p className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+                {a.label}
+              </p>
             </button>
           ))}
         </div>

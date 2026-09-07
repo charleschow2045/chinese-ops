@@ -6,7 +6,8 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { Card, Button, COLORS } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
+  const ACCENT = MODULE_ACCENTS.poetry;
   const { QuestionBlock, isCorrectAnswer } = window.App.QuizQuestion;
   const { POETRY_ITEMS, POETRY_LEVEL_LABEL } = window.App.Content;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -30,12 +31,12 @@ window.App = window.App || {};
     const options = shuffle([correct, ...distractors]);
     const prompt = (
       <div>
-        <p className="text-xs font-extrabold text-stone-400 mb-2">
+        <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
           《{item.title}》 · {item.author} — 哪一句才是正確的？
         </p>
-        <div className="text-xl leading-relaxed">
+        <div className="text-xl leading-relaxed font-serif">
           {item.lines.map((l, i) => (
-            <p key={i} className={i === lineIdx ? "text-rose-400" : ""}>
+            <p key={i} style={i === lineIdx ? { color: ACCENT.solid } : undefined}>
               {i === lineIdx ? "＿＿＿＿＿＿＿" : l}
             </p>
           ))}
@@ -57,7 +58,7 @@ window.App = window.App || {};
     const options = shuffle([item.meaningQuiz, ...distractors]);
     const prompt = (
       <div>
-        <p className="text-xs font-extrabold text-stone-400 mb-2">
+        <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
           《{item.title}》 · {item.author}
         </p>
         <p className="mb-2">「{item.lines[0]}」……這句的意思最貼近以下哪一項？</p>
@@ -78,30 +79,33 @@ window.App = window.App || {};
 
   function PoemDetail({ item, onBack, onPractice }) {
     const [showPinyin, setShowPinyin] = useState(false);
-    const c = COLORS.rose;
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-rose-500">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {POETRY_LEVEL_LABEL[item.level]} · {item.type === "prose" ? "文言文" : "詩詞"}
           </span>
         </div>
 
-        <Card>
-          <h2 className="text-2xl font-extrabold text-stone-800">{item.title}</h2>
-          <p className="text-sm font-bold text-stone-400 mb-3">
+        <PaperCard accent={ACCENT}>
+          <h2 className={`text-2xl ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </h2>
+          <p className={`text-sm mb-3 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.dynasty} · {item.author}
           </p>
 
-          <div className="text-lg leading-loose text-stone-700 font-medium">
+          <div className="text-lg leading-loose font-serif" style={{ color: INK.ink }}>
             {item.lines.map((l, i) => (
               <div key={i}>
                 <p>{l}</p>
                 {showPinyin && item.pinyin && (
-                  <p className="text-sm text-rose-400 font-bold mb-1">{item.pinyin[i]}</p>
+                  <p className="text-sm font-bold mb-1" style={{ color: ACCENT.solid }}>
+                    {item.pinyin[i]}
+                  </p>
                 )}
               </div>
             ))}
@@ -110,58 +114,86 @@ window.App = window.App || {};
           {item.pinyin && (
             <button
               onClick={() => setShowPinyin((v) => !v)}
-              className="mt-3 text-xs font-extrabold text-rose-500 underline"
+              className="mt-3 text-xs font-extrabold underline"
+              style={{ color: ACCENT.solid }}
             >
               {showPinyin ? "隱藏拼音" : "顯示拼音"}
             </button>
           )}
 
-          <AudioButtons text={item.lines.join("")} color="rose" className="mt-3" />
-        </Card>
+          <AudioButtons text={item.lines.join("")} accent={ACCENT} className="mt-3" />
+        </PaperCard>
 
         {item.annotations && (
-          <Card>
-            <p className="text-sm font-extrabold text-stone-400 mb-2">詞語註釋</p>
+          <PaperCard accent={ACCENT}>
+            <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+              詞語註釋
+            </p>
             <div className="flex flex-col gap-2">
               {item.annotations.map((a, i) => (
-                <p key={i} className="text-sm text-stone-700">
-                  <span className="font-extrabold text-rose-500">{a.term}</span>
-                  {a.jyutping && <span className="text-rose-400 font-bold"> （粵音：{a.jyutping}）</span>}
+                <p key={i} className={`text-sm ${TYPE.body}`} style={{ color: INK.ink }}>
+                  <span className={TYPE.heading} style={{ color: ACCENT.solid }}>
+                    {a.term}
+                  </span>
+                  {a.jyutping && (
+                    <span className="font-bold" style={{ color: ACCENT.solid }}>
+                      {" "}
+                      （粵音：{a.jyutping}）
+                    </span>
+                  )}
                   {" — "}
                   {a.meaning}
                 </p>
               ))}
             </div>
-          </Card>
+          </PaperCard>
         )}
 
         {item.type === "prose" ? (
-          <Card>
-            <p className="text-sm font-extrabold text-stone-400 mb-2">逐句解釋</p>
+          <PaperCard accent={ACCENT}>
+            <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+              逐句解釋
+            </p>
             <div className="flex flex-col gap-2">
               {item.lineExplanations.map((exp, i) => (
-                <div key={i} className="rounded-xl bg-rose-50 border-4 border-rose-100 p-3">
-                  <p className="text-sm font-bold text-stone-700 mb-1">{item.lines[i]}</p>
-                  <p className="text-sm text-stone-600">{exp}</p>
+                <div
+                  key={i}
+                  className="rounded-xl p-3"
+                  style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
+                >
+                  <p className="text-sm font-serif font-bold mb-1" style={{ color: INK.ink }}>
+                    {item.lines[i]}
+                  </p>
+                  <p className={`text-sm ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+                    {exp}
+                  </p>
                 </div>
               ))}
             </div>
-          </Card>
+          </PaperCard>
         ) : (
-          <Card>
-            <p className="text-sm font-extrabold text-stone-400 mb-1">譯文</p>
-            <p className="text-stone-700 leading-relaxed">{item.translation || item.explanation}</p>
-          </Card>
+          <PaperCard accent={ACCENT}>
+            <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+              譯文
+            </p>
+            <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+              {item.translation || item.explanation}
+            </p>
+          </PaperCard>
         )}
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-1">背景</p>
-          <p className="text-stone-700 leading-relaxed">{item.background}</p>
-        </Card>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            背景
+          </p>
+          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+            {item.background}
+          </p>
+        </PaperCard>
 
-        <Button color={c === COLORS.rose ? "rose" : "rose"} className="w-full" onClick={onPractice}>
+        <InkButton accent={ACCENT} className="w-full" onClick={onPractice}>
           開始練習 🎯
-        </Button>
+        </InkButton>
       </div>
     );
   }
@@ -197,38 +229,40 @@ window.App = window.App || {};
 
     if (done) {
       return (
-        <Card className="text-center">
+        <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
-          <h2 className="text-xl font-extrabold text-stone-800 mb-1">練習完成！</h2>
-          <p className="text-lg font-bold text-rose-500 mb-4">
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <Button color="rose" className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
-          </Button>
-        </Card>
+          </InkButton>
+        </PaperCard>
       );
     }
 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-rose-500">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回
           </button>
-          <span className="text-sm font-extrabold text-stone-400">
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
 
-        <Card>
-          <QuestionBlock q={q} selected={selected} onSelect={selectOption} />
+        <PaperCard accent={ACCENT}>
+          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
           {answered && (
-            <Button color="rose" className="w-full mt-4" onClick={handleNext}>
+            <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
-            </Button>
+            </InkButton>
           )}
-        </Card>
+        </PaperCard>
       </div>
     );
   }
@@ -237,14 +271,24 @@ window.App = window.App || {};
     return (
       <button
         onClick={onOpen}
-        className="w-full flex items-center gap-3 bg-white border-4 border-rose-100 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
+        style={{
+          backgroundColor: INK.paperCard,
+          border: `1.5px solid ${ACCENT.tintBorder}`,
+          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
+        }}
       >
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 bg-rose-50">
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+          style={{ backgroundColor: ACCENT.tint }}
+        >
           {item.type === "prose" ? "📜" : "🖌️"}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-extrabold text-stone-800 truncate">{item.title}</p>
-          <p className="text-xs font-bold text-stone-400">
+          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {item.title}
+          </p>
+          <p className={`text-xs ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.dynasty} · {item.author} · {POETRY_LEVEL_LABEL[item.level]}
           </p>
         </div>
@@ -309,38 +353,46 @@ window.App = window.App || {};
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button onClick={onBack} className="text-sm font-extrabold text-rose-500">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
             ← 返回主頁
           </button>
-          <span className="text-sm font-extrabold text-stone-400">詩詞學習</span>
+          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
+            詩詞學習
+          </span>
         </div>
 
-        <Card>
-          <p className="text-sm font-extrabold text-stone-400 mb-2">程度</p>
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            程度
+          </p>
           <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => setFilterLevel(l.key)}
-                className={`flex-1 rounded-xl border-4 font-extrabold py-2 text-sm transition-all ${
-                  filterLevel === l.key
-                    ? "bg-rose-400 border-rose-600 text-rose-950"
-                    : "bg-white border-rose-100 text-rose-300"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVEL_FILTERS.map((l) => {
+              const active = filterLevel === l.key;
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setFilterLevel(l.key)}
+                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+                  style={
+                    active
+                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
+                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
+                  }
+                >
+                  {l.label}
+                </button>
+              );
+            })}
           </div>
-          <Button color="rose" className="w-full mt-3" onClick={() => startPractice(filtered)}>
+          <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
             開始隨機練習 🎲
-          </Button>
+          </InkButton>
           {mistakeItems.length > 0 && (
-            <Button color="amber" className="w-full mt-2" onClick={() => startPractice(POETRY_ITEMS, mistakeItems)}>
+            <InkButton accent={REVIEW_ACCENT} className="w-full mt-2" onClick={() => startPractice(POETRY_ITEMS, mistakeItems)}>
               練習錯題 ({mistakeItems.length}) 📝
-            </Button>
+            </InkButton>
           )}
-        </Card>
+        </PaperCard>
 
         <div className="flex flex-col gap-3">
           {filtered.map((item) => (

@@ -76,40 +76,33 @@ Full spec for each module (practice mechanics, content requirements) is in
 the original project brief — see "Module details" below for what's already
 decided for Module 1; ask before assuming details for unbuilt modules.
 
-## UI redesign — "文房" (scholar's-study) style, IN PROGRESS (sample stage)
+## UI redesign — "文房" (scholar's-study) style, FULLY ROLLED OUT
 Started per explicit user request to move away from "Tailwind template
 blocks" (flat saturated `sky`/`rose`/`violet`/etc. colors, plain white cards
 with a thick red border and a hard flat offset shadow) toward a warmer,
-more layered look themed around Chinese ink/paper/seal materials. This is a
-**staged rollout with an explicit review gate** — the user asked to see only
-3 representative screens first (Home, one list-type module, the new
-文言文選讀 passage detail) and stop for their review before touching the
-remaining 7 modules. Do not extend the new system to any other module
-without the user asking for the next stage.
+more layered look themed around Chinese ink/paper/seal materials.
 
-- **Two parallel systems currently coexist in `src/theme.jsx`** — this is
-  intentional, not leftover cruft:
-  - LEGACY (`COLORS`, `Button`, `Card`) — completely unchanged, still used
-    by Poetry/Essay/Cangjie/Mandarin/History/Reading/Rhetoric/Punctuation,
-    by `AudioButtons.jsx` everywhere (including inside the 3 restyled
-    screens — see below), and by the shared quiz UI (`QuizQuestion.jsx`'s
-    `QuestionBlock`/`FixedQuizFlow`, used by every module's practice flow).
-  - NEW "文房" system (`INK`, `MODULE_ACCENTS`, `TYPE`, `PaperCard`,
-    `InkButton`, `Seal`) — used so far only by `Home.jsx`, `IdiomModule.jsx`
-    (list + detail views only, NOT its practice/quiz session), and
-    `ClassicalProseModule.jsx` (list + passage detail, NOT its questions
-    flow). Practice/quiz screens were deliberately left on the legacy
-    system this round because they're rendered through the shared
-    `QuizQuestion.jsx` component used by all 10 modules — touching that
-    would have cascaded the redesign to every module at once, defeating the
-    "3 screens only" ask.
-  - **Known, deliberate visual seam during this sample stage**: inside the
-    2 restyled modules, `AudioButtons` (🔊 普通話/粵語) still renders in its
-    old legacy color (`violet` for idiom, `lime` for classicalProse)
-    because it's a shared component read by `window.App.UI.Button`
-    (legacy) internally — touching it would again cascade to all modules.
-    It sits slightly oddly next to the new bamboo/indigo palette around it;
-    this is expected and left for a follow-up pass, not a bug.
+This shipped in two stages:
+1. **Sample stage** — Home, IdiomModule (list + detail only), and
+   ClassicalProseModule (list + passage detail only), with the shared
+   `QuizQuestion.jsx`/`AudioButtons.jsx` deliberately left on the legacy
+   system so the redesign didn't leak into all 10 modules' quiz screens
+   before the direction was approved.
+2. **Full rollout** (after user approval) — every remaining module
+   (Poetry, Essay, Cangjie, Mandarin, History, Reading, Rhetoric,
+   Punctuation) migrated to the same system, and — since this stage
+   explicitly *needed* to touch every quiz screen at once — both shared
+   components (`QuizQuestion.jsx`'s `QuestionBlock`/`FixedQuizFlow` and
+   `AudioButtons.jsx`) were rewritten too, so practice/quiz flows and 🔊
+   read-aloud buttons now use each module's own accent everywhere,
+   including inside Idiom/ClassicalProse's practice sessions (updated in
+   the same pass to keep them consistent with their own list/detail views).
+
+- **`src/theme.jsx` still keeps the legacy `COLORS`/`Button`/`Card` exports**
+  for reference/rollback, but as of the full rollout **no module or shared
+  component uses them any more** — every module file now imports
+  `PaperCard`/`InkButton`/`INK`/`MODULE_ACCENTS`/`TYPE` (and `REVIEW_ACCENT`/
+  `FEEDBACK` where relevant) instead of `Card`/`Button`/`COLORS`.
 - **Color system** — 5 core colors from the user's spec, in `INK`:
   `paper` #F7F0E3 (宣紙白, page bg), `paperCard` #FBF7EC (derived — slightly
   lighter tone for cards sitting on the page), `ink` #241F1B (墨黑, primary
@@ -133,6 +126,26 @@ without the user asking for the next stage.
     anything beyond what the legacy `Button`'s single-layer
     `shadow-[0_6px_0_#hex]` already proved works — safer given this is a
     no-build-step app with no way to typecheck a broken class string
+    before shipping. Cangjie's `CangjieModule.jsx` is the one exception: its
+    5-category root chart (哲理科/筆劃科/人身科/字形科/難字鍵) needs 5
+    genuinely distinct tones for the "五色學倉頡" mnemonic to keep working,
+    so it defines its own local `CATEGORY_TONES` map (keyed by the same
+    `rose`/`orange`/`amber`/`emerald`/`violet` strings already stored in
+    `cangjieContent.jsx`, so that content file didn't need to change) drawing
+    one tone from each of the 4 accent families plus indigo again, rather
+    than reusing a single `MODULE_ACCENTS` entry for the whole chart.
+  - `FEEDBACK` (correct/incorrect tones for quiz answers) reuses the same
+    5-core-color vocabulary instead of inventing new Tailwind-style
+    greens/ambers: `correct` is bamboo (green = growth), `incorrect` is
+    vermillion (red = correction-ink, callback to marking mistakes in red
+    pen). Used by `QuestionBlock`'s per-option feedback style and by every
+    module's typing-drill correct/wrong message (Cangjie, Mandarin).
+  - `REVIEW_ACCENT` is the shared 練習錯題 (mistake-review) accent — the
+    same ochre tone as a mastery badge, reused by every module's own
+    "練習錯題"/"只看錯題" button so review-mode reads as one consistent
+    affordance app-wide, distinct from whichever module you're actually in
+    rather than a different ad hoc color per module (the old behavior used
+    `amber` almost everywhere but `orange` in one place — now unified).
     before shipping.
 - **Typography** — added Google Font "Noto Serif TC" alongside the existing
   "Noto Sans TC" (`index.html`'s font `<link>` and `tailwind.config`'s
@@ -179,29 +192,45 @@ without the user asking for the next stage.
 - **Global/shared changes** (unavoidable — these sit in the app shell used
   by every screen, restyled or not, since request #1 explicitly asked for
   the base palette to change everywhere): `index.html`'s `<body>` background
-  and `Root.jsx`'s outer gradient wrapper + decorative blur blobs now use
-  the new `INK.paper`/vermillion/ochre/indigo tones instead of
-  `bg-amber-50`/rose/sky; the app's `<h1>` title is now `font-serif
-  font-black` in vermillion instead of `text-red-600`. This means even the
-  7 not-yet-migrated modules now sit on the new paper-colored background —
-  confirmed in-browser that their own `Card`/`Button`/list-row styling is
-  otherwise completely unchanged (e.g. History module still renders its
-  original flat-orange/thick-border/hard-shadow look).
-- Verified in-browser: Home (module grid with family-grouped accent colors
-  + colored bottom-edge strip per card), IdiomModule (mastery badge in
-  ochre, level chips, stamp-style list rows, detail view with all cards
-  migrated, practice quiz still on legacy style), ClassicalProseModule
-  (list with stamps, passage detail with seal badge + scroll-style original
-  text + glossary/translation/background cards, questions flow still on
-  legacy style) — all render correctly with no console errors (one
-  false-positive: the dev server's documented single-threaded overload on
-  first load produced stale connection-reset errors in one browser tab;
-  confirmed via a fresh tab that the actual app has zero errors).
-- **Next step is explicitly gated on user review** — report the 3 sample
-  screens back and wait for direction before restyling Poetry, Essay,
-  Cangjie, Mandarin, History, Reading, Rhetoric, or Punctuation, and before
-  touching the shared `QuizQuestion.jsx`/`AudioButtons.jsx` components that
-  the practice/quiz flows and audio buttons still depend on.
+  and `Root.jsx`'s outer gradient wrapper + decorative blur blobs use the
+  new `INK.paper`/vermillion/ochre/indigo tones instead of
+  `bg-amber-50`/rose/sky; the app's `<h1>` title is `font-serif font-black`
+  in vermillion instead of `text-red-600`.
+- **`Home.jsx`'s module grid is `grid-cols-2` (5 rows × 2), not
+  `grid-cols-3`** — with 10 modules, a 3-column grid left a lonely single
+  card on its own final row; 2 columns divides evenly with none left over.
+- Every module file follows the same conversion shape: `const { PaperCard,
+  InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
+  const ACCENT = MODULE_ACCENTS.<moduleKey>;` at the top, then `Card`→
+  `PaperCard accent={ACCENT}`, `Button color="..."`→`InkButton
+  accent={ACCENT}` (or `accent={REVIEW_ACCENT}` for a 練習錯題/只看錯題
+  button), level-filter chips restyled with the same active/inactive
+  inline-style pattern as Home's `LevelSelector`, and `text-stone-*`/
+  hardcoded Tailwind color text classes replaced with `INK.ink`/
+  `INK.mutedInk` + `TYPE.heading`/`TYPE.caption`. `AudioButtons` calls
+  changed from `color="xxx"` to `accent={ACCENT}` everywhere (Poetry,
+  History, Idiom, ClassicalProse). `FixedQuizFlow`/`QuestionBlock` calls
+  changed from `color="xxx"` to `accent={ACCENT}` everywhere.
+- Verified in-browser across every module and both quiz mechanics: Home
+  (5×2 grid, family-grouped accents, colored bottom-edge strip per card),
+  Poetry (list/detail/practice, fill-blank + author + meaning questions),
+  Cangjie (5-color category chart, typing drill with correct/wrong
+  feedback), Mandarin (all 5 activities incl. the 2-stage pinyin-IME drill:
+  type pinyin → pick candidate), History (`FixedQuizFlow` incl. a
+  deliberate wrong answer to confirm the vermillion incorrect-tint),
+  Reading (`FixedQuizFlow`), Idiom and ClassicalProse (re-verified after
+  the shared-component rewrite — their practice/quiz sessions now use
+  `ACCENT` instead of the old legacy `violet`/`lime`), Essay/Rhetoric/
+  Punctuation (list + practice quiz, fill-blank and MC question types) —
+  zero console errors anywhere. (One false-positive along the way: the dev
+  server's documented single-threaded overload on first load produced
+  stale connection-reset errors in one browser tab; confirmed via a fresh
+  tab each time that the actual app has zero errors.)
+- Per the user's request, this full-rollout pass stopped for review with 3
+  screenshots (Home, IdiomModule list, a Punctuation quiz-in-progress
+  showing the InkButton + correct-answer tint + fill-blank marker together)
+  before being considered complete — see chat history for the actual
+  images; not reproduced here since screenshots don't belong in this file.
 
 ## Design notes
 - Bright, encouraging, age-appropriate tone (Primary 5 to Secondary 1 student)
@@ -217,47 +246,56 @@ without the user asking for the next stage.
   input (multiple choice, drag, tap-to-build) over free typing in modules
   1, 2, 5, 7, 8, 9 — free typing is only appropriate within module 3 (Cangjie
   practice) and module 4 (Mandarin/pinyin)
-- Simple navigation: a home dashboard grid of the 9 modules (3×3), tap a
-  module to open it full-screen with a "← 返回主頁" back button (hub-and-spoke,
-  same pattern as `english-ops`)
+- Simple navigation: a home dashboard grid of the 10 modules (`grid-cols-2`,
+  5 rows × 2 — see UI redesign notes for why not 3×3), tap a module to open
+  it full-screen with a "← 返回主頁" back button (hub-and-spoke, same pattern
+  as `english-ops`)
 - `src/AudioButtons.jsx` — shared 🔊 普通話 / 🔊 粵語 read-aloud buttons
-  (`window.App.AudioButtons`, a `{ text, color, className }` component).
-  Loads `speechUtils.jsx`'s voices once via `getVoicesAsync()` in a
-  `useEffect`, picks a voice with `pickMandarinVoice`/`pickCantoneseVoice`,
-  and calls `speak(text, voice, fallbackLang)` on click. Originally built
-  inline for Module 5's idiom detail view, then extracted here and reused
-  by Module 1 (reads the whole poem/prose via `item.lines.join("")`) and
-  Module 6 (reads `item.story`) after user request. Loads in `index.html`
-  right after `speechUtils.jsx` and before `QuizQuestion.jsx` — any new
-  caller must appear after that point in load order. If a future module
-  wants this too, just import `window.App.AudioButtons` and pass `text` +
-  a matching `color` from `COLORS` — no per-module voice-loading needed.
-- Shared UI primitives live in `src/theme.jsx` (`Card`, `Button`, `COLORS` —
-  9 colour keys, one per module) and `src/QuizQuestion.jsx`:
+  (`window.App.AudioButtons`, a `{ text, accent, className }` component —
+  `accent` takes a `MODULE_ACCENTS` entry, not a legacy color string, since
+  the UI redesign rollout; see that section for why). Loads
+  `speechUtils.jsx`'s voices once via `getVoicesAsync()` in a `useEffect`,
+  picks a voice with `pickMandarinVoice`/`pickCantoneseVoice`, and calls
+  `speak(text, voice, fallbackLang)` on click. Originally built inline for
+  Module 5's idiom detail view, then extracted here and reused by Module 1
+  (reads the whole poem/prose via `item.lines.join("")`) and Module 6 (reads
+  `item.story`) after user request. Loads in `index.html` right after
+  `speechUtils.jsx` and before `QuizQuestion.jsx` — any new caller must
+  appear after that point in load order. If a future module wants this too,
+  just import `window.App.AudioButtons` and pass `text` + `accent={ACCENT}`
+  (that module's own `MODULE_ACCENTS` entry) — no per-module voice-loading
+  needed.
+- Shared UI primitives live in `src/theme.jsx` (`PaperCard`, `InkButton`,
+  `INK`, `MODULE_ACCENTS`, `FEEDBACK`, `REVIEW_ACCENT`, `TYPE` — see UI
+  redesign notes; legacy `Card`/`Button`/`COLORS` still exported but unused
+  by any module as of the full rollout) and `src/QuizQuestion.jsx`:
   - `QuestionBlock` — generic multiple-choice renderer with immediate
     feedback; `q.prompt` can be a plain string or a JSX element, so modules
     can render rich prompts (e.g. a whole poem with one line blanked out)
-    through the same component. Prompt text is `text-xl` and option-button
-    text is `text-lg` (bumped up from the unstyled ~16px default after user
-    feedback asking for bigger exercise text) — since every module renders
-    its practice questions through this one component (directly, or via
-    `FixedQuizFlow`), this single change affects the question/answer text
-    across all 7 quiz-based modules at once. Several modules also build
-    their own custom JSX `prompt` with an explicit Tailwind size (e.g. the
-    sentence/clue shown above the options) — those don't inherit this
-    wrapper's size and were bumped individually alongside this change
-    (`text-lg` → `text-xl` for sentence/clue prompts, `text-3xl` → `text-4xl`
-    for Idiom's blanked-character display). Cangjie and Mandarin's typing
-    drills don't use `QuestionBlock` at all and were left alone — their
-    question text was already large (`text-6xl` for the character being
-    asked about) where it mattered.
+    through the same component. Takes an `accent` prop (a `MODULE_ACCENTS`
+    entry) for the default option style; correct/wrong feedback always uses
+    `FEEDBACK.correct`/`FEEDBACK.incorrect` regardless of module. Prompt
+    text is `text-xl` and option-button text is `text-lg` (bumped up from
+    the unstyled ~16px default after user feedback asking for bigger
+    exercise text) — since every module renders its practice questions
+    through this one component (directly, or via `FixedQuizFlow`), this
+    single change affects the question/answer text across all quiz-based
+    modules at once. Several modules also build their own custom JSX
+    `prompt` with an explicit Tailwind size (e.g. the sentence/clue shown
+    above the options) — those don't inherit this wrapper's size and were
+    bumped individually alongside this change (`text-lg` → `text-xl` for
+    sentence/clue prompts, `text-3xl` → `text-4xl` for Idiom's
+    blanked-character display). Cangjie and Mandarin's typing drills don't
+    use `QuestionBlock` at all and were left alone — their question text was
+    already large (`text-6xl` for the character being asked about) where it
+    mattered.
   - `FixedQuizFlow` — steps through a **fixed** `questions` array (list →
     score screen), for modules whose questions are hand-authored per content
-    item rather than generated at runtime (History, Reading — see their
-    module details below). Takes `{questions, color, headerLabel, onBack,
-    onFinish}`; resolves `color` through an internal literal class-name map
-    (`LINK_TEXT_CLASS`), not a template-interpolated `text-${color}-600` —
-    same reasoning as `COLORS` in theme.jsx, see the note there.
+    item rather than generated at runtime (History, Reading, ClassicalProse
+    — see their module details below). Takes `{questions, accent,
+    headerLabel, onBack, onFinish}` — `accent` (a `MODULE_ACCENTS` entry)
+    replaced the old `color` string + internal `LINK_TEXT_CLASS` lookup
+    when this was migrated off the legacy system.
 - `src/quizUtils.jsx` holds `shuffle`/`sampleOthers`/`sampleWithRepeats`,
   shared by every module that auto-generates MC questions at runtime (see
   Module 1/2/5 details below) — reuse these rather than re-implementing
