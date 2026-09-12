@@ -331,11 +331,45 @@ This shipped in two stages:
 - Full 150-poem library can come later — started with a smaller curated set
 
 ## Module 1 details — 詩詞學習 (built, deepened after user feedback)
-- Content: `src/content/poetryContent.jsx` — **38 classical poems** (唐/宋/清)
-  + 5 短篇文言文 (Analects excerpt, 陋室銘, 賣油翁, 愛蓮說, 揠苗助長), each
-  tagged `level: "p5"|"p6"|"s1"` and `type: "poem"|"prose"`. Original spec
-  target is ~150 poems — 38 is a meaningful expansion from the initial 20,
-  not the final count; keep expanding using the same template below.
+- Content: `src/content/poetryContent.jsx` — **54 classical poems** (唐/宋/晉/清)
+  + 7 短篇文言文 (Analects excerpt, 陋室銘, 賣油翁, 愛蓮說, 揠苗助長, 記承天寺
+  夜遊, 桃花源記節錄), each tagged `level: "p5"|"p6"|"s1"` and
+  `type: "poem"|"prose"`. Original spec target is ~150 poems — 54 is a
+  meaningful expansion from the initial 20 (via 38, then this 16-poem/
+  2-prose "author coverage" batch), not the final count; keep expanding
+  using the same template below.
+  - **The 16-poem/2-prose expansion batch** was driven by author coverage,
+    not just volume: added more representative works by authors already in
+    the file (李白 ×2, 杜甫 ×2, 蘇軾 ×2 incl. the prose piece, 王維 ×2), and
+    introduced 3 major poets that had zero entries before despite being
+    core secondary-school-Chinese figures — 白居易 (3), 陶淵明 (3 incl. the
+    prose piece), 李商隱 (4). Every 原文 was verified via `WebSearch` against
+    multiple independent sources — several matched Hong Kong Education
+    Bureau (`edb.gov.hk`) recommended-passage PDFs directly (月下獨酌其一,
+    水調歌頭, 賦得古原草送別, 夜雨寄北), a useful independent check on both
+    textual accuracy and HK-curriculum level-appropriateness.
+  - **水調歌頭．明月幾時有（節錄）is deliberately excerpted**, unlike every
+    other `type: "poem"` entry (all previously full-length): the user's own
+    request labelled it "節錄". Uses a literal `"……"` as its own `lines`/
+    `pinyin` array entry to mark the omitted middle section, with the
+    omitted range spelled out in `background` — do not treat the `"……"`
+    entry as a rendering bug; it's intentional and the pinyin-toggle/
+    practice-quiz code handles it fine (never gets selected as a fill-blank
+    answer since `buildFillBlankQuestion` picks by random index same as
+    any other line, but distractor-sampling never targets it specially —
+    if this ever surfaces "……" as a distractor option in practice, that's
+    a real gap to fix, not expected today since no other poem has that
+    exact line).
+  - **Classical-prose placement decision**: 記承天寺夜遊 and 桃花源記（節錄）
+    went into *this* file's existing 文言文 sub-section (same
+    `lineExplanations`/`meaningQuiz` schema as the other 5 prose pieces
+    here), **not** `classicalProseContent.jsx` (Module 10) — this file
+    already collects short 文言文 excerpts and feeds them into the same
+    runtime-generated practice quiz as the poems, whereas Module 10 uses a
+    different, heavier schema (`glossary`, hand-authored `questions` array,
+    `source`/`dynasty` instead of `author`) for its own standalone fixed-
+    question flow. Keep new short classical-prose pieces here going forward
+    unless they're specifically meant for Module 10's fixed-question format.
 - Every item carries:
   - `explanation` — a short one-sentence paraphrase (still used as the
     fallback if `translation` is absent, and unrelated to `meaningQuiz`)
@@ -1136,7 +1170,7 @@ correctly since, and lets them specifically re-practice just those.
 
 **All 10 modules are built.** Remaining known gaps (content depth, not
 missing features):
-- [ ] Expand poem library further beyond the current 38+5 curated items (spec target: ~150)
+- [ ] Expand poem library further beyond the current 54+7 curated items (spec target: ~150)
 - [ ] Expand essay golden sentence library further beyond the current 60 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
 - [ ] Idiom library now at 653 (39 fully-verified + 495 lighter-schema + 119
