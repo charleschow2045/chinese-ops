@@ -95,7 +95,7 @@ window.App = window.App || {};
           <span className="absolute bottom-64 left-10 text-3xl opacity-[0.14]">🐉</span>
         </div>
 
-        <div className="relative px-4 pb-10">
+        <div className="relative px-4 pb-10 max-w-lg mx-auto">
           <header className="pt-6 pb-4">
             <h1 className="text-3xl font-serif font-black tracking-tight" style={{ color: "#B0342A" }}>🏮 中文學習</h1>
           </header>
