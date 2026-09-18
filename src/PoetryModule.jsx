@@ -13,6 +13,33 @@ window.App = window.App || {};
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { AudioButtons } = window.App;
 
+  // 體裁 pill tones (方案 B) — grouped by the app's existing 4-family
+  // palette plus one neutral tone for prose, per the user's spec: 絕句類
+  // → 竹青, 律詩類 → 靛青, 古詩類 → 赭金, 詞 → 印泥紅, 文言短文 → neutral.
+  // Matched by substring since `form` values are e.g. "五言絕句"/"七言絕句".
+  const FORM_PILL_TONES = [
+    { match: (f) => f.includes("絕句"), bg: "#E4E9DE", text: "#2F4028" },
+    { match: (f) => f.includes("律詩"), bg: "#E4E8EC", text: "#23303D" },
+    { match: (f) => f.includes("古詩"), bg: "#F1E7CF", text: "#7A5D20" },
+    { match: (f) => f === "詞", bg: "#F6E4E1", text: "#7A211A" },
+    { match: (f) => f === "文言短文", bg: "#EAE5DB", text: "#6B6355" },
+  ];
+
+  function FormPill({ item }) {
+    if (!item.form) return null;
+    const tone = FORM_PILL_TONES.find((t) => t.match(item.form));
+    if (!tone) return null;
+    const label = item.form === "詞" && item.ciTune ? `詞．${item.ciTune}` : item.form;
+    return (
+      <span
+        className="inline-block px-2.5 py-1 rounded-full text-xs font-bold mb-3"
+        style={{ backgroundColor: tone.bg, color: tone.text }}
+      >
+        {label}
+      </span>
+    );
+  }
+
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
     { key: "p5", label: "小五" },
@@ -94,9 +121,12 @@ window.App = window.App || {};
           <h2 className={`text-2xl ${TYPE.heading}`} style={{ color: INK.ink }}>
             {item.title}
           </h2>
-          <p className={`text-sm mb-3 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
             {item.dynasty} · {item.author}
           </p>
+          <div>
+            <FormPill item={item} />
+          </div>
 
           <div className="text-lg leading-loose font-serif" style={{ color: INK.ink }}>
             {item.lines.map((l, i) => (

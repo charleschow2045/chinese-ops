@@ -16,6 +16,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["床前明月光，", "疑是地上霜。", "舉頭望明月，", "低頭思故鄉。"],
       pinyin: [
         "Chuáng qián míng yuè guāng，",
@@ -42,6 +43,7 @@ window.App.Content = window.App.Content || {};
       author: "孟浩然",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["春眠不覺曉，", "處處聞啼鳥。", "夜來風雨聲，", "花落知多少。"],
       pinyin: [
         "Chūn mián bù jué xiǎo，",
@@ -67,6 +69,7 @@ window.App.Content = window.App.Content || {};
       author: "李紳",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["鋤禾日當午，", "汗滴禾下土。", "誰知盤中餐，", "粒粒皆辛苦。"],
       pinyin: [
         "Chú hé rì dāng wǔ，",
@@ -92,6 +95,7 @@ window.App.Content = window.App.Content || {};
       author: "王之渙",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["白日依山盡，", "黃河入海流。", "欲窮千里目，", "更上一層樓。"],
       pinyin: [
         "Bái rì yī shān jìn，",
@@ -118,6 +122,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p5",
+      form: "七言絕句",
       lines: [
         "日照香爐生紫煙，",
         "遙看瀑布掛前川。",
@@ -148,6 +153,7 @@ window.App.Content = window.App.Content || {};
       author: "賀知章",
       dynasty: "唐",
       level: "p5",
+      form: "七言絕句",
       lines: [
         "碧玉妝成一樹高，",
         "萬條垂下綠絲絛。",
@@ -178,6 +184,7 @@ window.App.Content = window.App.Content || {};
       author: "柳宗元",
       dynasty: "唐",
       level: "p6",
+      form: "五言絕句",
       lines: ["千山鳥飛絕，", "萬徑人蹤滅。", "孤舟蓑笠翁，", "獨釣寒江雪。"],
       pinyin: [
         "Qiān shān niǎo fēi jué，",
@@ -203,6 +210,8 @@ window.App.Content = window.App.Content || {};
       author: "孟郊",
       dynasty: "唐",
       level: "p6",
+      form: "五言古詩",
+      formNote: "傳統上歸入樂府詩（樂府雜曲歌辭），因全詩六句、不合絕句四句或律詩八句之定格，形式上界定為五言古詩。",
       lines: [
         "慈母手中線，",
         "遊子身上衣。",
@@ -237,6 +246,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "朝辭白帝彩雲間，",
         "千里江陵一日還。",
@@ -268,6 +278,7 @@ window.App.Content = window.App.Content || {};
       author: "張繼",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "月落烏啼霜滿天，",
         "江楓漁火對愁眠。",
@@ -298,6 +309,7 @@ window.App.Content = window.App.Content || {};
       author: "杜牧",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "清明時節雨紛紛，",
         "路上行人欲斷魂。",
@@ -329,6 +341,7 @@ window.App.Content = window.App.Content || {};
       author: "杜牧",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "遠上寒山石徑斜，",
         "白雲生處有人家。",
@@ -359,6 +372,7 @@ window.App.Content = window.App.Content || {};
       author: "杜甫",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "兩個黃鸝鳴翠柳，",
         "一行白鷺上青天。",
@@ -390,6 +404,7 @@ window.App.Content = window.App.Content || {};
       author: "王安石",
       dynasty: "宋",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "爆竹聲中一歲除，",
         "春風送暖入屠蘇。",
@@ -421,6 +436,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "故人西辭黃鶴樓，",
         "煙花三月下揚州。",
@@ -452,23 +468,40 @@ window.App.Content = window.App.Content || {};
       author: "杜甫",
       dynasty: "唐",
       level: "s1",
-      lines: ["好雨知時節，", "當春乃發生。", "隨風潛入夜，", "潤物細無聲。"],
+      form: "五言律詩",
+      lines: [
+        "好雨知時節，",
+        "當春乃發生。",
+        "隨風潛入夜，",
+        "潤物細無聲。",
+        "野徑雲俱黑，",
+        "江船火獨明。",
+        "曉看紅濕處，",
+        "花重錦官城。",
+      ],
       pinyin: [
         "Hǎo yǔ zhī shíjié，",
         "dāng chūn nǎi fāshēng。",
         "suí fēng qián rù yè，",
         "rùn wù xì wú shēng。",
+        "yě jìng yún jù hēi，",
+        "jiāng chuán huǒ dú míng。",
+        "xiǎo kàn hóng shī chù，",
+        "huā zhòng Jǐnguān Chéng。",
       ],
       explanation:
-        "好雨懂得配合時節，在春天來臨的時候降下。它隨着風悄悄地在夜裏來到，靜靜地滋潤萬物，沒有一點聲音。",
+        "好雨懂得配合時節，在春天來臨的時候降下。它隨着風悄悄地在夜裏來到，靜靜地滋潤萬物，沒有一點聲音。田野小徑上空的雲層一片漆黑，只有江上漁船的燈火獨自明亮。天亮後看那被雨水潤濕的地方，錦官城裏必是繁花沉甸，開得更加茂盛。",
       annotations: [
         { term: "乃", meaning: "就，於是" },
         { term: "潛", meaning: "悄悄地，不知不覺" },
+        { term: "花重", jyutping: "faa1 cung5", meaning: "花朵沾滿雨水，顯得沉甸厚重" },
+        { term: "錦官城", meaning: "成都的別稱" },
       ],
       translation:
-        "好雨懂得配合時節，在春天來臨之際降下。它隨着微風，悄悄地在夜裏來到，靜靜地滋潤萬物，沒有一點聲息。",
-      background: "讚美春雨適時而至、默默滋養萬物的美好，展現杜甫細膩的觀察。",
-      meaningQuiz: "詩歌讚美春雨在夜裏悄悄滋潤大地萬物，不聲不響。",
+        "好雨懂得配合時節，在春天來臨之際降下。它隨着微風，悄悄地在夜裏來到，靜靜地滋潤萬物，沒有一點聲息。田野小徑上空的雲層一片漆黑，只有江上的漁船燈火獨自明亮。天亮後看那些被雨水滋潤過的地方，錦官城裏的花朵想必開得更加繁盛沉甸。",
+      background:
+        "杜甫定居成都草堂時所作，前四句寫雨之「知時」「潤物」，後四句寫夜雨中所見及想像天明後的景象，情景交融，是讚美春雨的名篇。此檔案原僅收錄前四句、未標明「節錄」，現已據原詩補全後四句。",
+      meaningQuiz: "詩歌讚美春雨在夜裏悄悄滋潤大地萬物，並想像天明後繁花盛放的景象。",
     },
     {
       id: "huichong-chunjiang",
@@ -477,6 +510,7 @@ window.App.Content = window.App.Content || {};
       author: "蘇軾",
       dynasty: "宋",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "竹外桃花三兩枝，",
         "春江水暖鴨先知。",
@@ -508,6 +542,7 @@ window.App.Content = window.App.Content || {};
       author: "蘇軾",
       dynasty: "宋",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "橫看成嶺側成峰，",
         "遠近高低各不同。",
@@ -538,6 +573,7 @@ window.App.Content = window.App.Content || {};
       author: "蘇軾",
       dynasty: "宋",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "水光瀲灩晴方好，",
         "山色空濛雨亦奇。",
@@ -568,6 +604,7 @@ window.App.Content = window.App.Content || {};
       author: "王昌齡",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "秦時明月漢時關，",
         "萬里長征人未還。",
@@ -599,6 +636,7 @@ window.App.Content = window.App.Content || {};
       author: "王維",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["紅豆生南國，", "春來發幾枝。", "勸君多采擷，", "此物最相思。"],
       pinyin: [
         "Hóngdòu shēng nánguó，",
@@ -624,6 +662,7 @@ window.App.Content = window.App.Content || {};
       author: "王維",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "獨在異鄉為異客，",
         "每逢佳節倍思親。",
@@ -655,6 +694,7 @@ window.App.Content = window.App.Content || {};
       author: "賈島",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["松下問童子，", "言師采藥去。", "只在此山中，", "雲深不知處。"],
       pinyin: [
         "Sōng xià wèn tóngzǐ，",
@@ -677,6 +717,7 @@ window.App.Content = window.App.Content || {};
       author: "王翰",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "葡萄美酒夜光杯，",
         "欲飲琵琶馬上催。",
@@ -708,6 +749,7 @@ window.App.Content = window.App.Content || {};
       author: "王昌齡",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "寒雨連江夜入吳，",
         "平明送客楚山孤。",
@@ -739,6 +781,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "天門中斷楚江開，",
         "碧水東流至此回。",
@@ -769,6 +812,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p5",
+      form: "七言絕句",
       lines: [
         "李白乘舟將欲行，",
         "忽聞岸上踏歌聲。",
@@ -800,6 +844,7 @@ window.App.Content = window.App.Content || {};
       author: "高適",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "千里黃雲白日曛，",
         "北風吹雁雪紛紛。",
@@ -830,6 +875,7 @@ window.App.Content = window.App.Content || {};
       author: "王之渙",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "黃河遠上白雲間，",
         "一片孤城萬仞山。",
@@ -860,6 +906,7 @@ window.App.Content = window.App.Content || {};
       author: "杜甫",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "黃四孃家花滿蹊，",
         "千朵萬朵壓枝低。",
@@ -890,6 +937,7 @@ window.App.Content = window.App.Content || {};
       author: "鄭燮",
       dynasty: "清",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "咬定青山不放鬆，",
         "立根原在破巖中。",
@@ -920,6 +968,7 @@ window.App.Content = window.App.Content || {};
       author: "葉紹翁",
       dynasty: "宋",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "應憐屐齒印蒼苔，",
         "小扣柴扉久不開。",
@@ -951,6 +1000,7 @@ window.App.Content = window.App.Content || {};
       author: "楊萬里",
       dynasty: "宋",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "畢竟西湖六月中，",
         "風光不與四時同。",
@@ -981,6 +1031,7 @@ window.App.Content = window.App.Content || {};
       author: "朱熹",
       dynasty: "宋",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "勝日尋芳泗水濱，",
         "無邊光景一時新。",
@@ -1012,6 +1063,7 @@ window.App.Content = window.App.Content || {};
       author: "朱熹",
       dynasty: "宋",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "半畝方塘一鑑開，",
         "天光雲影共徘徊。",
@@ -1043,6 +1095,7 @@ window.App.Content = window.App.Content || {};
       author: "杜牧",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "千里鶯啼綠映紅，",
         "水村山郭酒旗風。",
@@ -1073,6 +1126,7 @@ window.App.Content = window.App.Content || {};
       author: "王安石",
       dynasty: "宋",
       level: "p6",
+      form: "七言絕句",
       lines: [
         "京口瓜洲一水間，",
         "鍾山只隔數重山。",
@@ -1104,6 +1158,7 @@ window.App.Content = window.App.Content || {};
       author: "龔自珍",
       dynasty: "清",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "浩蕩離愁白日斜，",
         "吟鞭東指即天涯。",
@@ -1147,6 +1202,7 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "p6",
+      form: "五言絕句",
       lines: ["眾鳥高飛盡，", "孤雲獨去閒。", "相看兩不厭，", "只有敬亭山。"],
       pinyin: [
         "Zhòng niǎo gāo fēi jìn，",
@@ -1173,6 +1229,8 @@ window.App.Content = window.App.Content || {};
       author: "李白",
       dynasty: "唐",
       level: "s1",
+      form: "五言古詩",
+      formNote: "全詩十四句，句數不合絕句（四句）或律詩（八句）之定格，故屬五言古詩，非近體詩。",
       lines: [
         "花間一壺酒，",
         "獨酌無相親。",
@@ -1225,6 +1283,7 @@ window.App.Content = window.App.Content || {};
       author: "杜甫",
       dynasty: "唐",
       level: "s1",
+      form: "五言律詩",
       lines: [
         "國破山河在，",
         "城春草木深。",
@@ -1264,6 +1323,7 @@ window.App.Content = window.App.Content || {};
       author: "杜甫",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: [
         "岐王宅裏尋常見，",
         "崔九堂前幾度聞。",
@@ -1295,6 +1355,8 @@ window.App.Content = window.App.Content || {};
       author: "蘇軾",
       dynasty: "宋",
       level: "s1",
+      form: "詞",
+      ciTune: "水調歌頭",
       lines: ["明月幾時有？", "把酒問青天。", "……", "但願人長久，", "千里共嬋娟。"],
       pinyin: [
         "Míngyuè jǐ shí yǒu？",
@@ -1322,6 +1384,7 @@ window.App.Content = window.App.Content || {};
       author: "白居易",
       dynasty: "唐",
       level: "p5",
+      form: "五言律詩",
       lines: [
         "離離原上草，",
         "一歲一枯榮。",
@@ -1361,6 +1424,7 @@ window.App.Content = window.App.Content || {};
       author: "白居易",
       dynasty: "唐",
       level: "p5",
+      form: "五言絕句",
       lines: ["小娃撐小艇，", "偷採白蓮回。", "不解藏蹤跡，", "浮萍一道開。"],
       pinyin: [
         "Xiǎo wá chēng xiǎo tǐng，",
@@ -1386,6 +1450,8 @@ window.App.Content = window.App.Content || {};
       author: "白居易",
       dynasty: "唐",
       level: "p6",
+      form: "詞",
+      ciTune: "憶江南",
       lines: ["江南好，", "風景舊曾諳。", "日出江花紅勝火，", "春來江水綠如藍。", "能不憶江南？"],
       pinyin: [
         "Jiāngnán hǎo，",
@@ -1413,6 +1479,7 @@ window.App.Content = window.App.Content || {};
       author: "王維",
       dynasty: "唐",
       level: "p6",
+      form: "五言絕句",
       lines: ["獨坐幽篁裏，", "彈琴復長嘯。", "深林人不知，", "明月來相照。"],
       pinyin: [
         "Dú zuò yōu huáng lǐ，",
@@ -1439,6 +1506,7 @@ window.App.Content = window.App.Content || {};
       author: "王維",
       dynasty: "唐",
       level: "p6",
+      form: "五言絕句",
       lines: ["空山不見人，", "但聞人語響。", "返景入深林，", "復照青苔上。"],
       pinyin: [
         "Kōng shān bú jiàn rén，",
@@ -1465,6 +1533,8 @@ window.App.Content = window.App.Content || {};
       author: "陶淵明",
       dynasty: "晉",
       level: "s1",
+      form: "五言古詩",
+      formNote: "陶淵明身處近體詩格律確立之前，雖然句式合乎五言律詩之行款（八句），但學術上不以近體格律衡量，歸類為五言古詩。",
       lines: [
         "結廬在人境，",
         "而無車馬喧。",
@@ -1508,6 +1578,8 @@ window.App.Content = window.App.Content || {};
       author: "陶淵明",
       dynasty: "晉",
       level: "s1",
+      form: "五言古詩",
+      formNote: "陶淵明身處近體詩格律確立之前，雖然句式合乎五言律詩之行款（八句），但學術上不以近體格律衡量，歸類為五言古詩。",
       lines: [
         "種豆南山下，",
         "草盛豆苗稀。",
@@ -1547,6 +1619,7 @@ window.App.Content = window.App.Content || {};
       author: "李商隱",
       dynasty: "唐",
       level: "p6",
+      form: "七言絕句",
       lines: ["君問歸期未有期，", "巴山夜雨漲秋池。", "何當共剪西窗燭，", "卻話巴山夜雨時。"],
       pinyin: [
         "Jūn wèn guī qī wèi yǒu qī，",
@@ -1573,6 +1646,7 @@ window.App.Content = window.App.Content || {};
       author: "李商隱",
       dynasty: "唐",
       level: "p6",
+      form: "五言絕句",
       lines: ["向晚意不適，", "驅車登古原。", "夕陽無限好，", "只是近黃昏。"],
       pinyin: [
         "Xiàng wǎn yì bú shì，",
@@ -1599,6 +1673,7 @@ window.App.Content = window.App.Content || {};
       author: "李商隱",
       dynasty: "唐",
       level: "s1",
+      form: "七言絕句",
       lines: ["雲母屏風燭影深，", "長河漸落曉星沉。", "嫦娥應悔偷靈藥，", "碧海青天夜夜心。"],
       pinyin: [
         "Yúnmǔ píngfēng zhú yǐng shēn，",
@@ -1625,6 +1700,7 @@ window.App.Content = window.App.Content || {};
       author: "李商隱",
       dynasty: "唐",
       level: "s1",
+      form: "七言律詩",
       lines: [
         "相見時難別亦難，",
         "東風無力百花殘。",
@@ -1666,6 +1742,7 @@ window.App.Content = window.App.Content || {};
       author: "孔子及其弟子",
       dynasty: "春秋",
       level: "s1",
+      form: "文言短文",
       lines: [
         "子曰：「學而時習之，不亦說乎？",
         "有朋自遠方來，不亦樂乎？",
@@ -1692,6 +1769,7 @@ window.App.Content = window.App.Content || {};
       author: "劉禹錫",
       dynasty: "唐",
       level: "s1",
+      form: "文言短文",
       lines: [
         "山不在高，有仙則名；",
         "水不在深，有龍則靈。",
@@ -1717,6 +1795,7 @@ window.App.Content = window.App.Content || {};
       author: "歐陽修",
       dynasty: "宋",
       level: "s1",
+      form: "文言短文",
       lines: [
         "陳康肅公善射，當世無雙，公亦以此自矜。",
         "嘗射於家圃，有賣油翁釋擔而立，睨之，久而不去。",
@@ -1744,6 +1823,7 @@ window.App.Content = window.App.Content || {};
       author: "周敦頤",
       dynasty: "宋",
       level: "s1",
+      form: "文言短文",
       lines: [
         "予獨愛蓮之出淤泥而不染，濯清漣而不妖，",
         "中通外直，不蔓不枝，香遠益清，亭亭淨植，",
@@ -1772,6 +1852,7 @@ window.App.Content = window.App.Content || {};
       author: "孟子",
       dynasty: "戰國",
       level: "p6",
+      form: "文言短文",
       lines: [
         "宋人有閔其苗之不長而揠之者，",
         "芒芒然歸，謂其人曰：「今日病矣！予助苗長矣！」",
@@ -1797,6 +1878,7 @@ window.App.Content = window.App.Content || {};
       author: "蘇軾",
       dynasty: "宋",
       level: "s1",
+      form: "文言短文",
       lines: [
         "元豐六年十月十二日夜，解衣欲睡，月色入戶，欣然起行。",
         "念無與為樂者，遂至承天寺尋張懷民。懷民亦未寢，相與步於中庭。",
@@ -1825,6 +1907,7 @@ window.App.Content = window.App.Content || {};
       author: "陶淵明",
       dynasty: "晉",
       level: "s1",
+      form: "文言短文",
       lines: [
         "林盡水源，便得一山，山有小口，彷彿若有光。",
         "便捨船，從口入。初極狹，纔通人。復行數十步，豁然開朗。",
