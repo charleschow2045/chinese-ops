@@ -10,7 +10,7 @@ window.App = window.App || {};
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
-  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN } =
+  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL } =
     window.App.Content;
 
   // The 5-category root chart keeps its own distinct per-category tones
@@ -129,7 +129,7 @@ window.App = window.App || {};
                           </div>
                         ) : (
                           <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-                            暫未收錄已核實的輔助字形
+                            {CANGJIE_NO_AUX_OFFICIAL[r.letter] || "暫未收錄已核實的輔助字形"}
                           </p>
                         )}
                       </div>

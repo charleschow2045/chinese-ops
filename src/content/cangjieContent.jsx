@@ -77,7 +77,11 @@ window.App.Content = window.App.Content || {};
   // text with their owning letter, and (b) whose example characters were
   // checked one by one: the example's Cangjie code (Unicode Unihan kCangjie,
   // cross-checked with hkcards.com) contains the owning letter.
-  // Letters with no text-verifiable shape yet: A 日, D 木, R 口, U 山, V 女.
+  // 口 (R): the official 第五代倉頡字母及輔助字形表 (image supplied by the user)
+  // and the manual text both list NO auxiliary shape for it — that is a
+  // confirmed "none", not a gap.
+  // Letters with no text-verifiable shape yet (glyphs are private-use/images
+  // in the official table): A 日, D 木, U 山, V 女.
   // Corrections vs. the earlier draft: 想 was dropped from 忄 (its bottom is
   // the full 心, not 忄) and 半 from 丷 (半 is 火手, not 金).
   const AUXILIARY_SHAPES = [
@@ -117,6 +121,8 @@ window.App.Content = window.App.Content || {};
   // agreed for all 50. Of ~110 candidates tested, characters where sources
   // disagreed or were ambiguous (e.g. 黃, which hkcards lists with two
   // variants) were left out. Codes are the common 三代/五代 form used in HK.
+  const NO_AUX_OFFICIAL = { R: "官方表沒有為「口」列出輔助字形" };
+
   const CHAR_BREAKDOWN = [
     { char: "日", code: "A" }, { char: "月", code: "B" }, { char: "木", code: "D" },
     { char: "山", code: "U" }, { char: "口", code: "R" }, { char: "手", code: "Q" },
@@ -151,4 +157,5 @@ window.App.Content = window.App.Content || {};
   window.App.Content.CANGJIE_AUXILIARY_SHAPES = AUXILIARY_SHAPES;
   window.App.Content.CANGJIE_QUICK_EXAMPLE = QUICK_EXAMPLE;
   window.App.Content.CANGJIE_CHAR_BREAKDOWN = CHAR_BREAKDOWN;
+  window.App.Content.CANGJIE_NO_AUX_OFFICIAL = NO_AUX_OFFICIAL;
 })();
