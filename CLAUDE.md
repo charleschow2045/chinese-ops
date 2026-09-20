@@ -1236,8 +1236,11 @@ missing features):
 - 倉頡 (`cangjieContent.jsx` + `CangjieModule.jsx`): categories renamed to the
   official 哲理類/筆劃類/人體類/字形類 (source: 朱邦復工作室《第五代倉頡輸入法手冊》),
   roots H–N/S–W/Y carry the official `definition` (斜點交叉縱橫鉤／側並仰紐方卜).
-  `輔助字形總覽` lists only text-verifiable shapes (28 shapes, 19/24 letters;
-  A/D/R/U/V have none yet — the official table is mostly images). Each example
+  `輔助字形總覽` lists only text-verifiable shapes (32 shapes, 20/24 letters;
+  R 口 is officially "none"; A 日, D 木, V 女 still missing — non-Unicode glyphs in
+  the official table image the user supplied). 跟打練習 (TypingPractice): phrases
+  built only from verified-code characters, shows 拆解圖, Space/Enter to confirm,
+  reports 字/分鐘 + first-try accuracy. Each example
   was checked: its Unihan/hkcards code contains the owning letter. Fixed old
   errors: 想 removed from 忄, 半 removed from 丷. `拆字練習`: 50 chars, each code
   agreed by Unihan kCangjie + en.wiktionary `canj` + hkcards per-char breakdown

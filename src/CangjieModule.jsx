@@ -6,11 +6,11 @@
 window.App = window.App || {};
 
 (function () {
-  const { useState } = React;
+  const { useState, useMemo, useRef, useEffect } = React;
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
-  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL } =
+  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL, CANGJIE_TYPING_TEXTS } =
     window.App.Content;
 
   // The 5-category root chart keeps its own distinct per-category tones
@@ -301,7 +301,7 @@ window.App = window.App || {};
     );
   }
 
-  function ReferenceView({ onBack, onStartPractice }) {
+  function ReferenceView({ onBack, onStartPractice, onStartTyping }) {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -329,10 +329,189 @@ window.App = window.App || {};
         <InkButton accent={ACCENT} className="w-full" onClick={onStartPractice}>
           開始打字練習 ⌨️
         </InkButton>
+        <InkButton accent={ACCENT} className="w-full" onClick={onStartTyping}>
+          跟打練習（看拆解圖打整句）✍️
+        </InkButton>
       </div>
     );
   }
 
+  // 跟打練習 (follow-along typing): shows a short phrase; for the current
+  // character it shows the 拆解圖 (which roots to press) and the child types the
+  // Cangjie letters, then Space/Enter — like the real input method. Only phrases
+  // whose every character has a verified code are used. Reports speed (字/分鐘)
+  // and first-try accuracy.
+  function TypingPractice({ onBack, onFinish }) {
+    const codeByChar = useMemo(() => {
+      const map = {};
+      CANGJIE_COMPOUND_EXAMPLES.forEach((e) => (map[e.char] = e.code));
+      CANGJIE_CHAR_BREAKDOWN.forEach((e) => (map[e.char] = e.code));
+      return map;
+    }, []);
+    const phrases = useMemo(
+      () =>
+        shuffle(CANGJIE_TYPING_TEXTS.filter((p) => p.split("").every((ch) => codeByChar[ch]))).slice(0, 5),
+      [codeByChar]
+    );
+    const [pIdx, setPIdx] = useState(0);
+    const [cIdx, setCIdx] = useState(0);
+    const [input, setInput] = useState("");
+    const [showHint, setShowHint] = useState(true);
+    const [msg, setMsg] = useState("");
+    const [mistakeOnThis, setMistakeOnThis] = useState(false);
+    const [firstTry, setFirstTry] = useState(0);
+    const [startedAt, setStartedAt] = useState(null);
+    const [elapsed, setElapsed] = useState(0);
+    const [done, setDone] = useState(false);
+    const inputRef = useRef(null);
+    const total = phrases.reduce((n, p) => n + p.length, 0);
+
+    useEffect(() => {
+      if (inputRef.current && !done) inputRef.current.focus();
+    }, [pIdx, cIdx, done]);
+
+    const phrase = phrases[pIdx];
+    const ch = phrase ? phrase[cIdx] : "";
+    const code = codeByChar[ch] || "";
+
+    function handleChange(e) {
+      if (startedAt === null) setStartedAt(Date.now());
+      setInput(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""));
+    }
+
+    function submit() {
+      if (input.length === 0) return;
+      if (input === code) {
+        const nextFirst = firstTry + (mistakeOnThis ? 0 : 1);
+        setFirstTry(nextFirst);
+        setMsg("");
+        setInput("");
+        setMistakeOnThis(false);
+        const lastChar = cIdx === phrase.length - 1;
+        const lastPhrase = pIdx === phrases.length - 1;
+        if (lastChar && lastPhrase) {
+          setElapsed((Date.now() - (startedAt || Date.now())) / 1000);
+          setDone(true);
+        } else if (lastChar) {
+          setPIdx((x) => x + 1);
+          setCIdx(0);
+        } else {
+          setCIdx((x) => x + 1);
+        }
+      } else {
+        setMistakeOnThis(true);
+        setInput("");
+        setMsg("打錯了，再試一次。可以按「顯示拆解圖」提示。");
+        setShowHint(true);
+      }
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        submit();
+      }
+    }
+
+    if (done) {
+      const minutes = Math.max(elapsed, 1) / 60;
+      const speed = Math.round((total / minutes) * 10) / 10;
+      return (
+        <PaperCard accent={ACCENT} className="text-center">
+          <p className="text-5xl mb-2">🎉</p>
+          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
+            跟打完成！
+          </h2>
+          <p className="text-lg font-bold" style={{ color: ACCENT.solid }}>
+            速度：{speed} 字／分鐘
+          </p>
+          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
+            一次打對：{firstTry} / {total} 字
+          </p>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(firstTry, total)}>
+            完成
+          </InkButton>
+        </PaperCard>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
+            ← 返回
+          </button>
+          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            第 {pIdx + 1} / {phrases.length} 句
+          </span>
+        </div>
+
+        <PaperCard accent={ACCENT}>
+          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            跟着打出這句話：輸入字母，然後按空白鍵（或 Enter）
+          </p>
+          <p className="text-4xl font-extrabold text-center mb-3 tracking-widest">
+            {phrase.split("").map((c, i) => (
+              <span
+                key={i}
+                style={{
+                  color: i < cIdx ? ACCENT.tintBorder : i === cIdx ? ACCENT.solid : INK.ink,
+                  borderBottom: i === cIdx ? `3px solid ${ACCENT.solid}` : "3px solid transparent",
+                }}
+              >
+                {c}
+              </span>
+            ))}
+          </p>
+
+          {showHint ? (
+            <div className="rounded-xl p-2" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}>
+              <p className="text-xs text-center mb-1" style={{ color: INK.mutedInk }}>
+                拆解圖：「{ch}」由以下字根組成
+              </p>
+              <DecompositionDiagram code={code} resultChar={ch} />
+            </div>
+          ) : (
+            <p className="text-sm text-center" style={{ color: INK.mutedInk }}>
+              （拆解圖已隱藏，自己想想「{ch}」怎樣拆）
+            </p>
+          )}
+          <button
+            onClick={() => setShowHint((v) => !v)}
+            className="mt-2 mx-auto block text-sm font-bold"
+            style={{ color: ACCENT.solid }}
+          >
+            {showHint ? "隱藏拆解圖（挑戰自己）" : "顯示拆解圖"}
+          </button>
+        </PaperCard>
+
+        <PaperCard accent={ACCENT}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            autoCapitalize="characters"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="打字母，按空白鍵確認"
+            className="w-full text-center text-2xl tracking-widest uppercase rounded-xl font-extrabold px-4 py-3 outline-none"
+            style={{ border: "1.5px solid #E9DFC7", backgroundColor: INK.paperCard, color: INK.ink }}
+          />
+          {msg && (
+            <p className="mt-2 text-sm font-bold" style={{ color: FEEDBACK.incorrect.solid }}>
+              {msg}
+            </p>
+          )}
+          <InkButton accent={ACCENT} className="w-full mt-3" onClick={submit} disabled={input.length === 0}>
+            確認（空白鍵）
+          </InkButton>
+        </PaperCard>
+      </div>
+    );
+  }
   function buildQuestions() {
     const phase1 = shuffle(CANGJIE_ROOTS)
       .slice(0, 8)
@@ -462,7 +641,7 @@ window.App = window.App || {};
   }
 
   function CangjieModule({ onBack, onRecordPractice }) {
-    const [view, setView] = useState("reference"); // reference | practice
+    const [view, setView] = useState("reference"); // reference | practice | typing
 
     function finishPractice(correctCount, total) {
       onRecordPractice(correctCount, total);
@@ -473,7 +652,11 @@ window.App = window.App || {};
       return <PracticeSession onBack={() => setView("reference")} onFinish={finishPractice} />;
     }
 
-    return <ReferenceView onBack={onBack} onStartPractice={() => setView("practice")} />;
+    if (view === "typing") {
+      return <TypingPractice onBack={() => setView("reference")} onFinish={finishPractice} />;
+    }
+
+    return <ReferenceView onBack={onBack} onStartPractice={() => setView("practice")} onStartTyping={() => setView("typing")} />;
   }
 
   window.App.CangjieModule = CangjieModule;

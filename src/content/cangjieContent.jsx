@@ -80,8 +80,11 @@ window.App.Content = window.App.Content || {};
   // 口 (R): the official 第五代倉頡字母及輔助字形表 (image supplied by the user)
   // and the manual text both list NO auxiliary shape for it — that is a
   // confirmed "none", not a gap.
-  // Letters with no text-verifiable shape yet (glyphs are private-use/images
-  // in the official table): A 日, D 木, U 山, V 女.
+  // The user later supplied a 第五代倉頡字母及輔助字形表 image, which confirmed
+  // the shapes above and added 艹 (T), 凵 (U), 乂 (K), 辶 (Y) (examples verified
+  // the same way). Letters still without an entry: A 日, D 木, V 女 — their
+  // shapes in that table are non-Unicode glyphs and too low-resolution to
+  // identify reliably.
   // Corrections vs. the earlier draft: 想 was dropped from 忄 (its bottom is
   // the full 心, not 忄) and 半 from 丷 (半 is 火手, not 金).
   const AUXILIARY_SHAPES = [
@@ -98,6 +101,7 @@ window.App.Content = window.App.Content || {};
     { rootLetter: "I", rootChar: "戈", shape: "厶", examples: ["去", "台", "私"] },
     { rootLetter: "J", rootChar: "十", shape: "宀", examples: ["家", "字", "安", "客"] },
     { rootLetter: "K", rootChar: "大", shape: "疒", examples: ["病", "疼"] },
+    { rootLetter: "K", rootChar: "大", shape: "乂", examples: ["凶"] },
     { rootLetter: "L", rootChar: "中", shape: "丨", examples: ["串", "申"] },
     { rootLetter: "M", rootChar: "一", shape: "厂", examples: ["厚", "原"] },
     { rootLetter: "N", rootChar: "弓", shape: "亅", examples: ["事", "了"] },
@@ -110,9 +114,12 @@ window.App.Content = window.App.Content || {};
     { rootLetter: "P", rootChar: "心", shape: "七", examples: ["世"] },
     { rootLetter: "Q", rootChar: "手", shape: "扌", examples: ["打", "拉", "推", "提"] },
     { rootLetter: "S", rootChar: "尸", shape: "匸", examples: ["區", "匠"] },
+    { rootLetter: "T", rootChar: "廿", shape: "艹", examples: ["花", "草", "茶", "菜", "藍"] },
     { rootLetter: "T", rootChar: "廿", shape: "廾", examples: ["弄"] },
+    { rootLetter: "U", rootChar: "山", shape: "凵", examples: ["出", "凶"] },
     { rootLetter: "W", rootChar: "田", shape: "囗", examples: ["國", "因", "回"] },
     { rootLetter: "Y", rootChar: "卜", shape: "亠", examples: ["六", "交", "京", "高"] },
+    { rootLetter: "Y", rootChar: "卜", shape: "辶", examples: ["這", "過", "進", "道", "送", "近"] },
   ];
 
   // 拆字練習 — phase 1: 50 common characters. Every code below was checked
@@ -121,6 +128,15 @@ window.App.Content = window.App.Content || {};
   // agreed for all 50. Of ~110 candidates tested, characters where sources
   // disagreed or were ambiguous (e.g. 黃, which hkcards lists with two
   // variants) were left out. Codes are the common 三代/五代 form used in HK.
+  // 跟打練習 phrases. Every character used here is one of the 50 verified
+  // CHAR_BREAKDOWN characters or the verified COMPOUND_EXAMPLES, so each key
+  // code the child is asked to type has been cross-checked. CangjieModule
+  // drops any phrase containing a character without a known code.
+  const TYPING_TEXTS = [
+    "你好", "老師好", "好朋友", "我來學校", "我愛媽媽", "爸爸愛貓", "貓愛魚",
+    "明天我不來", "我愛看書", "我愛讀書", "我有朋友", "山上有月", "春風春雨",
+    "花草魚鳥", "小鳥愛春天", "我家有花草", "你說話我聽",
+  ];
   const NO_AUX_OFFICIAL = { R: "官方表沒有為「口」列出輔助字形" };
 
   const CHAR_BREAKDOWN = [
@@ -158,4 +174,5 @@ window.App.Content = window.App.Content || {};
   window.App.Content.CANGJIE_QUICK_EXAMPLE = QUICK_EXAMPLE;
   window.App.Content.CANGJIE_CHAR_BREAKDOWN = CHAR_BREAKDOWN;
   window.App.Content.CANGJIE_NO_AUX_OFFICIAL = NO_AUX_OFFICIAL;
+  window.App.Content.CANGJIE_TYPING_TEXTS = TYPING_TEXTS;
 })();
