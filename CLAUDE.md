@@ -821,7 +821,48 @@ This shipped in two stages:
   auto-derive questions from — the whole point is testing comprehension of
   facts specific to that one story).
 
-## Module 7 details — 閱讀理解 (built, expanded after user feedback)
+## Module 7 — 閱讀理解 REBUILD (COMPLETE: all 22 passages, phases 1+2)
+User asked for a full rebuild modelled on real textbooks (樂思 P.6 26週 and
+領先中文 閱讀理解50篇 小五; the user shared screenshots of both): longer
+passages, and a two-part question set with tagged skills and marks. Phase 1
+= 6 sample passages (approved); Phase 2 = the other 16. **All 22 passages
+now use the new format and ids end `-v2`; the old-format `questions` /
+`FixedQuizFlow` branch in ReadingModule.jsx is dead code kept as a fallback.**
+Not yet committed/pushed until the user says so.
+- Passage fields: `passage` (array of paragraphs, shown with ①②③),
+  `genre`, `focus` (學習重點), `vocab` (詞語角), `comprehension` (理解能力)
+  and `language` (語文能力). Question `kind`: `mc` (4 options) | `multi`
+  ("哪兩項", 5 options, answer = 2 indices, all-or-nothing) | `open`
+  (申述題); each has `skill` (重整/解釋/伸展/評鑑; language: 成語解釋/詞語解釋/
+  修辭手法/詞語運用/語文運用/說明方法/文言句意) and `marks`.
+  `mc`/`multi` have `answer` + `explanation`; `open` has `points`,
+  `scheme`, `modelAnswer`, `hint`. Every passage: 6–7 理解 questions
+  (mc + 1 multi + 1–2 open) and 3 語文 mc; total 11–15 marks.
+- `ReadingModule.jsx`: options of mc/multi are **shuffled once per attempt**
+  (`shuffleOptions`, answer remapped) so authored answer positions don't
+  leak — never write explanations that refer to option letters (A/B/C).
+  Open questions are **self-marked**: the child writes an answer (optional),
+  reveals the reference points + model answer, then rates themselves
+  全部答到 / 答到一部分 (ceil(marks/2)) / 未答到. Score is in marks;
+  `onFinish(fullMarkQuestions, totalQuestions)` feeds per-passage mistake
+  tracking (perfect = every question full marks). Mistake ids of retired
+  passages are ignored (`liveMistakes`).
+- Word counts (漢字, excl. punctuation): p5 399–537, p6 484–702, s1 596–745.
+- Facts web-verified before writing: cats sleep 12–16 h and are crepuscular;
+  HK water (Dongjiang ~70–80%, seawater flushing); 大館 (see above);
+  rainbow (refraction–reflection–refraction, sun behind observer, 副虹
+  reversed); stars invisible by day due to atmospheric scattering; HK tram
+  opened 30 Jul 1904, ~13 km Kennedy Town–Shau Kei Wan, 165 double-deckers,
+  only all-double-deck tram system, first double-deckers 1912; hiccups
+  (diaphragm spasm, glottis closes; >48 h → see doctor); 曾子殺彘
+  (《韓非子·外儲說左上》「嬰兒非與戲也」) and 《論語·為政》「人而無信，不知其可也」;
+  防騙易 18222 (ADCC, consultation only; report at police station);
+  MIT/Science 2018 fake-news study (126,000 cascades, six fact-checkers, false
+  news ~70% more likely retweeted, ~6× faster to 1,500 people, humans not bots).
+  Story passages (記敘文) are fictional; 荀子「鍥而不舍，金石可鏤」 and the
+  李白「鐵杵磨成針」 legend are quoted as 相傳.
+
+## Module 7 details — 閱讀理解 (built, expanded after user feedback; describes the OLD format)
 - **Same flow shape as Module 6** (list → read → `FixedQuizFlow` → summary),
   reusing the same shared component — see the QuizQuestion.jsx note above.
 - **"Short answer" is implemented as inference-flavoured multiple-choice,
