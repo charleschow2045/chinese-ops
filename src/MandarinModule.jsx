@@ -245,6 +245,67 @@ window.App = window.App || {};
   // pinyin, then pick the correct character from a list of homophones
   // (同音字) that all share that exact spelling — the actual skill a pinyin
   // typing beginner needs, since many characters sound identical.
+  // 常用字拼音練習: tap a character to see its pinyin with the tone mark,
+  // the tone name, and what to type on the keyboard (no tone marks).
+  const TONE_NAMES = { 1: "第一聲（陰平）", 2: "第二聲（陽平）", 3: "第三聲（上聲）", 4: "第四聲（去聲）" };
+  function toneOf(py) {
+    if (/[āēīōūǖ]/.test(py)) return 1;
+    if (/[áéíóúǘ]/.test(py)) return 2;
+    if (/[ǎěǐǒǔǚ]/.test(py)) return 3;
+    if (/[àèìòùǜ]/.test(py)) return 4;
+    return 0;
+  }
+  function typedForm(py) {
+    return py.replace(/[ǖǘǚǜ]/g, "v").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function PinyinCharLookup() {
+    const { PINYIN_IME_CHARS } = window.App.Content;
+    const [selected, setSelected] = useState(null);
+    const item = PINYIN_IME_CHARS.find((c) => c.char === selected);
+    return (
+      <PaperCard accent={ACCENT}>
+        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+          常用字拼音練習（{PINYIN_IME_CHARS.length} 個字）
+        </p>
+        <p className={`text-sm mb-3 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+          先自己讀一讀，再點一個字，核對它的拼音和聲調。
+        </p>
+        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 mb-3">
+          {PINYIN_IME_CHARS.map((c) => {
+            const on = c.char === selected;
+            return (
+              <button
+                key={c.char}
+                onClick={() => setSelected(on ? null : c.char)}
+                className="rounded-lg py-1.5 text-xl font-extrabold transition-all"
+                style={
+                  on
+                    ? { backgroundColor: ACCENT.solid, color: ACCENT.on, border: `1.5px solid ${ACCENT.solid}` }
+                    : { backgroundColor: ACCENT.tint, color: INK.ink, border: `1.5px solid ${ACCENT.tintBorder}` }
+                }
+              >
+                {c.char}
+              </button>
+            );
+          })}
+        </div>
+        {item && (
+          <div className="rounded-xl p-3 text-center" style={{ backgroundColor: INK.paperCard, border: `1.5px solid ${ACCENT.tintBorder}` }}>
+            <p className="text-5xl font-extrabold" style={{ color: INK.ink }}>
+              {item.char}
+            </p>
+            <p className="text-3xl font-extrabold mt-1" style={{ color: ACCENT.solid }}>
+              {item.pinyin}
+            </p>
+            <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
+              {TONE_NAMES[toneOf(item.pinyin)]}・打字時輸入：{typedForm(item.pinyin)}
+            </p>
+          </div>
+        )}
+      </PaperCard>
+    );
+  }
   function PinyinIMEIntro({ onBack, onStart }) {
     const { PINYIN_IME_BASICS, PINYIN_IME_INTRO, PINYIN_IME_EXAMPLE, PINYIN_IME_WHY_CANDIDATES } = window.App.Content;
     const basics = PINYIN_IME_BASICS;
@@ -318,6 +379,8 @@ window.App = window.App || {};
             {PINYIN_IME_WHY_CANDIDATES}
           </p>
         </PaperCard>
+
+        <PinyinCharLookup />
 
         <InkButton accent={ACCENT} className="w-full" onClick={onStart}>
           開始練習 🎯

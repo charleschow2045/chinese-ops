@@ -151,6 +151,32 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
+  // 常用字拼音練習 — phase 1: 50 common characters. Each reading (with tone)
+  // was checked against 3 independent sources: Unicode Unihan kMandarin,
+  // Unihan kXHC1983 (《現代漢語詞典》1983) and en.wiktionary's zh-pron. All
+  // three agreed for every entry. Deliberately limited to characters with a
+  // single standard reading: ~20 other common characters (e.g. 大 dà/dài,
+  // 上 shàng/shǎng, 樂 lè/yuè, 行, 長, 好) were dropped because one fixed
+  // answer would mis-teach them.
+  const PINYIN_CHARS = [
+    { char: "我", pinyin: "wǒ" }, { char: "你", pinyin: "nǐ" }, { char: "他", pinyin: "tā" },
+    { char: "是", pinyin: "shì" }, { char: "人", pinyin: "rén" }, { char: "小", pinyin: "xiǎo" },
+    { char: "山", pinyin: "shān" }, { char: "水", pinyin: "shuǐ" }, { char: "火", pinyin: "huǒ" },
+    { char: "木", pinyin: "mù" }, { char: "土", pinyin: "tǔ" }, { char: "日", pinyin: "rì" },
+    { char: "月", pinyin: "yuè" }, { char: "天", pinyin: "tiān" }, { char: "學", pinyin: "xué" },
+    { char: "書", pinyin: "shū" }, { char: "明", pinyin: "míng" }, { char: "時", pinyin: "shí" },
+    { char: "國", pinyin: "guó" }, { char: "愛", pinyin: "ài" }, { char: "心", pinyin: "xīn" },
+    { char: "手", pinyin: "shǒu" }, { char: "口", pinyin: "kǒu" }, { char: "田", pinyin: "tián" },
+    { char: "女", pinyin: "nǚ" }, { char: "來", pinyin: "lái" }, { char: "去", pinyin: "qù" },
+    { char: "聽", pinyin: "tīng" }, { char: "老", pinyin: "lǎo" }, { char: "師", pinyin: "shī" },
+    { char: "朋", pinyin: "péng" }, { char: "友", pinyin: "yǒu" }, { char: "快", pinyin: "kuài" },
+    { char: "花", pinyin: "huā" }, { char: "草", pinyin: "cǎo" }, { char: "魚", pinyin: "yú" },
+    { char: "春", pinyin: "chūn" }, { char: "夏", pinyin: "xià" }, { char: "秋", pinyin: "qiū" },
+    { char: "冬", pinyin: "dōng" }, { char: "東", pinyin: "dōng" }, { char: "北", pinyin: "běi" },
+    { char: "白", pinyin: "bái" }, { char: "茶", pinyin: "chá" }, { char: "米", pinyin: "mǐ" },
+    { char: "狗", pinyin: "gǒu" }, { char: "飛", pinyin: "fēi" }, { char: "門", pinyin: "mén" },
+    { char: "開", pinyin: "kāi" }, { char: "熱", pinyin: "rè" },
+  ];
   const PINYIN_IME_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
 
   window.App.Content.PINYIN_IME_BASICS = BASICS;
@@ -159,4 +185,5 @@ window.App.Content = window.App.Content || {};
   window.App.Content.PINYIN_IME_WHY_CANDIDATES = WHY_CANDIDATES;
   window.App.Content.PINYIN_IME_HOMOPHONE_ITEMS = HOMOPHONE_ITEMS;
   window.App.Content.PINYIN_IME_LEVEL_LABEL = PINYIN_IME_LEVEL_LABEL;
+  window.App.Content.PINYIN_IME_CHARS = PINYIN_CHARS;
 })();
