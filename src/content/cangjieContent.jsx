@@ -12,10 +12,10 @@ window.App.Content = window.App.Content || {};
 
 (function () {
   const CATEGORIES = [
-    { key: "philosophy", label: "哲理科", color: "rose" },
-    { key: "stroke", label: "筆劃科", color: "orange" },
-    { key: "body", label: "人身科", color: "amber" },
-    { key: "shape", label: "字形科", color: "emerald" },
+    { key: "philosophy", label: "哲理類", color: "rose" },
+    { key: "stroke", label: "筆劃類", color: "orange" },
+    { key: "body", label: "人體類", color: "amber" },
+    { key: "shape", label: "字形類", color: "emerald" },
     { key: "special", label: "難字鍵", color: "violet" },
   ];
 
@@ -29,25 +29,25 @@ window.App.Content = window.App.Content || {};
     { letter: "F", char: "火", meaning: "火", category: "philosophy" },
     { letter: "G", char: "土", meaning: "泥土", category: "philosophy" },
 
-    { letter: "H", char: "竹", meaning: "竹", category: "stroke" },
-    { letter: "I", char: "戈", meaning: "武器", category: "stroke" },
-    { letter: "J", char: "十", meaning: "十字", category: "stroke" },
-    { letter: "K", char: "大", meaning: "大", category: "stroke" },
-    { letter: "L", char: "中", meaning: "中間", category: "stroke" },
-    { letter: "M", char: "一", meaning: "一橫", category: "stroke" },
-    { letter: "N", char: "弓", meaning: "弓", category: "stroke" },
+    { letter: "H", char: "竹", meaning: "竹", category: "stroke", definition: "斜" },
+    { letter: "I", char: "戈", meaning: "武器", category: "stroke", definition: "點" },
+    { letter: "J", char: "十", meaning: "十字", category: "stroke", definition: "交" },
+    { letter: "K", char: "大", meaning: "大", category: "stroke", definition: "叉" },
+    { letter: "L", char: "中", meaning: "中間", category: "stroke", definition: "縱" },
+    { letter: "M", char: "一", meaning: "一橫", category: "stroke", definition: "橫" },
+    { letter: "N", char: "弓", meaning: "弓", category: "stroke", definition: "鉤" },
 
     { letter: "O", char: "人", meaning: "人", category: "body" },
     { letter: "P", char: "心", meaning: "心", category: "body" },
     { letter: "Q", char: "手", meaning: "手", category: "body" },
     { letter: "R", char: "口", meaning: "口", category: "body" },
 
-    { letter: "S", char: "尸", meaning: "身體", category: "shape" },
-    { letter: "T", char: "廿", meaning: "二十", category: "shape" },
-    { letter: "U", char: "山", meaning: "山", category: "shape" },
-    { letter: "V", char: "女", meaning: "女性", category: "shape" },
-    { letter: "W", char: "田", meaning: "田地", category: "shape" },
-    { letter: "Y", char: "卜", meaning: "占卜", category: "shape" },
+    { letter: "S", char: "尸", meaning: "身體", category: "shape", definition: "側" },
+    { letter: "T", char: "廿", meaning: "二十", category: "shape", definition: "並" },
+    { letter: "U", char: "山", meaning: "山", category: "shape", definition: "仰" },
+    { letter: "V", char: "女", meaning: "女性", category: "shape", definition: "紐" },
+    { letter: "W", char: "田", meaning: "田地", category: "shape", definition: "方" },
+    { letter: "Y", char: "卜", meaning: "占卜", category: "shape", definition: "卜" },
 
     { letter: "X", char: "難", meaning: "難以歸類的字形", category: "special" },
   ];
@@ -69,40 +69,73 @@ window.App.Content = window.App.Content || {};
     { char: "三", code: "MMM", breakdown: "一 (M) + 一 (M) + 一 (M)", note: "三橫（三個「一」），就是數字「三」。" },
   ];
 
-  // A small, verified subset of 輔助字形 (auxiliary shapes) — the compact
-  // "side-form" variants of some root characters, which appear inside
-  // thousands of common Chinese characters. Real Cangjie teaching covers
-  // many more auxiliary shapes per key than shown here, but most sources
-  // store their full tables as images (not extractable/verifiable text),
-  // so this list is deliberately scoped to shapes independently confirmed
-  // via multiple sources rather than a complete (but unverifiable) table —
-  // see CLAUDE.md Module 3 notes before adding more entries here.
-  //
-  // 丷(金/C) and 士(土/G) were added after a follow-up verification pass —
-  // both confirmed via 2+ independent domains (hkcards.com, cangjieking.com,
-  // and cangjieking.com's separate 119-shape reference table). That same
-  // pass also confirmed the *existence* of 又/氺 (水/E), 冂/冖/爫 (月/B), and
-  // 辶 (卜/Y) as real auxiliary shapes across multiple sources, but every
-  // source renders its example-character lists as images with no
-  // extractable text — rather than guess plausible-sounding example words
-  // for those, they were deliberately left out. One source (hkcards.com)
-  // also claimed 亠 as an auxiliary of 卜/Y, but a more comprehensive
-  // independent table (cangjieking.com) lists Y's full auxiliary set
-  // without 亠 at all — a direct contradiction between sources, so that
-  // one was dropped rather than trusted either way. If revisiting this
-  // list later, a text-based example-character source for those shapes is
-  // needed before adding them, not visual/general-knowledge guessing.
+  // 輔助字形 (auxiliary shapes): compact variants derived from the 24 root
+  // letters. The complete official list has ~90 shapes (第五代倉頡輸入法手冊
+  // 第四節, 朱邦復工作室), but most of them have no Unicode character and are
+  // only published as images, so they cannot be text-verified. This table
+  // therefore lists ONLY shapes that (a) are named in the official manual's
+  // text with their owning letter, and (b) whose example characters were
+  // checked one by one: the example's Cangjie code (Unicode Unihan kCangjie,
+  // cross-checked with hkcards.com) contains the owning letter.
+  // Letters with no text-verifiable shape yet: A 日, D 木, R 口, U 山, V 女.
+  // Corrections vs. the earlier draft: 想 was dropped from 忄 (its bottom is
+  // the full 心, not 忄) and 半 from 丷 (半 is 火手, not 金).
   const AUXILIARY_SHAPES = [
+    { rootLetter: "B", rootChar: "月", shape: "冂", examples: ["同", "用", "冊"] },
+    { rootLetter: "B", rootChar: "月", shape: "冖", examples: ["冠", "軍"] },
+    { rootLetter: "C", rootChar: "金", shape: "丷", examples: ["公", "分", "六"] },
     { rootLetter: "E", rootChar: "水", shape: "氵", examples: ["海", "湖", "游", "泡"] },
+    { rootLetter: "E", rootChar: "水", shape: "又", examples: ["友", "叔", "取"] },
     { rootLetter: "F", rootChar: "火", shape: "灬", examples: ["熱", "煮", "熟", "黑"] },
-    { rootLetter: "O", rootChar: "人", shape: "亻", examples: ["你", "他", "位", "作"] },
-    { rootLetter: "P", rootChar: "心", shape: "忄", examples: ["快", "怕", "情", "想"] },
-    { rootLetter: "Q", rootChar: "手", shape: "扌", examples: ["打", "拉", "推", "提"] },
-    { rootLetter: "H", rootChar: "竹", shape: "⺮", examples: ["筆", "答", "節", "笑"] },
-    { rootLetter: "C", rootChar: "金", shape: "丷", examples: ["公", "分", "半"] },
+    { rootLetter: "F", rootChar: "火", shape: "小", examples: ["尖", "少"] },
     { rootLetter: "G", rootChar: "土", shape: "士", examples: ["吉", "志", "壯"] },
+    { rootLetter: "H", rootChar: "竹", shape: "⺮", examples: ["筆", "答", "節", "笑"] },
+    { rootLetter: "I", rootChar: "戈", shape: "广", examples: ["店", "床", "度"] },
+    { rootLetter: "I", rootChar: "戈", shape: "厶", examples: ["去", "台", "私"] },
+    { rootLetter: "J", rootChar: "十", shape: "宀", examples: ["家", "字", "安", "客"] },
+    { rootLetter: "K", rootChar: "大", shape: "疒", examples: ["病", "疼"] },
+    { rootLetter: "L", rootChar: "中", shape: "丨", examples: ["串", "申"] },
+    { rootLetter: "M", rootChar: "一", shape: "厂", examples: ["厚", "原"] },
+    { rootLetter: "N", rootChar: "弓", shape: "亅", examples: ["事", "了"] },
+    { rootLetter: "N", rootChar: "弓", shape: "乙", examples: ["乞"] },
+    { rootLetter: "O", rootChar: "人", shape: "亻", examples: ["你", "他", "位", "作"] },
+    { rootLetter: "O", rootChar: "人", shape: "入", examples: ["全", "內", "兩"] },
+    { rootLetter: "P", rootChar: "心", shape: "忄", examples: ["快", "怕", "情", "忙"] },
+    { rootLetter: "P", rootChar: "心", shape: "勹", examples: ["包", "句"] },
+    { rootLetter: "P", rootChar: "心", shape: "匕", examples: ["化", "北", "比"] },
+    { rootLetter: "P", rootChar: "心", shape: "七", examples: ["世"] },
+    { rootLetter: "Q", rootChar: "手", shape: "扌", examples: ["打", "拉", "推", "提"] },
+    { rootLetter: "S", rootChar: "尸", shape: "匸", examples: ["區", "匠"] },
+    { rootLetter: "T", rootChar: "廿", shape: "廾", examples: ["弄"] },
+    { rootLetter: "W", rootChar: "田", shape: "囗", examples: ["國", "因", "回"] },
+    { rootLetter: "Y", rootChar: "卜", shape: "亠", examples: ["六", "交", "京", "高"] },
   ];
 
+  // 拆字練習 — phase 1: 50 common characters. Every code below was checked
+  // against 3 independent sources (Unicode Unihan kCangjie, en.wiktionary
+  // `canj`, and hkcards.com's per-character root breakdown) and all three
+  // agreed for all 50. Of ~110 candidates tested, characters where sources
+  // disagreed or were ambiguous (e.g. 黃, which hkcards lists with two
+  // variants) were left out. Codes are the common 三代/五代 form used in HK.
+  const CHAR_BREAKDOWN = [
+    { char: "日", code: "A" }, { char: "月", code: "B" }, { char: "木", code: "D" },
+    { char: "山", code: "U" }, { char: "口", code: "R" }, { char: "手", code: "Q" },
+    { char: "明", code: "AB" }, { char: "朋", code: "BB" }, { char: "友", code: "KE" },
+    { char: "好", code: "VND" }, { char: "你", code: "ONF" }, { char: "他", code: "OPD" },
+    { char: "我", code: "HQI" }, { char: "是", code: "AMYO" }, { char: "有", code: "KB" },
+    { char: "來", code: "DOO" }, { char: "去", code: "GI" }, { char: "天", code: "MK" },
+    { char: "地", code: "GPD" }, { char: "小", code: "NC" }, { char: "上", code: "YM" },
+    { char: "下", code: "MY" }, { char: "不", code: "MF" }, { char: "家", code: "JMSO" },
+    { char: "學", code: "HBND" }, { char: "校", code: "DYCK" }, { char: "書", code: "LGA" },
+    { char: "時", code: "AGDI" }, { char: "間", code: "ANA" }, { char: "看", code: "HQBU" },
+    { char: "說", code: "YRCRU" }, { char: "話", code: "YRHJR" }, { char: "讀", code: "YRGWC" },
+    { char: "寫", code: "JHXF" }, { char: "聽", code: "SGJWP" }, { char: "老", code: "JKP" },
+    { char: "師", code: "HRMLB" }, { char: "愛", code: "BBPE" }, { char: "快", code: "PDK" },
+    { char: "樂", code: "VID" }, { char: "媽", code: "VSQF" }, { char: "爸", code: "CKAU" },
+    { char: "花", code: "TOP" }, { char: "草", code: "TAJ" }, { char: "春", code: "QKA" },
+    { char: "風", code: "HNHLI" }, { char: "雨", code: "MLBY" }, { char: "魚", code: "NWF" },
+    { char: "鳥", code: "HAYF" }, { char: "貓", code: "BHTW" },
+  ];
   // 速成 (Quick Cangjie): take only the FIRST and LAST code of the full
   // Cangjie code (max 2 keystrokes per character either way).
   const QUICK_EXAMPLE = {
@@ -117,4 +150,5 @@ window.App.Content = window.App.Content || {};
   window.App.Content.CANGJIE_COMPOUND_EXAMPLES = COMPOUND_EXAMPLES;
   window.App.Content.CANGJIE_AUXILIARY_SHAPES = AUXILIARY_SHAPES;
   window.App.Content.CANGJIE_QUICK_EXAMPLE = QUICK_EXAMPLE;
+  window.App.Content.CANGJIE_CHAR_BREAKDOWN = CHAR_BREAKDOWN;
 })();

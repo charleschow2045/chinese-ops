@@ -10,7 +10,7 @@ window.App = window.App || {};
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
-  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE } =
+  const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN } =
     window.App.Content;
 
   // The 5-category root chart keeps its own distinct per-category tones
@@ -52,7 +52,10 @@ window.App = window.App || {};
                     style={{ backgroundColor: tone.tint, border: `1.5px solid ${tone.tintBorder}`, color: tone.solid }}
                   >
                     <p className="text-xl font-extrabold">{r.char}</p>
-                    <p className="text-xs font-bold opacity-70">{r.letter}</p>
+                    <p className="text-xs font-bold opacity-70">
+                      {r.letter}
+                      {r.definition ? `・${r.definition}` : ""}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -63,41 +66,87 @@ window.App = window.App || {};
     );
   }
 
+  // 輔助字形總覽: all 24 letters, grouped by the 4 official classes
+  // (哲理類 / 筆劃類 / 人體類 / 字形類). Only text-verified shapes are shown
+  // (see the note above AUXILIARY_SHAPES in cangjieContent.jsx); letters
+  // without one are listed as 暫未收錄 rather than guessed.
   function AuxiliaryShapes() {
+    const classes = CANGJIE_CATEGORIES.filter((c) => c.key !== "special");
+    const covered = new Set(CANGJIE_AUXILIARY_SHAPES.map((a) => a.rootLetter));
+    const totalLetters = CANGJIE_ROOTS.filter((r) => r.category !== "special").length;
     return (
       <PaperCard accent={ACCENT}>
         <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          常見輔助字形
+          輔助字形總覽
         </p>
-        <p className={`text-sm mb-2 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
-          除了基本字根，部分字根還有「輔助字形」——一種較小、常出現在字部件裏面的寫法。以下是幾個最常用的例子：
+        <p className={`text-sm mb-3 leading-relaxed ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+          24 個字母除了本身的字根，還會衍生出「輔助字形」——較小、常出現在字部件裏的變形寫法，輸入時一律打所屬字母。
+          例如「氵」屬「水」，打 E；「扌」屬「手」，打 Q。下表按四大類列出 {totalLetters} 個字母各自已核實的輔助字形
+          （目前 {covered.size}/{totalLetters} 個字母有收錄）。
         </p>
-        <div className="flex flex-col gap-2">
-          {CANGJIE_AUXILIARY_SHAPES.map((a) => (
-            <div
-              key={a.rootLetter}
-              className="rounded-xl p-3"
-              style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
-            >
-              <div className="flex items-baseline gap-2">
-                <p className="text-xl font-extrabold" style={{ color: INK.ink }}>
-                  {a.rootChar} ({a.rootLetter})
+        <div className="flex flex-col gap-4">
+          {classes.map((cat) => {
+            const tone = CATEGORY_TONES[cat.color] || CATEGORY_TONES.amber;
+            return (
+              <div key={cat.key}>
+                <p className="text-sm mb-2 font-bold" style={{ color: tone.solid }}>
+                  {cat.label}
                 </p>
-                <span style={{ color: INK.mutedInk }}>→</span>
-                <p className="text-xl font-extrabold" style={{ color: ACCENT.solid }}>
-                  {a.shape}
-                </p>
+                <div className="flex flex-col gap-2">
+                  {CANGJIE_ROOTS.filter((r) => r.category === cat.key).map((r) => {
+                    const shapes = CANGJIE_AUXILIARY_SHAPES.filter((a) => a.rootLetter === r.letter);
+                    return (
+                      <div
+                        key={r.letter}
+                        className="rounded-xl p-3"
+                        style={{ backgroundColor: tone.tint, border: `1.5px solid ${tone.tintBorder}` }}
+                      >
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <p className="text-xl font-extrabold" style={{ color: INK.ink }}>
+                            {r.char}
+                          </p>
+                          <span className="text-sm font-bold" style={{ color: tone.solid }}>
+                            {r.letter}
+                            {r.definition ? `・${r.definition}` : ""}
+                          </span>
+                          {shapes.length > 0 && <span style={{ color: INK.mutedInk }}>→</span>}
+                          {shapes.map((a) => (
+                            <span key={a.shape} className="text-xl font-extrabold" style={{ color: tone.solid }}>
+                              {a.shape}
+                            </span>
+                          ))}
+                        </div>
+                        {shapes.length > 0 ? (
+                          <div className="mt-1 flex flex-col gap-0.5">
+                            {shapes.map((a) => (
+                              <p key={a.shape} className="text-sm" style={{ color: INK.mutedInk }}>
+                                <span className="font-bold" style={{ color: INK.ink }}>
+                                  {a.shape}
+                                </span>{" "}
+                                常見於：{a.examples.join("、")}
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
+                            暫未收錄已核實的輔助字形
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-                常見於：{a.examples.join("、")}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
+        <p className="text-xs mt-3 leading-relaxed" style={{ color: INK.mutedInk }}>
+          資料根據朱邦復工作室《第五代倉頡輸入法手冊》，並逐字核對例字的倉頡碼；官方完整表約有 90 個輔助字形，
+          其餘多以圖像形式發佈，未能核實的暫不列出。
+        </p>
       </PaperCard>
     );
   }
-
   // 拆解圖 — a visual decomposition diagram: each root tile (character +
   // its key letter) combines left-to-right into the final compound
   // character, instead of only describing the breakdown as plain text.
@@ -169,6 +218,59 @@ window.App = window.App || {};
     );
   }
 
+  // 拆字練習: tap a character to reveal its Cangjie code and the
+  // root-by-root breakdown (phase 1 — 50 verified common characters).
+  function CharBreakdown() {
+    const [selected, setSelected] = useState(null);
+    const item = CANGJIE_CHAR_BREAKDOWN.find((c) => c.char === selected);
+    return (
+      <PaperCard accent={ACCENT}>
+        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+          拆字練習（{CANGJIE_CHAR_BREAKDOWN.length} 個常用字）
+        </p>
+        <p className={`text-sm mb-3 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+          先自己想一想怎樣拆，再點一個字，看看它的倉頡碼和拆解圖。
+        </p>
+        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 mb-3">
+          {CANGJIE_CHAR_BREAKDOWN.map((c) => {
+            const on = c.char === selected;
+            return (
+              <button
+                key={c.char}
+                onClick={() => setSelected(on ? null : c.char)}
+                className="rounded-lg py-1.5 text-xl font-extrabold transition-all"
+                style={
+                  on
+                    ? { backgroundColor: ACCENT.solid, color: ACCENT.on, border: `1.5px solid ${ACCENT.solid}` }
+                    : { backgroundColor: ACCENT.tint, color: INK.ink, border: `1.5px solid ${ACCENT.tintBorder}` }
+                }
+              >
+                {c.char}
+              </button>
+            );
+          })}
+        </div>
+        {item && (
+          <div className="rounded-xl p-3" style={{ backgroundColor: INK.paperCard, border: `1.5px solid ${ACCENT.tintBorder}` }}>
+            <div className="flex items-baseline gap-2 mb-1">
+              <p className="text-3xl font-extrabold" style={{ color: INK.ink }}>
+                {item.char}
+              </p>
+              <p className="text-sm font-bold" style={{ color: ACCENT.solid }}>
+                倉頡碼：{item.code}（{item.code.split("").map((l) => ROOT_CHAR_BY_LETTER[l]).join("")}）
+              </p>
+            </div>
+            <DecompositionDiagram code={item.code} resultChar={item.char} />
+            {item.code.length > 2 && (
+              <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
+                速成碼（第一碼＋最後一碼）：{item.code[0] + item.code[item.code.length - 1]}
+              </p>
+            )}
+          </div>
+        )}
+      </PaperCard>
+    );
+  }
   function QuickExplainer() {
     const ex = CANGJIE_QUICK_EXAMPLE;
     return (
@@ -214,13 +316,14 @@ window.App = window.App || {};
         <PaperCard accent={ACCENT}>
           <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
             倉頡輸入法用 24 個基本「字根」（加上一個特殊的「難」字鍵），對應鍵盤上的英文字母。學會這張表，就可以自己輸入中文
-            了！以下按「五色」分類，方便記憶：
+            了！以下按官方的四大類（哲理類、筆劃類、人體類、字形類）分類，方便記憶：
           </p>
         </PaperCard>
 
         <RootChart />
         <AuxiliaryShapes />
         <CompoundExamples />
+        <CharBreakdown />
         <QuickExplainer />
 
         <InkButton accent={ACCENT} className="w-full" onClick={onStartPractice}>
