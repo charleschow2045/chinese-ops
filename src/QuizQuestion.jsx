@@ -4,7 +4,7 @@
 window.App = window.App || {};
 
 (function () {
-  const { useState } = React;
+  const { useState, useMemo } = React;
 
   function isCorrectAnswer(q, selected) {
     return selected !== null && selected === q.correctIndex;
@@ -64,7 +64,19 @@ window.App = window.App || {};
   // generated at runtime (e.g. History's per-story questions, Reading's
   // per-passage questions) — see CLAUDE.md for which modules work this way.
   // `accent` is a MODULE_ACCENTS entry for the calling module.
-  function FixedQuizFlow({ questions, accent, onBack, onFinish, headerLabel }) {
+  // Options are shuffled once per attempt (correctIndex remapped): the hand-authored
+  // fixed-question content historically put most correct answers in slot 0.
+  function shuffledCopy(q) {
+    const order = q.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return { ...q, options: order.map((o) => q.options[o]), correctIndex: order.indexOf(q.correctIndex) };
+  }
+
+  function FixedQuizFlow({ questions: rawQuestions, accent, onBack, onFinish, headerLabel }) {
+    const questions = useMemo(() => rawQuestions.map(shuffledCopy), [rawQuestions]);
     const { PaperCard, InkButton, INK, TYPE, MODULE_ACCENTS } = window.App.UI;
     const a = accent || MODULE_ACCENTS.essay;
     const [qIndex, setQIndex] = useState(0);

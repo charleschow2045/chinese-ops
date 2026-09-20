@@ -156,6 +156,58 @@ window.App.Content = window.App.Content || {};
     { id: "shewen-7", sentence: "怎樣才能贏得別人的尊重？唯有先學會尊重別人。", device: "設問", level: "s1" },
     { id: "shewen-8", sentence: "是什麼支撐着運動員捱過無數次跌倒？是永不放棄的意志。", device: "設問", level: "s1" },
     { id: "shewen-9", sentence: "真正的朋友是什麼樣子？大概就是在你失意時仍願意陪着你的人。", device: "設問", level: "p6" },
+
+    // ---- third expansion (+42: 6 per device). Each sentence uses exactly one
+    // device so the answer stays unambiguous; 對偶 lines are well-known
+    // classical couplets (杜甫、王之渙、劉備遺詔、王維、王勃、劉禹錫). ----
+    { id: "biyu-10", sentence: "棉花糖似的白雲，一朵朵飄在藍天上。", device: "比喻", level: "p5" },
+    { id: "biyu-11", sentence: "他的字跡工整得像印刷出來的一樣。", device: "比喻", level: "p5" },
+    { id: "biyu-12", sentence: "孩子的笑聲像一串銀鈴，清脆悅耳。", device: "比喻", level: "p6" },
+    { id: "biyu-13", sentence: "圖書館是知識的海洋，我們都是在其中探索的小船。", device: "比喻", level: "p6" },
+    { id: "biyu-14", sentence: "人生就像一場馬拉松，比的不是誰跑得最快，而是誰堅持得最久。", device: "比喻", level: "s1" },
+    { id: "biyu-15", sentence: "謠言是一團無形的野火，一經點燃便難以撲滅。", device: "比喻", level: "s1" },
+
+    { id: "niren-10", sentence: "太陽公公笑瞇瞇地探出頭來，向大地問好。", device: "擬人", level: "p5" },
+    { id: "niren-11", sentence: "小溪唱着歡快的歌，一路奔向大海。", device: "擬人", level: "p5" },
+    { id: "niren-12", sentence: "烏雲生氣地板起臉孔，很快便下起傾盆大雨。", device: "擬人", level: "p6" },
+    { id: "niren-13", sentence: "寒風張牙舞爪地撲向路上的行人。", device: "擬人", level: "p6" },
+    { id: "niren-14", sentence: "月亮悄悄躲到雲層後面，似乎不好意思露面。", device: "擬人", level: "p6" },
+    { id: "niren-15", sentence: "校園裏的老榕樹，靜靜地看着一屆又一屆的學生畢業離開。", device: "擬人", level: "s1" },
+
+    { id: "kuazhang-10", sentence: "聽到這個好消息，他高興得幾乎要飛上天。", device: "誇張", level: "p5" },
+    { id: "kuazhang-11", sentence: "弟弟餓得能吃下一頭牛。", device: "誇張", level: "p5" },
+    { id: "kuazhang-12", sentence: "這道菜實在太辣了，我的嘴巴簡直要噴出火來。", device: "誇張", level: "p6" },
+    { id: "kuazhang-13", sentence: "一天沒見到你，就好像過了三年那麼長。", device: "誇張", level: "p6" },
+    { id: "kuazhang-14", sentence: "他的笑聲震得整幢大樓都在搖晃。", device: "誇張", level: "s1" },
+    { id: "kuazhang-15", sentence: "作業堆得比山還高，我一輩子也做不完。", device: "誇張", level: "s1" },
+
+    { id: "duiou-10", sentence: "白日依山盡，黃河入海流。", device: "對偶", level: "p5" },
+    { id: "duiou-11", sentence: "兩個黃鸝鳴翠柳，一行白鷺上青天。", device: "對偶", level: "p6" },
+    { id: "duiou-12", sentence: "勿以善小而不為，勿以惡小而為之。", device: "對偶", level: "p6" },
+    { id: "duiou-13", sentence: "大漠孤煙直，長河落日圓。", device: "對偶", level: "s1" },
+    { id: "duiou-14", sentence: "海內存知己，天涯若比鄰。", device: "對偶", level: "s1" },
+    { id: "duiou-15", sentence: "山不在高，有仙則名；水不在深，有龍則靈。", device: "對偶", level: "s1" },
+
+    { id: "paibi-10", sentence: "春天的花是紅的，夏天的樹是綠的，秋天的果是黃的。", device: "排比", level: "p5" },
+    { id: "paibi-11", sentence: "有的同學在打籃球，有的同學在跳繩，有的同學在追逐嬉戲。", device: "排比", level: "p5" },
+    { id: "paibi-12", sentence: "讀書使人明智，讀書使人充實，讀書使人快樂。", device: "排比", level: "p6" },
+    { id: "paibi-13", sentence: "我們要學會感恩：感恩父母的養育，感恩老師的教導，感恩朋友的陪伴。", device: "排比", level: "p6" },
+    { id: "paibi-14", sentence: "人生需要勇氣去面對，需要智慧去選擇，需要毅力去堅持。", device: "排比", level: "s1" },
+    { id: "paibi-15", sentence: "他用勤勞耕耘土地，用汗水澆灌希望，用雙手創造未來。", device: "排比", level: "s1" },
+
+    { id: "fanwen-10", sentence: "難道你忍心看着朋友受苦而不伸出援手嗎？", device: "反問", level: "p5" },
+    { id: "fanwen-11", sentence: "這麼簡單的道理，你怎麼會不明白呢？", device: "反問", level: "p6" },
+    { id: "fanwen-12", sentence: "誰不希望生活在一個安全的環境裏呢？", device: "反問", level: "p6" },
+    { id: "fanwen-13", sentence: "垃圾隨處亂拋，我們的城市怎能乾淨呢？", device: "反問", level: "p6" },
+    { id: "fanwen-14", sentence: "連最基本的禮貌都不懂，還談什麼尊重別人？", device: "反問", level: "s1" },
+    { id: "fanwen-15", sentence: "既然事事推給別人，又怎能學到真本領？", device: "反問", level: "s1" },
+
+    { id: "shewen-10", sentence: "什麼東西最珍貴？時間最珍貴，因為它一去不回。", device: "設問", level: "p5" },
+    { id: "shewen-11", sentence: "小小的螞蟻有什麼本領？牠們懂得團結合作，能搬動比自己重很多倍的食物。", device: "設問", level: "p5" },
+    { id: "shewen-12", sentence: "我們為什麼要保護環境？因為地球是我們唯一的家。", device: "設問", level: "p6" },
+    { id: "shewen-13", sentence: "怎樣才能學好語文？多讀書、多寫作、多思考。", device: "設問", level: "p6" },
+    { id: "shewen-14", sentence: "什麼是真正的富有？是內心的滿足，而不是擁有很多金錢。", device: "設問", level: "s1" },
+    { id: "shewen-15", sentence: "是誰讓這座城市在深夜依然明亮？是那些默默值夜班的工作人員。", device: "設問", level: "s1" },
   ];
 
   const RHETORIC_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };

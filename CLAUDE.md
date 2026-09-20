@@ -1230,3 +1230,27 @@ missing features):
 - [ ] Cross-module linking from other modules back to Cangjie if a child
       gets stuck typing (no module currently needs free Chinese text entry
       besides Cangjie/Mandarin themselves, so this hasn't come up yet)
+
+## Content expansion batch (指令 B) — done
+- 作文金句: 60 → 75 (+5 per theme, ids like `summer-cicada`; none repeat the originals).
+- 倉頡 (`cangjieContent.jsx` + `CangjieModule.jsx`): categories renamed to the
+  official 哲理類/筆劃類/人體類/字形類 (source: 朱邦復工作室《第五代倉頡輸入法手冊》),
+  roots H–N/S–W/Y carry the official `definition` (斜點交叉縱橫鉤／側並仰紐方卜).
+  `輔助字形總覽` lists only text-verifiable shapes (28 shapes, 19/24 letters;
+  A/D/R/U/V have none yet — the official table is mostly images). Each example
+  was checked: its Unihan/hkcards code contains the owning letter. Fixed old
+  errors: 想 removed from 忄, 半 removed from 丷. `拆字練習`: 50 chars, each code
+  agreed by Unihan kCangjie + en.wiktionary `canj` + hkcards per-char breakdown
+  (~110 candidates tested; 黃 rejected — hkcards shows two variants).
+- 拼音 (`pinyinImeContent.jsx` + `MandarinModule.jsx` PinyinCharLookup): 50 chars,
+  Unihan kMandarin + kXHC1983 + en.wiktionary all agree; only single-reading
+  characters (多音字 like 大/上/樂/行 deliberately excluded).
+- 歷史故事: 36 → 48 (+12: 商湯, 管鮑, 楚莊王, 張騫, 司馬遷, 蔡倫, 隋運河, 黃道婆,
+  李時珍, 虎門銷煙, 詹天佑, 辛亥革命); facts web-verified (see comment above them).
+- 修辭手法: 63 → 105 practice sentences (15 per device; 對偶 = famous couplets).
+- 文言文選讀: +2 questions per text (字詞解釋 + 語譯), 3 → 5 each; 原文 untouched.
+- `FixedQuizFlow` (QuizQuestion.jsx) now shuffles options per attempt — most
+  hand-authored fixed questions had the answer in slot 0. Never write
+  explanations/prompts that depend on option order.
+- Local dev tip: `.claude/static-server.ps1` (single-threaded) hangs easily;
+  `.claude/StaticServer.exe --root chinese-ops --port 5701` is faster.
