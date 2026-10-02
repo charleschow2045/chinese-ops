@@ -1257,3 +1257,13 @@ missing features):
   explanations/prompts that depend on option order.
 - Local dev tip: `.claude/static-server.ps1` (single-threaded) hangs easily;
   `.claude/StaticServer.exe --root chinese-ops --port 5701` is faster.
+
+## 備份與還原 (BackupSettings.jsx)
+- Home footer link "💾 備份與還原進度" opens an inline panel. The app uses exactly one
+  localStorage key (`chineseOps:v1`); the backup file is
+  `{ app: "chinese-ops", version: 1, exportedAt, data: { "chineseOps:v1": state } }`,
+  downloaded as `chinese-ops-backup-YYYY-MM-DD.json` (local date).
+- `Storage.parseBackup(text)` never throws; rejects with reason invalid / wrongApp /
+  newerVersion / tooBig, and `sanitizeState` rebuilds state from known fields only.
+  Restore always goes through a confirm screen (file date, level, 答對/練習題數, 錯題數).
+- If a second localStorage key is ever added, add it to `buildBackup`/`parseBackup`.

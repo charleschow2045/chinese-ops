@@ -30,6 +30,12 @@ window.App = window.App || {};
       setState((s) => ({ ...s, level }));
     }
 
+    // Overwrites progress with an already-sanitized backup (BackupSettings.jsx).
+    function restoreProgress(restored) {
+      Storage.restoreState(restored);
+      setState(restored);
+    }
+
     function openModule(key) {
       setView(key);
     }
@@ -101,7 +107,7 @@ window.App = window.App || {};
           </header>
 
           <main>
-            {view === "home" && <Home state={state} onChangeLevel={changeLevel} onOpenModule={openModule} />}
+            {view === "home" && <Home state={state} onChangeLevel={changeLevel} onOpenModule={openModule} onRestore={restoreProgress} />}
             {view === "poetry" && (
               <PoetryModule
                 level={state.level}

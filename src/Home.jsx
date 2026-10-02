@@ -67,7 +67,8 @@ window.App = window.App || {};
     );
   }
 
-  function Home({ state, onChangeLevel, onOpenModule }) {
+  function Home({ state, onChangeLevel, onOpenModule, onRestore }) {
+    const { BackupSettings } = window.App;
     return (
       <div className="flex flex-col gap-4">
         <div
@@ -89,6 +90,8 @@ window.App = window.App || {};
             <ModuleCard key={mod.key} mod={mod} onOpen={() => onOpenModule(mod.key)} />
           ))}
         </div>
+
+        <BackupSettings state={state} onRestore={onRestore} />
       </div>
     );
   }

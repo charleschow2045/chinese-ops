@@ -116,8 +116,85 @@ window.App = window.App || {};
     };
   }
 
+  // ---- Backup / restore ----
+  // localStorage holds exactly one key for this app (STORAGE_KEY); it is the
+  // only entry in `data`. Add further keys here if the app ever uses more.
+  const BACKUP_APP = "chinese-ops";
+  const BACKUP_VERSION = 1;
+  const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
+
+  function isPlainObject(v) {
+    return v !== null && typeof v === "object" && !Array.isArray(v);
+  }
+
+  function nonNegInt(v) {
+    return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
+  }
+
+  // Rebuilds a state object from untrusted data, keeping only known fields
+  // with the right types; returns null if it is not recognisable progress.
+  function sanitizeState(raw) {
+    if (!isPlainObject(raw) || !isPlainObject(raw.moduleProgress)) return null;
+    const state = defaultState();
+    if (LEVEL_KEYS.includes(raw.level)) state.level = raw.level;
+    MODULES.forEach((m) => {
+      const src = raw.moduleProgress[m.key];
+      if (!isPlainObject(src)) return;
+      const stats = isPlainObject(src.practiceStats) ? src.practiceStats : {};
+      const correct = nonNegInt(stats.correct);
+      const attempts = Math.max(nonNegInt(stats.attempts), correct);
+      const mistakes = Array.isArray(src.mistakes)
+        ? [...new Set(src.mistakes.filter((id) => typeof id === "string" && id.length > 0 && id.length <= 100))]
+        : [];
+      state.moduleProgress[m.key] = { practiceStats: { correct, attempts }, mistakes };
+    });
+    return state;
+  }
+
+  function buildBackup(state) {
+    return {
+      app: BACKUP_APP,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      data: { [STORAGE_KEY]: state },
+    };
+  }
+
+  // Parses backup file text. Returns { ok: true, state, exportedAt } or
+  // { ok: false, reason: "invalid" | "wrongApp" | "newerVersion" | "tooBig" }.
+  // Never throws.
+  function parseBackup(text) {
+    try {
+      if (typeof text !== "string" || text.length === 0) return { ok: false, reason: "invalid" };
+      if (text.length > MAX_BACKUP_BYTES) return { ok: false, reason: "tooBig" };
+      const parsed = JSON.parse(text);
+      if (!isPlainObject(parsed)) return { ok: false, reason: "invalid" };
+      if (parsed.app !== BACKUP_APP) return { ok: false, reason: typeof parsed.app === "string" ? "wrongApp" : "invalid" };
+      if (!Number.isInteger(parsed.version) || parsed.version < 1) return { ok: false, reason: "invalid" };
+      if (parsed.version > BACKUP_VERSION) return { ok: false, reason: "newerVersion" };
+      if (!isPlainObject(parsed.data)) return { ok: false, reason: "invalid" };
+      const state = sanitizeState(parsed.data[STORAGE_KEY]);
+      if (!state) return { ok: false, reason: "invalid" };
+      const t = Date.parse(parsed.exportedAt);
+      return { ok: true, state, exportedAt: Number.isFinite(t) ? new Date(t) : null };
+    } catch (e) {
+      return { ok: false, reason: "invalid" };
+    }
+  }
+
+  // Overwrites local progress with an already-sanitized state.
+  function restoreState(state) {
+    saveState(state);
+  }
+
   window.App.Storage = {
     STORAGE_KEY,
+    BACKUP_APP,
+    BACKUP_VERSION,
+    buildBackup,
+    parseBackup,
+    sanitizeState,
+    restoreState,
     LEVELS,
     MODULES,
     loadState,
