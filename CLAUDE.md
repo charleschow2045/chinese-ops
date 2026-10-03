@@ -1267,3 +1267,13 @@ missing features):
   newerVersion / tooBig, and `sanitizeState` rebuilds state from known fields only.
   Restore always goes through a confirm screen (file date, level, 答對/練習題數, 錯題數).
 - If a second localStorage key is ever added, add it to `buildBackup`/`parseBackup`.
+
+## 歷史故事改版 第 1 次 (按主題分類) — done
+- `HistoryModule.jsx`: level filter replaced by category tabs (戰爭故事 12 / 治國與時代發展 9 /
+  計謀 9 / 品德與勵志 18; 戰爭詩詞 is hidden while empty). Stories are ordered by
+  `sortYear` (approximate; BCE negative) inside each tab. `level` stays in the data.
+- New per-story fields in `historyContent.jsx`: `category`, `characters` (2–4), `lesson`,
+  `source` ("史書記載"/"小說演義"/"神話傳說"/null), plus helper fields `sortYear` and
+  `sourceRef` (verified origin text). `source: null` = mixed or fits none of the 3 (no tag).
+  Current: 35 史書記載, 4 神話傳說, 0 小說演義, 9 null (see sourceRef for reasons).
+- Backup (`sanitizeState`) unaffected: story ids and the progress format did not change.

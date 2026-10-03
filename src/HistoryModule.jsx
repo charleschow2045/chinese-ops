@@ -1,7 +1,8 @@
 // Module 6: 中國歷史故事 (standalone) — unlike Modules 1/2/5, comprehension
 // questions here are hand-authored per story (fixed, not generated at
-// runtime), since each story's facts are unique. Flow: list -> read the
-// story -> answer that story's own questions -> completion summary.
+// runtime), since each story's facts are unique. Flow: list (tabbed by
+// 類別) -> read the story -> answer that story's own questions -> completion
+// summary.
 window.App = window.App || {};
 
 (function () {
@@ -9,15 +10,36 @@ window.App = window.App || {};
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.history;
   const { FixedQuizFlow } = window.App.QuizQuestion;
-  const { HISTORY_ITEMS, HISTORY_LEVEL_LABEL } = window.App.Content;
+  const { HISTORY_ITEMS, HISTORY_CATEGORIES } = window.App.Content;
   const { AudioButtons } = window.App;
 
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
+  // 出處 tag. 史書記載 is a quiet outlined chip; the two non-正史 sources are
+  // solid-filled with an icon so a child can tell at a glance it isn't
+  // recorded history. `source: null` (mixed/unclear origin) shows nothing.
+  const SOURCE_TAGS = {
+    史書記載: { icon: "📜", bg: "#E4E9DE", border: "#C9D4BE", color: INK.bamboo, solid: false },
+    小說演義: { icon: "🎭", bg: INK.vermillion, border: INK.vermillion, color: INK.paper, solid: true },
+    神話傳說: { icon: "✨", bg: INK.ochre, border: INK.ochre, color: INK.paper, solid: true },
+  };
+
+  function SourceTag({ source }) {
+    const s = SOURCE_TAGS[source];
+    if (!s) return null;
+    return (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] leading-none whitespace-nowrap shrink-0 ${TYPE.heading}`}
+        style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.color }}
+      >
+        <span aria-hidden="true">{s.icon}</span>
+        {source}
+      </span>
+    );
+  }
+
+  // Chronological order inside a category (sortYear is BCE-negative).
+  function byEra(a, b) {
+    return (a.sortYear ?? 0) - (b.sortYear ?? 0);
+  }
 
   function StoryDetail({ item, onBack, onStartQuestions }) {
     return (
@@ -27,14 +49,17 @@ window.App = window.App || {};
             ← 返回
           </button>
           <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.period} · {HISTORY_LEVEL_LABEL[item.level]}
+            {item.period}
           </span>
         </div>
 
         <PaperCard accent={ACCENT}>
-          <h2 className={`text-xl mb-3 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.title}
-          </h2>
+          <div className="flex items-center flex-wrap gap-2 mb-3">
+            <h2 className={`text-xl ${TYPE.heading}`} style={{ color: INK.ink }}>
+              {item.title}
+            </h2>
+            <SourceTag source={item.source} />
+          </div>
           <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
             {item.story}
           </p>
@@ -66,27 +91,31 @@ window.App = window.App || {};
           🏯
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.title}
-          </p>
+          <div className="flex items-center gap-2 min-w-0">
+            <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
+              {item.title}
+            </p>
+            <SourceTag source={item.source} />
+          </div>
           <p className={`text-xs ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.period} · {HISTORY_LEVEL_LABEL[item.level]}
+            {item.period}
           </p>
         </div>
       </button>
     );
   }
 
-  function HistoryModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
+  function HistoryModule({ mistakes, onBack, onRecordPractice, onAnswerItem }) {
     const [view, setView] = useState("list"); // list | story | questions
-    const [filterLevel, setFilterLevel] = useState(level || "all");
+    // Only categories that actually have stories get a tab (戰爭詩詞 is empty for now).
+    const categories = HISTORY_CATEGORIES.filter((c) => HISTORY_ITEMS.some((it) => it.category === c));
+    const [category, setCategory] = useState(categories[0]);
     const [onlyMistakes, setOnlyMistakes] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
     const filtered = HISTORY_ITEMS.filter(
-      (it) =>
-        (filterLevel === "all" || it.level === filterLevel) && (!onlyMistakes || (mistakes || []).includes(it.id))
-    );
+      (it) => it.category === category && (!onlyMistakes || (mistakes || []).includes(it.id))
+    ).sort(byEra);
     const selectedItem = HISTORY_ITEMS.find((it) => it.id === selectedId);
 
     function openItem(id) {
@@ -134,28 +163,29 @@ window.App = window.App || {};
 
         <PaperCard accent={ACCENT}>
           <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            程度
+            類別
           </p>
-          <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => {
-              const active = filterLevel === l.key;
+          <div className="grid grid-cols-2 gap-2">
+            {categories.map((c) => {
+              const active = category === c;
+              const count = HISTORY_ITEMS.filter((it) => it.category === c).length;
               return (
                 <button
-                  key={l.key}
-                  onClick={() => setFilterLevel(l.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={`rounded-xl py-2 px-2 text-sm transition-all ${TYPE.heading}`}
                   style={
                     active
                       ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
                       : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
                   }
                 >
-                  {l.label}
+                  {c}
+                  <span className="ml-1 text-xs opacity-80">（{count}）</span>
                 </button>
               );
             })}
-          </div>
-          {(mistakes || []).length > 0 && (
+          </div>          {(mistakes || []).length > 0 && (
             <button
               onClick={() => setOnlyMistakes((v) => !v)}
               className={`w-full mt-2 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
@@ -171,6 +201,11 @@ window.App = window.App || {};
         </PaperCard>
 
         <div className="flex flex-col gap-3">
+          {filtered.length === 0 && (
+            <p className={`text-sm text-center py-4 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+              這個類別暫時沒有錯題。
+            </p>
+          )}
           {filtered.map((item) => (
             <StoryListRow key={item.id} item={item} onOpen={() => openItem(item.id)} />
           ))}
