@@ -1279,3 +1279,13 @@ missing features):
   三顧茅廬, 岳飛精忠報國, 卧冰求鯉, 囊螢映雪, 大禹治水, 卧薪嘗膽). Counts: 38 史書記載, 5 筆記軼事, 5 神話與民間傳說,
   0 小說演義. The story page now shows 主要人物 and 故事道理.
 - Backup (`sanitizeState`) unaffected: story ids and the progress format did not change.
+
+## 歷史故事改版 第 2 次 — 詩詞 +13 (poetryContent.jsx, now 74 poems)
+- Added: 黃鶴樓, 登高, 錦瑟, 念奴嬌·赤壁懷古, 西江月·夜行黃沙道中, 破陣子·為陳同甫賦壯詞以寄之,
+  如夢令·常記溪亭日暮, 一剪梅·紅藕香殘玉簟秋, 雨霖鈴·寒蟬淒切（節錄）, 從軍行（青海長雲暗雪山）,
+  夏日絕句, 示兒, 過零丁洋. All have `form`; the 6 詞 carry `ciTune`; 黃鶴樓 has a `formNote`
+  (七律 per textbook convention, 格律 disputed). Texts were compared across ≥2 online sources;
+  variant wording is recorded in each poem's `background`. Pinyin was generated from Unicode Unihan
+  with manual polyphone/tone-sandhi fixes. The original 61 poems are untouched.
+- Known quirk (pre-existing, more likely now): the 填空 question can pick a "……" omission line
+  of a 節錄 poem (水調歌頭, 雨霖鈴) as the line to blank.
