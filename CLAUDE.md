@@ -1275,7 +1275,7 @@ missing features):
 - New per-story fields in `historyContent.jsx`: `category`, `characters` (2–4), `lesson`,
   `source` (one of `HISTORY_SOURCES`: 史書記載 / 小說演義 / 筆記軼事 / 神話與民間傳說 — every
   story has one), plus helper fields `sortYear`, `sourceRef` (verified origin text) and the
-  optional `sourceNote` (shown on the story page for 5 mixed/disputed stories: 烽火戲諸侯,
-  三顧茅廬, 岳飛精忠報國, 卧冰求鯉, 囊螢映雪). Counts: 38 史書記載, 5 筆記軼事, 5 神話與民間傳說,
+  optional `sourceNote` (shown on the story page for 7 mixed/disputed stories: 烽火戲諸侯,
+  三顧茅廬, 岳飛精忠報國, 卧冰求鯉, 囊螢映雪, 大禹治水, 卧薪嘗膽). Counts: 38 史書記載, 5 筆記軼事, 5 神話與民間傳說,
   0 小說演義. The story page now shows 主要人物 and 故事道理.
 - Backup (`sanitizeState`) unaffected: story ids and the progress format did not change.

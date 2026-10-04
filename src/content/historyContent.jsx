@@ -28,6 +28,7 @@ window.App.Content = window.App.Content || {};
       sortYear: -2070,
       source: "史書記載",
       sourceRef: "《史記·夏本紀》《尚書·益稷》（含傳說成分）",
+      sourceNote: "大禹屬夏朝初年的上古傳說時代人物。夏朝至今未發現同時期的文字記載，大禹治水的事跡主要見於《史記·夏本紀》《尚書》等後世文獻，細節帶有傳說成分。",
       characters: ["大禹", "鯀"],
       lesson: "治水要順應水性、疏導而不是堵塞，並要以公忘私、堅持不懈。",
       story:
@@ -1086,6 +1087,7 @@ window.App.Content = window.App.Content || {};
       sortYear: -494,
       source: "史書記載",
       sourceRef: "《史記·越王句踐世家》（只記「嘗膽」，「卧薪」一語見於宋代蘇軾的文章）",
+      sourceNote: "《史記·越王句踐世家》只記句踐「置膽於坐，坐臥即仰膽，飲食亦嘗膽」，並沒有「臥薪」一語；「臥薪嘗膽」連用，見於北宋蘇軾《擬孫權答曹操書》，是後世加上的說法。",
       characters: ["勾踐", "夫差"],
       lesson: "受挫後要堅忍自勉、發憤圖強，終能成功。",
       story:
