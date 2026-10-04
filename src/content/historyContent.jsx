@@ -7,11 +7,14 @@
 //  - `category`: one of HISTORY_CATEGORIES; the list screen is tabbed by it.
 //  - `sortYear`: approximate year used only to order stories chronologically
 //    inside a category (negative = BCE; myths use their legendary era).
-//  - `source`: "史書記載" | "小說演義" | "神話傳說", or null when the origin is
-//    mixed or none of the three fits (e.g. 筆記、民歌、地方文獻) — null shows
-//    no tag. `sourceRef` records the verified origin text for each story.
+//  - `source`: one of HISTORY_SOURCES — "史書記載" | "小說演義" | "筆記軼事" |
+//    "神話與民間傳說" (筆記軼事 = 筆記、野史、類書、家傳等非正史文獻). Every story
+//    has one. `sourceRef` records the verified origin text; the optional
+//    `sourceNote` is a short note shown on the story page where the single
+//    label alone could mislead (a mixed origin, or a disputed event).
 //  - `characters` (2–4 main figures) and `lesson` (one-sentence takeaway).
-// `level` is kept in the data but the level filter is no longer shown.window.App = window.App || {};
+// `level` is kept in the data but the level filter is no longer shown.
+window.App = window.App || {};
 window.App.Content = window.App.Content || {};
 
 (function () {
@@ -54,7 +57,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: -350,
-      source: null,
+      source: "筆記軼事",
       sourceRef: "《列女傳·鄒孟軻母》《韓詩外傳》，非正史",
       characters: ["孟母", "孟子"],
       lesson: "環境對孩子的成長影響深遠，要為孩子選擇良好的學習環境。",
@@ -147,7 +150,7 @@ window.App.Content = window.App.Content || {};
       level: "p6",
       category: "戰爭故事",
       sortYear: 500,
-      source: null,
+      source: "神話與民間傳說",
       sourceRef: "《木蘭詩》（樂府民歌），史書無載",
       characters: ["木蘭", "木蘭的父親"],
       lesson: "孝順父母，有勇有謀，立功之後不貪圖名利。",
@@ -179,7 +182,8 @@ window.App.Content = window.App.Content || {};
       category: "戰爭故事",
       sortYear: -779,
       source: "史書記載",
-      sourceRef: "《史記·周本紀》（後世對其真實性有爭議）",
+      sourceRef: "《史記·周本紀》（真實性有爭議）",
+      sourceNote: "此事記於《史記·周本紀》，但西周是否已有烽火制度、事件是否屬實，歷來有爭議。",
       characters: ["周幽王", "褒姒", "犬戎"],
       lesson: "為了私慾而玩弄別人的信任，到真正有危難時便無人相助，終致亡國。",
       story:
@@ -209,8 +213,9 @@ window.App.Content = window.App.Content || {};
       level: "p6",
       category: "計謀",
       sortYear: 207,
-      source: null,
-      sourceRef: "《三國志·諸葛亮傳》只記「凡三往，乃見」，「風雪」等細節來自《三國演義》，故事兩者混合",
+      source: "史書記載",
+      sourceRef: "《三國志·諸葛亮傳》《出師表》（風雪等細節見《三國演義》）",
+      sourceNote: "《三國志》只簡單記載劉備「凡三往，乃見」；「冒着風雪」等細節來自小說《三國演義》。",
       characters: ["劉備", "諸葛亮"],
       lesson: "求賢要有誠意，願意放下身段、堅持不懈。",
       story:
@@ -302,8 +307,9 @@ window.App.Content = window.App.Content || {};
       level: "s1",
       category: "戰爭故事",
       sortYear: 1140,
-      source: null,
-      sourceRef: "《宋史·岳飛傳》記岳飛背上刺字為「盡忠報國」；「岳母刺字」及「精忠報國」一說則源自清代小說《說岳全傳》，故事兩者混合",
+      source: "史書記載",
+      sourceRef: "《宋史·岳飛傳》《宋史·何鑄傳》（刺字一說另見清代小說《說岳全傳》）",
+      sourceNote: "《宋史》記載岳飛背上刺有「盡忠報國」；「岳母刺字」和「精忠報國」的說法，則來自清代小說《說岳全傳》，所以故事中以「相傳」交代。",
       characters: ["岳飛", "岳母", "秦檜"],
       lesson: "忠於國家，即使蒙受冤屈也不改初心。",
       story:
@@ -659,7 +665,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: -2700,
-      source: "神話傳說",
+      source: "神話與民間傳說",
       sourceRef: "《山海經·北山經》",
       characters: ["女娃（精衛）", "炎帝"],
       lesson: "意志堅定、堅持不懈，即使看似不可能也不放棄。",
@@ -686,7 +692,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: -3000,
-      source: "神話傳說",
+      source: "神話與民間傳說",
       sourceRef: "《淮南子·覽冥訓》《列子·湯問》",
       characters: ["女媧", "百姓"],
       lesson: "有憐憫之心，願意為別人解困、勇於承擔。",
@@ -713,7 +719,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: -2300,
-      source: "神話傳說",
+      source: "神話與民間傳說",
       sourceRef: "《淮南子·本經訓》",
       characters: ["后羿", "百姓"],
       lesson: "勇敢承擔責任，為民除害。",
@@ -740,7 +746,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: 157,
-      source: null,
+      source: "筆記軼事",
       sourceRef: "《後漢書·孔融傳》李賢注引《融家傳》（注文，非正文）",
       characters: ["孔融", "父親", "兄長"],
       lesson: "懂得謙讓，尊敬兄長。",
@@ -767,7 +773,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: 715,
-      source: "神話傳說",
+      source: "神話與民間傳說",
       sourceRef: "宋·祝穆《方輿勝覽》（民間傳說，非史書）",
       characters: ["李白", "老婆婆"],
       lesson: "只要有恆心、肯堅持，再困難的事也能成功。",
@@ -805,6 +811,7 @@ window.App.Content = window.App.Content || {};
       sortYear: 270,
       source: "史書記載",
       sourceRef: "《晉書·王祥傳》（亦見《搜神記》，情節帶神異色彩）",
+      sourceNote: "此事記於《晉書·王祥傳》，但「冰忽自解、雙鯉躍出」帶有神異色彩，不宜當作確實發生過的事實。",
       characters: ["王祥", "繼母"],
       lesson: "孝順父母，用真誠和孝心感動別人。",
       story:
@@ -834,7 +841,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "計謀",
       sortYear: 199,
-      source: null,
+      source: "筆記軼事",
       sourceRef: "《世說新語·假譎》（筆記小說）；《三國志》沒有記載",
       characters: ["曹操", "士兵"],
       lesson: "善用想像和心理暗示，可以在困境中鼓舞士氣。",
@@ -865,7 +872,7 @@ window.App.Content = window.App.Content || {};
       level: "p5",
       category: "品德與勵志",
       sortYear: -70,
-      source: null,
+      source: "筆記軼事",
       sourceRef: "《西京雜記》（筆記小說）；《漢書·匡衡傳》沒有此段記載",
       characters: ["匡衡", "鄰居"],
       lesson: "肯克服困難、刻苦勤學，就能學有所成。",
@@ -928,8 +935,9 @@ window.App.Content = window.App.Content || {};
       level: "p6",
       category: "品德與勵志",
       sortYear: 350,
-      source: null,
-      sourceRef: "「囊螢」見《晉書·車胤傳》；「映雪」見《初學記》引《宋齊語》，兩段出處不同",
+      source: "史書記載",
+      sourceRef: "「囊螢」見《晉書·車胤傳》；「映雪」見《初學記》引《宋齊語》",
+      sourceNote: "「囊螢」記於《晉書·車胤傳》；「映雪」則見於類書《初學記》所引的《宋齊語》，並非正史正文。",
       characters: ["車胤", "孫康"],
       lesson: "家境貧困也不放棄，勤學不倦、善用身邊的條件。",
       story:
@@ -1363,7 +1371,7 @@ window.App.Content = window.App.Content || {};
       level: "p6",
       category: "品德與勵志",
       sortYear: 1295,
-      source: null,
+      source: "筆記軼事",
       sourceRef: "王逢《梧溪集》、陶宗儀《南村輟耕錄》（詩文與筆記，非正史）",
       characters: ["黃道婆", "黎族婦女"],
       lesson: "虛心向人學習，並毫無保留地傳授，改良技術能造福鄉里。",
@@ -1516,9 +1524,12 @@ window.App.Content = window.App.Content || {};
   const HISTORY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
   // Tab order on the list screen. 戰爭詩詞 has no stories yet, so the module
   // hides any category with zero items.
+  // 出處標籤 (see the `source` note in the header).
+  const HISTORY_SOURCES = ["史書記載", "小說演義", "筆記軼事", "神話與民間傳說"];
   const HISTORY_CATEGORIES = ["戰爭故事", "治國與時代發展", "計謀", "品德與勵志", "戰爭詩詞"];
 
   window.App.Content.HISTORY_ITEMS = HISTORY_ITEMS;
   window.App.Content.HISTORY_LEVEL_LABEL = HISTORY_LEVEL_LABEL;
   window.App.Content.HISTORY_CATEGORIES = HISTORY_CATEGORIES;
+  window.App.Content.HISTORY_SOURCES = HISTORY_SOURCES;
 })();

@@ -1273,7 +1273,9 @@ missing features):
   計謀 9 / 品德與勵志 18; 戰爭詩詞 is hidden while empty). Stories are ordered by
   `sortYear` (approximate; BCE negative) inside each tab. `level` stays in the data.
 - New per-story fields in `historyContent.jsx`: `category`, `characters` (2–4), `lesson`,
-  `source` ("史書記載"/"小說演義"/"神話傳說"/null), plus helper fields `sortYear` and
-  `sourceRef` (verified origin text). `source: null` = mixed or fits none of the 3 (no tag).
-  Current: 35 史書記載, 4 神話傳說, 0 小說演義, 9 null (see sourceRef for reasons).
+  `source` (one of `HISTORY_SOURCES`: 史書記載 / 小說演義 / 筆記軼事 / 神話與民間傳說 — every
+  story has one), plus helper fields `sortYear`, `sourceRef` (verified origin text) and the
+  optional `sourceNote` (shown on the story page for 5 mixed/disputed stories: 烽火戲諸侯,
+  三顧茅廬, 岳飛精忠報國, 卧冰求鯉, 囊螢映雪). Counts: 38 史書記載, 5 筆記軼事, 5 神話與民間傳說,
+  0 小說演義. The story page now shows 主要人物 and 故事道理.
 - Backup (`sanitizeState`) unaffected: story ids and the progress format did not change.

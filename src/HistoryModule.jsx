@@ -13,13 +13,14 @@ window.App = window.App || {};
   const { HISTORY_ITEMS, HISTORY_CATEGORIES } = window.App.Content;
   const { AudioButtons } = window.App;
 
-  // 出處 tag. 史書記載 is a quiet outlined chip; the two non-正史 sources are
+  // 出處 tag. 史書記載 is a quiet outlined chip; the three non-正史 sources are
   // solid-filled with an icon so a child can tell at a glance it isn't
-  // recorded history. `source: null` (mixed/unclear origin) shows nothing.
+  // recorded history. Unknown/missing `source` renders nothing.
   const SOURCE_TAGS = {
     史書記載: { icon: "📜", bg: "#E4E9DE", border: "#C9D4BE", color: INK.bamboo, solid: false },
     小說演義: { icon: "🎭", bg: INK.vermillion, border: INK.vermillion, color: INK.paper, solid: true },
-    神話傳說: { icon: "✨", bg: INK.ochre, border: INK.ochre, color: INK.paper, solid: true },
+    筆記軼事: { icon: "📓", bg: INK.indigo, border: INK.indigo, color: INK.paper, solid: true },
+    神話與民間傳說: { icon: "✨", bg: INK.ochre, border: INK.ochre, color: INK.paper, solid: true },
   };
 
   function SourceTag({ source }) {
@@ -60,11 +61,40 @@ window.App = window.App || {};
             </h2>
             <SourceTag source={item.source} />
           </div>
+          {item.sourceNote && (
+            <p
+              className={`text-xs leading-relaxed mb-3 rounded-lg px-3 py-2 ${TYPE.body}`}
+              style={{ color: INK.mutedInk, backgroundColor: ACCENT.tint, border: `1px solid ${ACCENT.tintBorder}` }}
+            >
+              出處說明：{item.sourceNote}
+            </p>
+          )}
           <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
             {item.story}
           </p>
           <AudioButtons text={item.story} accent={ACCENT} className="mt-3" />
         </PaperCard>
+
+        {(item.characters || item.lesson) && (
+          <PaperCard accent={ACCENT} className="!p-4">
+            {item.characters && (
+              <p className={`text-sm leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+                <span className={TYPE.heading} style={{ color: ACCENT.solid }}>
+                  主要人物：
+                </span>
+                {item.characters.join("、")}
+              </p>
+            )}
+            {item.lesson && (
+              <p className={`text-sm leading-relaxed mt-2 ${TYPE.body}`} style={{ color: INK.ink }}>
+                <span className={TYPE.heading} style={{ color: ACCENT.solid }}>
+                  故事道理：
+                </span>
+                {item.lesson}
+              </p>
+            )}
+          </PaperCard>
+        )}
 
         <InkButton accent={ACCENT} className="w-full" onClick={onStartQuestions}>
           開始問答 ✏️
