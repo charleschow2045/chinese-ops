@@ -1523,6 +1523,72 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
+  // 戰爭詩詞 tab: the poems themselves live in poetryContent.jsx and are
+  // referenced here by id only (never copied). Order = chronological.
+  const HISTORY_WAR_POEM_IDS = [
+    "chusai", // 王昌齡 出塞
+    "liangzhou-ci-putao", // 王翰 涼州詞
+    "liangzhou-ci-huanghe", // 王之渙 涼州詞
+    "cong-jun-xing-qinghai-changyun", // 王昌齡 從軍行
+    "chunwang", // 杜甫 春望
+    "niannujiao-chibi-huaigu", // 蘇軾 念奴嬌·赤壁懷古
+    "xia-ri-jue-ju", // 李清照 夏日絕句
+    "pozhenzi-wei-chen-tongfu", // 辛棄疾 破陣子
+    "shi-er", // 陸游 示兒
+    "guo-lingdingyang", // 文天祥 過零丁洋
+  ];
+
+  // poem <-> story pairings (existing stories only). `relation` says how the
+  // two are connected so a child is not misled: 事件背景 (the poem was written
+  // during / about / because of that event), 同一時代 (same period and
+  // concern, not the same event), 同一主題 (same theme only). `note` is one
+  // sentence; every claim in it was checked online before writing (see the
+  // 歷史故事改版 第 3 次 notes in CLAUDE.md). Poems without an entry are
+  // intentionally unpaired for now.
+  const HISTORY_POEM_STORY_LINKS = [
+    {
+      poemId: "chunwang",
+      storyId: "anshi-zhiluan",
+      relation: "事件背景",
+      note: "杜甫在安史之亂期間被叛軍俘虜、困在淪陷的長安，於至德二載（757年）春天寫下這首詩。",
+    },
+    {
+      poemId: "niannujiao-chibi-huaigu",
+      storyId: "chibi-zhizhan",
+      relation: "事件背景",
+      note: "蘇軾貶居黃州時遊赤壁，追想赤壁之戰中的周瑜；他遊覽的赤壁一般認為並非戰役的實地，所以詞中說「人道是」。",
+    },
+    {
+      poemId: "pozhenzi-wei-chen-tongfu",
+      storyId: "jingkang-zhinan",
+      relation: "事件背景",
+      note: "靖康之難十三年後，辛棄疾在已淪陷於金國的濟南出生，後來投身抗金；這首詞追憶抗金的軍旅生活，盼望收復失地。",
+    },
+    {
+      poemId: "shi-er",
+      storyId: "jingkang-zhinan",
+      relation: "事件背景",
+      note: "陸游在靖康之難前兩年出生，一生主張抗金，臨終前寫下《示兒》，盼望見到收復北方。",
+    },
+    {
+      poemId: "shi-er",
+      storyId: "yue-fei-jing-zhong-bao-guo",
+      relation: "同一時代",
+      note: "岳飛和陸游同是南宋抗金的人物，心願相近；兩者是同一時代的故事，並非寫同一個人或同一件事。",
+    },
+    {
+      poemId: "xia-ri-jue-ju",
+      storyId: "jingkang-zhinan",
+      relation: "事件背景",
+      note: "李清照經歷靖康之難後隨宋室南渡，一般認為這首詩作於南渡之後，借項羽不肯過江東來諷刺南宋的苟且偷安。",
+    },
+    {
+      poemId: "cong-jun-xing-qinghai-changyun",
+      storyId: "mulan-cong-jun",
+      relation: "同一主題",
+      note: "兩者都是寫軍人從軍、保衛邊疆（同一主題），但分屬不同時代，並非同一事件。",
+    },
+  ];
   const HISTORY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
   // Tab order on the list screen. 戰爭詩詞 has no stories yet, so the module
   // hides any category with zero items.
@@ -1534,4 +1600,6 @@ window.App.Content = window.App.Content || {};
   window.App.Content.HISTORY_LEVEL_LABEL = HISTORY_LEVEL_LABEL;
   window.App.Content.HISTORY_CATEGORIES = HISTORY_CATEGORIES;
   window.App.Content.HISTORY_SOURCES = HISTORY_SOURCES;
+  window.App.Content.HISTORY_WAR_POEM_IDS = HISTORY_WAR_POEM_IDS;
+  window.App.Content.HISTORY_POEM_STORY_LINKS = HISTORY_POEM_STORY_LINKS;
 })();

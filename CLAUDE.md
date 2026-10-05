@@ -1289,3 +1289,14 @@ missing features):
   with manual polyphone/tone-sandhi fixes. The original 61 poems are untouched.
 - Known quirk (pre-existing, more likely now): the 填空 question can pick a "……" omission line
   of a 節錄 poem (水調歌頭, 雨霖鈴) as the line to blank.
+
+## 歷史故事改版 第 3 次 — 戰爭詩詞分頁 + 詩詞/故事配對
+- Commit A: poetry quiz generators skip "……" omission lines (`isRealLine`) for the blank answer,
+  distractors and the meaning-question line (brute-force checked on 10,000+ generated questions).
+- Commit B: the 戰爭詩詞 tab is back in the history module. `historyContent.jsx` exports
+  `HISTORY_WAR_POEM_IDS` (10 poem ids, chronological) and `HISTORY_POEM_STORY_LINKS`
+  (`{ poemId, storyId, relation: 事件背景|同一時代|同一主題, note }`, 7 pairings). Poems are
+  referenced by id only (text stays in poetryContent.jsx). Unpaired for now: 出塞, 兩首涼州詞, 過零丁洋.
+- Cross-module links go through Root's `navigate(key, opts)` → `nav` prop on Poetry/History:
+  `{ poemId | storyId, scopeIds?, from: { module, opts } }`; `from` drives the back button, `scopeIds`
+  limits poem practice to the war-poem set. Story page shows 相關詩詞; poem detail shows 相關歷史故事.

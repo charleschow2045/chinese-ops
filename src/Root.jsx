@@ -21,6 +21,9 @@ window.App = window.App || {};
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());
     const [view, setView] = useState("home");
+    // Optional params for a module opened via a cross-module link (e.g. a story
+    // opening a poem): { poemId | storyId, from: { module, opts } }.
+    const [nav, setNav] = useState(null);
 
     useEffect(() => {
       Storage.saveState(state);
@@ -37,7 +40,20 @@ window.App = window.App || {};
     }
 
     function openModule(key) {
+      setNav(null);
       setView(key);
+    }
+
+    // Cross-module link (poetry <-> history). Modules remount, so the target
+    // reads `nav` for its starting screen.
+    function navigate(key, opts) {
+      setNav(opts || null);
+      setView(key);
+    }
+
+    function goHome() {
+      setNav(null);
+      setView("home");
     }
 
     function recordPoetryPractice(correctCount, total) {
@@ -112,7 +128,9 @@ window.App = window.App || {};
               <PoetryModule
                 level={state.level}
                 mistakes={state.moduleProgress.poetry.mistakes}
-                onBack={() => setView("home")}
+                nav={nav}
+                onNavigate={navigate}
+                onBack={goHome}
                 onRecordPractice={recordPoetryPractice}
                 onAnswerItem={(itemId, isCorrect) => answerItem("poetry", itemId, isCorrect)}
               />
@@ -146,7 +164,9 @@ window.App = window.App || {};
               <HistoryModule
                 level={state.level}
                 mistakes={state.moduleProgress.history.mistakes}
-                onBack={() => setView("home")}
+                nav={nav}
+                onNavigate={navigate}
+                onBack={goHome}
                 onRecordPractice={recordHistoryPractice}
                 onAnswerItem={(itemId, isCorrect) => answerItem("history", itemId, isCorrect)}
               />

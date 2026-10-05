@@ -25,14 +25,14 @@ window.App = window.App || {};
     { match: (f) => f === "文言短文", bg: "#EAE5DB", text: "#6B6355" },
   ];
 
-  function FormPill({ item }) {
+  function FormPill({ item, className = "mb-3" }) {
     if (!item.form) return null;
     const tone = FORM_PILL_TONES.find((t) => t.match(item.form));
     if (!tone) return null;
     const label = item.form === "詞" && item.ciTune ? `詞．${item.ciTune}` : item.form;
     return (
       <span
-        className="inline-block px-2.5 py-1 rounded-full text-xs font-bold mb-3"
+        className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${className}`}
         style={{ backgroundColor: tone.bg, color: tone.text }}
       >
         {label}
@@ -109,7 +109,9 @@ window.App = window.App || {};
     return chosen.map((item, i) => builders[i % builders.length](pool, item));
   }
 
-  function PoemDetail({ item, onBack, onPractice }) {
+  // `relatedStories` = [{ storyId, title, relation, note }] pairings from
+  // historyContent.jsx; `onOpenStory(storyId)` jumps to that story.
+  function PoemDetail({ item, onBack, onPractice, relatedStories = [], onOpenStory }) {
     const [showPinyin, setShowPinyin] = useState(false);
     return (
       <div className="flex flex-col gap-4">
@@ -226,6 +228,36 @@ window.App = window.App || {};
           </p>
         </PaperCard>
 
+        {relatedStories.length > 0 && (
+          <PaperCard accent={ACCENT}>
+            <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+              相關歷史故事
+            </p>
+            <div className="flex flex-col gap-3">
+              {relatedStories.map((s) => (
+                <div key={s.storyId}>
+                  <p className={`text-sm leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+                    <span
+                      className="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold mr-1.5"
+                      style={{ backgroundColor: ACCENT.tint, color: ACCENT.dark, border: `1px solid ${ACCENT.tintBorder}` }}
+                    >
+                      {s.relation}
+                    </span>
+                    {s.note}
+                  </p>
+                  <button
+                    onClick={() => onOpenStory(s.storyId)}
+                    className={`mt-1 text-sm underline ${TYPE.heading}`}
+                    style={{ color: ACCENT.solid }}
+                  >
+                    📖 {s.title} →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </PaperCard>
+        )}
+
         <InkButton accent={ACCENT} className="w-full" onClick={onPractice}>
           開始練習 🎯
         </InkButton>
@@ -331,10 +363,15 @@ window.App = window.App || {};
     );
   }
 
-  function PoetryModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
-    const [view, setView] = useState("list"); // list | detail | practice
+  // `nav` (optional) is set when another module links here:
+  //   { poemId, scopeIds?, from? } — open that poem's detail directly;
+  //   `scopeIds` limits the practice pool (e.g. the 戰爭詩詞 set) and `from`
+  //   ({ module, opts }) is where the back button returns to.
+  function PoetryModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
+    const startPoem = nav && POETRY_ITEMS.some((it) => it.id === nav.poemId) ? nav.poemId : null;
+    const [view, setView] = useState(startPoem ? "detail" : "list"); // list | detail | practice
     const [filterLevel, setFilterLevel] = useState(level || "all");
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedId, setSelectedId] = useState(startPoem);
     const [practiceScope, setPracticeScope] = useState(null); // pool used for a practice session
     const [reviewScope, setReviewScope] = useState(null);
 
@@ -358,17 +395,39 @@ window.App = window.App || {};
       setView("practice");
     }
 
+    // Opened from another module: practice/back return to the poem, not the list.
+    const afterPracticeView = nav ? "detail" : "list";
+
     function finishPractice(correctCount, total) {
       onRecordPractice(correctCount, total);
-      setView("list");
+      setView(afterPracticeView);
     }
+
+    function leaveDetail() {
+      if (nav && nav.from && onNavigate) onNavigate(nav.from.module, nav.from.opts);
+      else setView("list");
+    }
+
+    const scopeItems = nav && nav.scopeIds ? POETRY_ITEMS.filter((it) => nav.scopeIds.includes(it.id)) : null;
+
+    const relatedStories = useMemo(() => {
+      if (!selectedItem) return [];
+      const { HISTORY_POEM_STORY_LINKS, HISTORY_ITEMS } = window.App.Content;
+      return HISTORY_POEM_STORY_LINKS.filter((l) => l.poemId === selectedItem.id)
+        .map((l) => ({ ...l, title: (HISTORY_ITEMS.find((s) => s.id === l.storyId) || {}).title }))
+        .filter((l) => l.title);
+    }, [selectedItem]);
 
     if (view === "detail" && selectedItem) {
       return (
         <PoemDetail
           item={selectedItem}
-          onBack={() => setView("list")}
-          onPractice={() => startPractice(filtered)}
+          onBack={leaveDetail}
+          onPractice={() => startPractice(scopeItems || filtered)}
+          relatedStories={relatedStories}
+          onOpenStory={(storyId) =>
+            onNavigate && onNavigate("history", { storyId, from: { module: "poetry", opts: nav || { poemId: selectedItem.id } } })
+          }
         />
       );
     }
@@ -378,7 +437,7 @@ window.App = window.App || {};
         <PracticeSession
           pool={practiceScope}
           chooseFrom={reviewScope}
-          onBack={() => setView("list")}
+          onBack={() => setView(selectedId && nav ? "detail" : "list")}
           onFinish={finishPractice}
           onAnswerItem={onAnswerItem}
         />
@@ -439,4 +498,6 @@ window.App = window.App || {};
   }
 
   window.App.PoetryModule = PoetryModule;
+  // Reused by HistoryModule's 戰爭詩詞 tab so poems look the same everywhere.
+  window.App.PoetryParts = { FormPill };
 })();

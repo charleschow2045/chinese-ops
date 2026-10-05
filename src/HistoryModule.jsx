@@ -10,7 +10,7 @@ window.App = window.App || {};
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.history;
   const { FixedQuizFlow } = window.App.QuizQuestion;
-  const { HISTORY_ITEMS, HISTORY_CATEGORIES } = window.App.Content;
+  const { HISTORY_ITEMS, HISTORY_CATEGORIES, HISTORY_WAR_POEM_IDS, HISTORY_POEM_STORY_LINKS, POETRY_ITEMS } = window.App.Content;
   const { AudioButtons } = window.App;
 
   // 出處 tag. 史書記載 is a quiet outlined chip; the three non-正史 sources are
@@ -37,12 +37,30 @@ window.App = window.App || {};
     );
   }
 
+  const WAR_POEM_CATEGORY = "戰爭詩詞";
+  const POEMS_BY_ID = Object.fromEntries(POETRY_ITEMS.map((p) => [p.id, p]));
+  const STORIES_BY_ID = Object.fromEntries(HISTORY_ITEMS.map((s) => [s.id, s]));
+
+  // A relation chip ("事件背景" / "同一時代" / "同一主題") so the pairing is never
+  // mistaken for "this poem is about exactly this story".
+  function RelationChip({ relation }) {
+    return (
+      <span
+        className="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold mr-1.5"
+        style={{ backgroundColor: ACCENT.tint, color: ACCENT.dark, border: `1px solid ${ACCENT.tintBorder}` }}
+      >
+        {relation}
+      </span>
+    );
+  }
+
   // Chronological order inside a category (sortYear is BCE-negative).
   function byEra(a, b) {
     return (a.sortYear ?? 0) - (b.sortYear ?? 0);
   }
 
-  function StoryDetail({ item, onBack, onStartQuestions }) {
+  function StoryDetail({ item, onBack, onStartQuestions, onOpenPoem }) {
+    const relatedPoems = HISTORY_POEM_STORY_LINKS.filter((l) => l.storyId === item.id && POEMS_BY_ID[l.poemId]);
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -96,6 +114,34 @@ window.App = window.App || {};
           </PaperCard>
         )}
 
+        {relatedPoems.length > 0 && (
+          <PaperCard accent={ACCENT} className="!p-4">
+            <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+              相關詩詞
+            </p>
+            <div className="flex flex-col gap-3">
+              {relatedPoems.map((l) => {
+                const poem = POEMS_BY_ID[l.poemId];
+                return (
+                  <div key={l.poemId}>
+                    <p className={`text-sm leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+                      <RelationChip relation={l.relation} />
+                      {l.note}
+                    </p>
+                    <button
+                      onClick={() => onOpenPoem(l.poemId)}
+                      className={`mt-1 text-sm underline text-left ${TYPE.heading}`}
+                      style={{ color: ACCENT.solid }}
+                    >
+                      🖌️ 《{poem.title}》 · {poem.author} →
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </PaperCard>
+        )}
+
         <InkButton accent={ACCENT} className="w-full" onClick={onStartQuestions}>
           開始問答 ✏️
         </InkButton>
@@ -135,13 +181,72 @@ window.App = window.App || {};
     );
   }
 
-  function HistoryModule({ mistakes, onBack, onRecordPractice, onAnswerItem }) {
-    const [view, setView] = useState("list"); // list | story | questions
-    // Only categories that actually have stories get a tab (戰爭詩詞 is empty for now).
-    const categories = HISTORY_CATEGORIES.filter((c) => HISTORY_ITEMS.some((it) => it.category === c));
-    const [category, setCategory] = useState(categories[0]);
+  // 戰爭詩詞 tab entry: poem info + (if paired) the relation sentence and a
+  // link to each related story. The poem text itself is opened in the poetry
+  // module (full text, translation, practice), not duplicated here.
+  function WarPoemCard({ poem, links, onOpenPoem, onOpenStory }) {
+    const { FormPill } = window.App.PoetryParts;
+    return (
+      <PaperCard accent={ACCENT} className="!p-4">
+        <button onClick={onOpenPoem} className="block w-full text-left">
+          <p className={`text-lg ${TYPE.heading}`} style={{ color: INK.ink }}>
+            {poem.title}
+          </p>
+          <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            {poem.dynasty} · {poem.author}
+          </p>
+          <FormPill item={poem} className="mb-0" />
+          <span className={`ml-2 text-xs underline ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
+            看全文、語譯及練習 →
+          </span>
+        </button>
+        {links.length > 0 ? (
+          <div className="mt-3 flex flex-col gap-2">
+            {links.map((l) => (
+              <div
+                key={l.storyId}
+                className="rounded-xl p-3"
+                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
+              >
+                <p className={`text-sm leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
+                  <RelationChip relation={l.relation} />
+                  {l.note}
+                </p>
+                <button
+                  onClick={() => onOpenStory(l.storyId)}
+                  className={`mt-1 text-sm underline text-left ${TYPE.heading}`}
+                  style={{ color: ACCENT.solid }}
+                >
+                  📖 相關故事：{STORIES_BY_ID[l.storyId].title} →
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={`mt-3 text-xs ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+            暫時未有相關的歷史故事。
+          </p>
+        )}
+      </PaperCard>
+    );
+  }
+
+  // `nav` (optional): { storyId?, category?, from? } set when another module
+  // links here — open that story / tab directly; `from` ({ module, opts }) is
+  // where the story page's back button returns to.
+  function HistoryModule({ mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
+    const navStory = nav && STORIES_BY_ID[nav.storyId] ? nav.storyId : null;
+    const [view, setView] = useState(navStory ? "story" : "list"); // list | story | questions
+    // A tab per category that has stories; 戰爭詩詞 holds poems (by id), not stories.
+    const categories = HISTORY_CATEGORIES.filter((c) =>
+      c === WAR_POEM_CATEGORY ? HISTORY_WAR_POEM_IDS.length > 0 : HISTORY_ITEMS.some((it) => it.category === c)
+    );
+    const [category, setCategory] = useState(
+      navStory ? STORIES_BY_ID[navStory].category : nav && categories.includes(nav.category) ? nav.category : categories[0]
+    );
     const [onlyMistakes, setOnlyMistakes] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedId, setSelectedId] = useState(navStory);
+    const isWarPoems = category === WAR_POEM_CATEGORY;
 
     const filtered = HISTORY_ITEMS.filter(
       (it) => it.category === category && (!onlyMistakes || (mistakes || []).includes(it.id))
@@ -151,6 +256,22 @@ window.App = window.App || {};
     function openItem(id) {
       setSelectedId(id);
       setView("story");
+    }
+
+    // Jump to a poem in the poetry module; its back button returns here.
+    function openPoem(poemId, fromOpts) {
+      onNavigate &&
+        onNavigate("poetry", {
+          poemId,
+          scopeIds: HISTORY_WAR_POEM_IDS,
+          from: { module: "history", opts: fromOpts },
+        });
+    }
+
+    // From a poem we opened a story: back goes to that poem; otherwise to the list.
+    function leaveStory() {
+      if (nav && nav.from && onNavigate) onNavigate(nav.from.module, nav.from.opts);
+      else setView("list");
     }
 
     // Fixed-per-item modules track mistakes at story granularity (not
@@ -164,7 +285,12 @@ window.App = window.App || {};
 
     if (view === "story" && selectedItem) {
       return (
-        <StoryDetail item={selectedItem} onBack={() => setView("list")} onStartQuestions={() => setView("questions")} />
+        <StoryDetail
+          item={selectedItem}
+          onBack={leaveStory}
+          onStartQuestions={() => setView("questions")}
+          onOpenPoem={(poemId) => openPoem(poemId, { storyId: selectedItem.id })}
+        />
       );
     }
 
@@ -198,7 +324,8 @@ window.App = window.App || {};
           <div className="grid grid-cols-2 gap-2">
             {categories.map((c) => {
               const active = category === c;
-              const count = HISTORY_ITEMS.filter((it) => it.category === c).length;
+              const count =
+                c === WAR_POEM_CATEGORY ? HISTORY_WAR_POEM_IDS.length : HISTORY_ITEMS.filter((it) => it.category === c).length;
               return (
                 <button
                   key={c}
@@ -215,7 +342,8 @@ window.App = window.App || {};
                 </button>
               );
             })}
-          </div>          {(mistakes || []).length > 0 && (
+          </div>
+          {!isWarPoems && (mistakes || []).length > 0 && (
             <button
               onClick={() => setOnlyMistakes((v) => !v)}
               className={`w-full mt-2 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
@@ -230,6 +358,24 @@ window.App = window.App || {};
           )}
         </PaperCard>
 
+        {isWarPoems && (
+          <div className="flex flex-col gap-3">
+            <p className={`text-xs ${TYPE.body}`} style={{ color: INK.mutedInk }}>
+              以下是與戰爭、從軍、家國有關的詩詞；點進去可以看全文、語譯和做練習。
+            </p>
+            {HISTORY_WAR_POEM_IDS.filter((id) => POEMS_BY_ID[id]).map((id) => (
+              <WarPoemCard
+                key={id}
+                poem={POEMS_BY_ID[id]}
+                links={HISTORY_POEM_STORY_LINKS.filter((l) => l.poemId === id && STORIES_BY_ID[l.storyId])}
+                onOpenPoem={() => openPoem(id, { category: WAR_POEM_CATEGORY })}
+                onOpenStory={(storyId) => openItem(storyId)}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isWarPoems && (
         <div className="flex flex-col gap-3">
           {filtered.length === 0 && (
             <p className={`text-sm text-center py-4 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
@@ -240,6 +386,7 @@ window.App = window.App || {};
             <StoryListRow key={item.id} item={item} onOpen={() => openItem(item.id)} />
           ))}
         </div>
+        )}
       </div>
     );
   }
