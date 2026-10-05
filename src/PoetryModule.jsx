@@ -47,13 +47,18 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
+  // 節錄 poems use a "……" line to mark omitted text. Such a line is not a real
+  // line of the poem, so it must never be the blanked answer nor a distractor.
+  const isRealLine = (l) => /[一-鿿]/.test(l);
+
   function buildFillBlankQuestion(pool, item) {
-    const lineIdx = Math.floor(Math.random() * item.lines.length);
+    const candidates = item.lines.map((l, i) => i).filter((i) => isRealLine(item.lines[i]));
+    const lineIdx = candidates[Math.floor(Math.random() * candidates.length)];
     const correct = item.lines[lineIdx];
     const otherLines = pool
       .filter((it) => it.id !== item.id)
       .flatMap((it) => it.lines)
-      .filter((l, i, arr) => l !== correct && arr.indexOf(l) === i);
+      .filter((l, i, arr) => isRealLine(l) && l !== correct && arr.indexOf(l) === i);
     const distractors = shuffle(otherLines).slice(0, 3);
     const options = shuffle([correct, ...distractors]);
     const prompt = (
@@ -88,7 +93,7 @@ window.App = window.App || {};
         <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
           《{item.title}》 · {item.author}
         </p>
-        <p className="mb-2">「{item.lines[0]}」……這句的意思最貼近以下哪一項？</p>
+        <p className="mb-2">「{item.lines.find(isRealLine)}」……這句的意思最貼近以下哪一項？</p>
       </div>
     );
     return { itemId: item.id, type: "meaning", prompt, options, correctIndex: options.indexOf(item.meaningQuiz) };
