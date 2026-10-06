@@ -1319,3 +1319,14 @@ missing features):
   出塞 ↔ 衛青、霍去病 stays 「同一主題」 because 龍城飛將 may be 李廣 (a label of 詩中所詠 would assert 衛青).
 - Quiz options length-balanced again (correct answer strictly longest in only 2/21, by 1 character).
 - Suggestion not yet done (needs user OK): pair 春望 ↔ 開元盛世 (同一時代) to complete the 開元→安史→春望 line.
+
+## 歷史故事改版 第 6 次 — 計謀 +10 (now 72 stories; 計謀 19)
+- New (史書記載 7): 圍魏救趙, 增兵減灶（馬陵之戰）, 退避三舍, 假道伐虢（唇亡齒寒）, 田單火牛陣, 暗度陳倉, 七擒孟獲.
+  (小說演義 3 — first use of that label): 蔣幹盜書（反間計）, 草船借箭, 空城計; each `sourceNote` says what the
+  histories actually record (《江表傳》/《魏略》/裴注引《蜀記》) and the story text opens with 「在小說《三國演義》裏」.
+- 暗度陳倉 tagged 史書記載 + note: 史記 only has 「從故道還，襲雍王章邯」; 「明修棧道」 is a later (元雜劇) addition.
+- 七擒孟獲 tagged 史書記載 + note: not in 《三國志》 main text; core in 裴注引《漢晉春秋》/《華陽國志》; 演義 details
+  (藤甲兵 etc.) deliberately left out. USER TO CONFIRM this label (it could arguably be 小說演義/傳說).
+- 開元盛世 ending now reads 「亂事平定後，詩人杜甫回憶說…」 (憶昔二首 ≈764, after 春望 757) and sourceRef records 764;
+  the story never mentions 春望. 春望 ↔ 開元盛世 pairing was declined by the user.
+- Quiz options length-balanced (correct answer strictly longest in 5/30, never by 2+ characters).
