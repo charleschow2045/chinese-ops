@@ -1309,3 +1309,13 @@ missing features):
 - New pairings (HISTORY_POEM_STORY_LINKS now 12): 夏日絕句↔垓下之戰 (事件背景); 出塞, 從軍行,
   兩首涼州詞 ↔ 衛青、霍去病抗擊匈奴 (同一主題; 出塞 note keeps the 龍城飛將 衛青/李廣 dispute).
   過零丁洋 stays unpaired. Existing stories/poems untouched.
+
+## 歷史故事改版 第 5 次 — 治國與時代發展 +7 (now 62 stories; 治國與時代發展 16)
+- New: 管仲治齊, 趙武靈王胡服騎射, 文景之治, 光武中興, 開元盛世, 張居正改革, 康熙平三藩.
+  Facts web-verified (see comment above them in historyContent.jsx). `sourceNote` on 管仲治齊 (《管子》
+  非管仲親撰), 趙武靈王 (前307/前306 年份有不同說法), 張居正 (評價及數字不一). Disputed numbers
+  (e.g. 張居正 田畝面積) are left out of the stories.
+- New relation label 「詩中所詠」 — used ONLY for 夏日絕句 ↔ 垓下之戰 (poem plainly describes 項羽).
+  出塞 ↔ 衛青、霍去病 stays 「同一主題」 because 龍城飛將 may be 李廣 (a label of 詩中所詠 would assert 衛青).
+- Quiz options length-balanced again (correct answer strictly longest in only 2/21, by 1 character).
+- Suggestion not yet done (needs user OK): pair 春望 ↔ 開元盛世 (同一時代) to complete the 開元→安史→春望 line.
