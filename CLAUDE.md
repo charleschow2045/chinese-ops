@@ -1300,3 +1300,12 @@ missing features):
 - Cross-module links go through Root's `navigate(key, opts)` → `nav` prop on Poetry/History:
   `{ poemId | storyId, scopeIds?, from: { module, opts } }`; `from` drives the back button, `scopeIds`
   limits poem practice to the war-poem set. Story page shows 相關詩詞; poem detail shows 相關歷史故事.
+
+## 歷史故事改版 第 4 次 — 戰爭故事 +7 (now 55 stories, 戰爭故事 19)
+- New: 長平之戰, 巨鹿之戰（破釜沉舟）, 垓下之戰（四面楚歌）, 衛青、霍去病抗擊匈奴, 官渡之戰,
+  薛仁貴三箭定天山, 戚繼光抗倭. Facts checked online (史記·項羽本紀 etc.); casualties kept gentle.
+  `sourceNote` on 垓下 (楚歌是否漢軍有意為之屬後世解讀) and 薛仁貴 (正史只記三箭射倒三人，其餘有爭議／被小說加工).
+- Quiz options deliberately length-balanced (correct answer strictly longest in only 2/21 questions).
+- New pairings (HISTORY_POEM_STORY_LINKS now 12): 夏日絕句↔垓下之戰 (事件背景); 出塞, 從軍行,
+  兩首涼州詞 ↔ 衛青、霍去病抗擊匈奴 (同一主題; 出塞 note keeps the 龍城飛將 衛青/李廣 dispute).
+  過零丁洋 stays unpaired. Existing stories/poems untouched.
