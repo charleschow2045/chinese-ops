@@ -1330,3 +1330,27 @@ missing features):
 - 開元盛世 ending now reads 「亂事平定後，詩人杜甫回憶說…」 (憶昔二首 ≈764, after 春望 757) and sourceRef records 764;
   the story never mentions 春望. 春望 ↔ 開元盛世 pairing was declined by the user.
 - Quiz options length-balanced (correct answer strictly longest in 5/30, never by 2+ characters).
+
+## 歷史故事改版 第 7 次 — 品德與勵志 +6 (now 78 stories; 品德與勵志 24) — 改版完結
+- New: 曾子殺彘 (筆記軼事, 《韓非子·外儲說左上》, 諸子書), 黃香溫席 (史書記載 + note: 「扇枕溫席」見《東觀漢記》，
+  《後漢書》較簡略，《二十四孝》再普及), 蘇武牧羊 (史書記載, 《漢書》), 范仲淹斷齏畫粥 (筆記軼事 + note: 《湘山野錄》；
+  《宋史》只記「食不給，至以糜粥繼之」), 宋濂借書 (筆記軼事 + note: 依據本人《送東陽馬生序》自述), 徐霞客 (筆記軼事 + note:
+  依據《徐霞客遊記》、陳函輝墓誌銘、錢謙益傳，非正史). Facts web-verified; disputed/unverified details left out.
+- Judgement calls the user may want to revisit: 黃香 (史書記載 vs 筆記軼事), 范仲淹/宋濂/徐霞客 (筆記軼事 because the detailed
+  anecdote is from notes/self-narration/epitaph rather than a standard history).
+- Quiz options length-balanced (correct answer strictly longest in 1/18 new questions, never by 2+ characters).
+
+### 歷史故事改版 — 最終結構 (7 次總結)
+- **78 stories**: 戰爭故事 19 / 治國與時代發展 16 / 計謀 19 / 品德與勵志 24, plus the 戰爭詩詞 tab (10 poems, no stories of
+  its own; ids in `HISTORY_WAR_POEM_IDS`, text stays in poetryContent.jsx, now 74 poems).
+- Category tabs replace the old level filter; stories sort by `sortYear` (BCE negative, ties keep array order). `level`
+  stays in the data. Story fields: `id, title, period, level, category, sortYear, source, sourceRef, [sourceNote],
+  characters (2–4), lesson, story, questions (3 × 4 options)`. Story page shows 出處 tag (+ 出處說明), 主要人物, 故事道理, 相關詩詞.
+- Source labels (`HISTORY_SOURCES`): 史書記載 61 / 小說演義 3 / 筆記軼事 9 / 神話與民間傳說 5. Rules: 諸子書、筆記、
+  本人自述、家傳 → 筆記軼事 (cf. 孟母三遷, 孔融讓梨); mixed cases → 史書記載 + `sourceNote` (囊螢映雪, 七擒孟獲, 暗度陳倉,
+  黃香溫席); 田單火牛陣 is in 《史記·田單列傳》 so no note; 小說演義 only for 蔣幹盜書, 草船借箭, 空城計 (story text opens
+  with 「在小說《三國演義》裏」). 七擒孟獲 = 史書記載 + note (user confirmed).
+- Poem↔story pairings: `HISTORY_POEM_STORY_LINKS` (12; `relation` 事件背景 / 同一時代 / 同一主題 / 詩中所詠). 「詩中所詠」
+  is used ONLY for 夏日絕句 ↔ 垓下之戰. Unpaired: 過零丁洋. 春望 ↔ 開元盛世 was declined (開元盛世 ending never mentions 春望).
+  Navigation both ways via Root `navigate(key, opts)` → `nav` prop `{poemId|storyId, scopeIds?, from}`.
+- Backup/restore unaffected throughout (story ids unchanged; mistakes stored by id).
