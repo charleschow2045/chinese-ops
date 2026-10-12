@@ -17,6 +17,7 @@ window.App = window.App || {};
     wrongApp: "這不是「中文學習」的備份檔，無法還原。請確認選擇了正確的檔案。",
     newerVersion: "這個備份檔來自較新版本的網站，請先重新載入網頁（或更新）後再試。",
     tooBig: "檔案過大，不是有效的備份檔。",
+    testFile: "這是「測試模式」匯出的備份檔，不可還原到正式進度。",
   };
 
   const pad = (n) => String(n).padStart(2, "0");
@@ -58,7 +59,7 @@ window.App = window.App || {};
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `chinese-ops-backup-${dateStamp(new Date())}.json`;
+        a.download = `chinese-ops${Storage.TEST_MODE ? "-TEST" : ""}-backup-${dateStamp(new Date())}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -97,14 +98,14 @@ window.App = window.App || {};
     }
 
     const sum = pending ? summarize(pending.state) : null;
-    const textStyle = { color: INK.mutedInk };
+    const textStyle = { color: INK.subInk };
 
     return (
       <div className="mt-2">
         <button
           onClick={toggle}
-          className={`mx-auto block text-xs underline underline-offset-4 ${TYPE.caption}`}
-          style={{ color: INK.mutedInk }}
+          className={`mx-auto block py-2 text-sm underline underline-offset-4 ${TYPE.caption}`}
+          style={{ color: INK.subInk }}
         >
           {open ? "收起" : "💾 備份與還原進度"}
         </button>
@@ -149,11 +150,16 @@ window.App = window.App || {};
               </div>
             ) : (
               <div className="flex flex-col gap-3">
+                {Storage.TEST_MODE && (
+                  <p className="text-sm font-bold" style={{ color: INK.vermillion }}>
+                    目前是測試模式：匯出和還原只影響測試資料，不會動到正式進度。
+                  </p>
+                )}
                 <p className={`text-sm leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
                   學習進度和練習錯題只儲存在這部裝置的瀏覽器內。清除瀏覽器資料或更換裝置，進度便會消失。
                   <span className="font-bold">建議每星期備份一次。</span>
                 </p>
-                <p className={`text-xs leading-relaxed ${TYPE.body}`} style={textStyle}>
+                <p className={`text-sm leading-relaxed ${TYPE.body}`} style={textStyle}>
                   iPad 用家：請在 Safari 按「分享」圖示，選擇「加入主畫面」，以便隨時開啟。請留意，主畫面版本的資料可能與
                   Safari 分頁分開儲存，因此更需要定期備份。
                 </p>
@@ -171,12 +177,12 @@ window.App = window.App || {};
                 </label>
 
                 {error && (
-                  <p className="text-xs font-bold" style={{ color: INK.vermillion }}>
+                  <p className="text-sm font-bold" style={{ color: INK.vermillion }}>
                     {error}
                   </p>
                 )}
                 {success && (
-                  <p className="text-xs font-bold" style={{ color: INK.bamboo }}>
+                  <p className="text-sm font-bold" style={{ color: INK.bamboo }}>
                     已成功還原進度。
                   </p>
                 )}

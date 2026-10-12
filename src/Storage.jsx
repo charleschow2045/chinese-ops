@@ -2,7 +2,24 @@
 window.App = window.App || {};
 
 (function () {
-  const STORAGE_KEY = "chineseOps:v1";
+  // ---- 測試模式 (test mode) ----
+  // Opening the site with `?today=YYYY-MM-DD` switches to test mode: the app
+  // pretends today is that date AND uses a completely separate localStorage
+  // key, so the real progress (REAL_KEY) is never read, written, exported over
+  // or restored over. This is what makes it safe to test streaks on the iPad
+  // the child actually uses. Test mode is decided once, at load time, from the
+  // URL; any `today` parameter (even a malformed one) selects the test key.
+  const REAL_KEY = "chineseOps:v1";
+  const TEST_KEY = "chineseOps:test";
+  let TEST_DATE_PARAM = null; // the raw ?today= value, or null when not in test mode
+  try {
+    const q = new URLSearchParams(window.location.search);
+    if (q.has("today")) TEST_DATE_PARAM = q.get("today") || "";
+  } catch (e) {
+    TEST_DATE_PARAM = null;
+  }
+  const TEST_MODE = TEST_DATE_PARAM !== null;
+  const STORAGE_KEY = TEST_MODE ? TEST_KEY : REAL_KEY;
 
   const LEVELS = [
     { key: "p5", label: "小五" },
@@ -55,6 +72,7 @@ window.App = window.App || {};
   }
 
   function todayStr() {
+    if (TEST_MODE && isValidDateStr(TEST_DATE_PARAM)) return TEST_DATE_PARAM;
     const d = new Date();
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
@@ -81,6 +99,12 @@ window.App = window.App || {};
     return dayNumber(b) - dayNumber(a);
   }
 
+  // The date `n` days after (or before, if negative) a valid "YYYY-MM-DD".
+  function addDays(dateStr, n) {
+    const t = new Date(dayNumber(dateStr) * 86400000 + n * 86400000);
+    return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth() + 1)}-${pad2(t.getUTCDate())}`;
+  }
+
   // Deterministic: the same date always gives the same 3 missions, one per
   // MISSION_GROUPS group. Group B's extra `floor(day/4)` term keeps the A/B
   // pairing from repeating in a fixed 4-day cycle.
@@ -104,6 +128,12 @@ window.App = window.App || {};
 
   function defaultDaily(dateStr) {
     return { date: dateStr, missions: pickMissions(dateStr), done: [] };
+  }
+
+  // The daily block as it should look on `today`, even if the stored one is
+  // from an earlier day (the app may have been left open past midnight).
+  function getDaily(state, today = todayStr()) {
+    return state.daily && state.daily.date === today ? state.daily : defaultDaily(today);
   }
 
   function defaultState() {
@@ -270,7 +300,7 @@ window.App = window.App || {};
 
     const correct = Math.min(Math.max(nonNegInt(correctCount), 0), totalCount);
     // Roll over first: the app may have been left open past midnight.
-    let daily = state.daily && state.daily.date === today ? state.daily : defaultDaily(today);
+    let daily = getDaily(state, today);
     let streak = state.streak;
     let streakFreezes = state.streakFreezes;
     const stats = { ...state.stats, sessions: { ...state.stats.sessions } };
@@ -371,13 +401,16 @@ window.App = window.App || {};
       app: BACKUP_APP,
       version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
+      ...(TEST_MODE ? { testMode: true } : {}),
       data: { [STORAGE_KEY]: state },
     };
   }
 
   // Parses backup file text. Returns { ok: true, state, exportedAt } or
-  // { ok: false, reason: "invalid" | "wrongApp" | "newerVersion" | "tooBig" }.
-  // Never throws.
+  // { ok: false, reason: "invalid" | "wrongApp" | "newerVersion" | "tooBig" |
+  // "testFile" }. Never throws. A file exported from test mode ("testFile") is
+  // refused outside test mode so it can never overwrite real progress; test
+  // mode itself may import a real backup file (it only ever writes the test key).
   function parseBackup(text) {
     try {
       if (typeof text !== "string" || text.length === 0) return { ok: false, reason: "invalid" };
@@ -388,7 +421,11 @@ window.App = window.App || {};
       if (!Number.isInteger(parsed.version) || parsed.version < 1) return { ok: false, reason: "invalid" };
       if (parsed.version > BACKUP_VERSION) return { ok: false, reason: "newerVersion" };
       if (!isPlainObject(parsed.data)) return { ok: false, reason: "invalid" };
-      const state = sanitizeState(parsed.data[STORAGE_KEY]);
+      if (!TEST_MODE && (parsed.testMode === true || (!(REAL_KEY in parsed.data) && TEST_KEY in parsed.data))) {
+        return { ok: false, reason: "testFile" };
+      }
+      const payload = parsed.data[STORAGE_KEY] !== undefined ? parsed.data[STORAGE_KEY] : TEST_MODE ? parsed.data[REAL_KEY] : undefined;
+      const state = sanitizeState(payload);
       if (!state) return { ok: false, reason: "invalid" };
       const t = Date.parse(parsed.exportedAt);
       return { ok: true, state, exportedAt: Number.isFinite(t) ? new Date(t) : null };
@@ -404,6 +441,10 @@ window.App = window.App || {};
 
   window.App.Storage = {
     STORAGE_KEY,
+    TEST_MODE,
+    TEST_DATE_PARAM,
+    addDays,
+    getDaily,
     BACKUP_APP,
     BACKUP_VERSION,
     buildBackup,

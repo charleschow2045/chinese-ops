@@ -16,6 +16,7 @@ window.App = window.App || {};
     RhetoricModule,
     PunctuationModule,
     ClassicalProseModule,
+    TestModeBanner,
   } = window.App;
 
   function Root() {
@@ -28,6 +29,21 @@ window.App = window.App || {};
     useEffect(() => {
       Storage.saveState(state);
     }, [state]);
+
+    // The date the home screen shows missions for. Re-read whenever the page
+    // is shown again (an iPad home-screen app can sit open overnight).
+    const [today, setToday] = useState(() => Storage.todayStr());
+    useEffect(() => {
+      const sync = () => setToday(Storage.todayStr());
+      document.addEventListener("visibilitychange", sync);
+      window.addEventListener("focus", sync);
+      const timer = setInterval(sync, 60000);
+      return () => {
+        document.removeEventListener("visibilitychange", sync);
+        window.removeEventListener("focus", sync);
+        clearInterval(timer);
+      };
+    }, []);
 
     function changeLevel(level) {
       setState((s) => ({ ...s, level }));
@@ -56,44 +72,14 @@ window.App = window.App || {};
       setView("home");
     }
 
-    function recordPoetryPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "poetry", correctCount, total));
-    }
-
-    function recordEssayPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "essay", correctCount, total));
-    }
-
-    function recordCangjiePractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "cangjie", correctCount, total));
-    }
-
-    function recordMandarinPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "mandarin", correctCount, total));
-    }
-
-    function recordIdiomPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "idiom", correctCount, total));
-    }
-
-    function recordHistoryPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "history", correctCount, total));
-    }
-
-    function recordReadingPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "reading", correctCount, total));
-    }
-
-    function recordRhetoricPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "rhetoric", correctCount, total));
-    }
-
-    function recordPunctuationPractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "punctuation", correctCount, total));
-    }
-
-    function recordClassicalProsePractice(correctCount, total) {
-      setState((s) => Storage.recordPracticeResult(s, "classicalProse", correctCount, total));
+    // One handler for all 10 modules: each module calls onRecordPractice once
+    // when a practice session finishes. That updates the lifetime practice
+    // stats (recordPracticeResult) and the daily missions / streak / session
+    // counters (recordSession).
+    function recordPractice(moduleKey) {
+      return (correctCount, total) => {
+        setState((s) => Storage.recordSession(Storage.recordPracticeResult(s, moduleKey, correctCount, total), moduleKey, correctCount, total).state);
+      };
     }
 
     // Powers 練習錯題 (mistake review) — called by a module whenever the
@@ -106,6 +92,8 @@ window.App = window.App || {};
     }
 
     return (
+      <>
+      <TestModeBanner />
       <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "#F7F0E3", color: "#241F1B" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#B0342A" }} />
@@ -123,7 +111,7 @@ window.App = window.App || {};
           </header>
 
           <main>
-            {view === "home" && <Home state={state} onChangeLevel={changeLevel} onOpenModule={openModule} onRestore={restoreProgress} />}
+            {view === "home" && <Home state={state} today={today} onChangeLevel={changeLevel} onOpenModule={openModule} onRestore={restoreProgress} />}
             {view === "poetry" && (
               <PoetryModule
                 level={state.level}
@@ -131,7 +119,7 @@ window.App = window.App || {};
                 nav={nav}
                 onNavigate={navigate}
                 onBack={goHome}
-                onRecordPractice={recordPoetryPractice}
+                onRecordPractice={recordPractice("poetry")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("poetry", itemId, isCorrect)}
               />
             )}
@@ -140,15 +128,15 @@ window.App = window.App || {};
                 level={state.level}
                 mistakes={state.moduleProgress.essay.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordEssayPractice}
+                onRecordPractice={recordPractice("essay")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("essay", itemId, isCorrect)}
               />
             )}
             {view === "cangjie" && (
-              <CangjieModule onBack={() => setView("home")} onRecordPractice={recordCangjiePractice} />
+              <CangjieModule onBack={() => setView("home")} onRecordPractice={recordPractice("cangjie")} />
             )}
             {view === "mandarin" && (
-              <MandarinModule level={state.level} onBack={() => setView("home")} onRecordPractice={recordMandarinPractice} />
+              <MandarinModule level={state.level} onBack={() => setView("home")} onRecordPractice={recordPractice("mandarin")} />
             )}
             {view === "idiom" && (
               <IdiomModule
@@ -156,7 +144,7 @@ window.App = window.App || {};
                 practiceStats={state.moduleProgress.idiom.practiceStats}
                 mistakes={state.moduleProgress.idiom.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordIdiomPractice}
+                onRecordPractice={recordPractice("idiom")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("idiom", itemId, isCorrect)}
               />
             )}
@@ -167,7 +155,7 @@ window.App = window.App || {};
                 nav={nav}
                 onNavigate={navigate}
                 onBack={goHome}
-                onRecordPractice={recordHistoryPractice}
+                onRecordPractice={recordPractice("history")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("history", itemId, isCorrect)}
               />
             )}
@@ -176,7 +164,7 @@ window.App = window.App || {};
                 level={state.level}
                 mistakes={state.moduleProgress.reading.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordReadingPractice}
+                onRecordPractice={recordPractice("reading")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("reading", itemId, isCorrect)}
               />
             )}
@@ -185,7 +173,7 @@ window.App = window.App || {};
                 level={state.level}
                 mistakes={state.moduleProgress.rhetoric.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordRhetoricPractice}
+                onRecordPractice={recordPractice("rhetoric")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("rhetoric", itemId, isCorrect)}
               />
             )}
@@ -194,7 +182,7 @@ window.App = window.App || {};
                 level={state.level}
                 mistakes={state.moduleProgress.punctuation.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordPunctuationPractice}
+                onRecordPractice={recordPractice("punctuation")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("punctuation", itemId, isCorrect)}
               />
             )}
@@ -203,13 +191,14 @@ window.App = window.App || {};
                 level={state.level}
                 mistakes={state.moduleProgress.classicalProse.mistakes}
                 onBack={() => setView("home")}
-                onRecordPractice={recordClassicalProsePractice}
+                onRecordPractice={recordPractice("classicalProse")}
                 onAnswerItem={(itemId, isCorrect) => answerItem("classicalProse", itemId, isCorrect)}
               />
             )}
           </main>
         </div>
       </div>
+      </>
     );
   }
 

@@ -65,6 +65,7 @@ window.App = window.App || {};
     paperCard: "#FBF7EC", // slightly lighter paper tone for cards sitting on the page
     ink: "#241F1B", // 墨黑 — primary text
     mutedInk: "#8A7F6D", // derived — captions/meta text, still warm not gray
+    subInk: "#5C5344", // darker warm brown for small text that must stay readable (7:1 on paperCard) — used by the home screen
     vermillion: "#B0342A", // 印泥紅 — primary accent
     bamboo: "#48603E", // 竹青 — secondary accent (idiom/history family)
     ochre: "#A9812F", // 赭金 — badges/achievement/score accent
