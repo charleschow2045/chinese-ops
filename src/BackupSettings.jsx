@@ -34,7 +34,8 @@ window.App = window.App || {};
       mistakes += p.mistakes.length;
     });
     const level = Storage.LEVELS.find((l) => l.key === state.level);
-    return { attempts, correct, mistakes, levelLabel: level ? level.label : "" };
+    const streak = Storage.getStreakView(state, Storage.todayStr()).count;
+    return { attempts, correct, mistakes, streak, bestStreak: state.stats.bestStreak, levelLabel: level ? level.label : "" };
   }
 
   function BackupSettings({ state, onRestore }) {
@@ -129,6 +130,9 @@ window.App = window.App || {};
                     累計練習：{sum.correct} / {sum.attempts} 題答對
                   </p>
                   <p>練習錯題：{sum.mistakes} 題</p>
+                  <p>
+                    連續日數：{sum.streak} 日（最長 {sum.bestStreak} 日）
+                  </p>
                 </div>
                 <div className="flex gap-3">
                   <InkButton accent={ACCENT} className="flex-1 !text-base" onClick={confirmRestore}>

@@ -33,15 +33,155 @@ window.App = window.App || {};
     return { practiceStats: { correct: 0, attempts: 0 }, mistakes: [] };
   }
 
+  // ---- 每日任務 / 連續日數 / 統計 (daily missions, streak, stats) ----
+  // Dates are local "YYYY-MM-DD" strings. Everything below is pure (no
+  // localStorage, no clock reads except the `today` default) so it can be
+  // unit-tested and reused by both loadState and sanitizeState.
+  const MAX_STREAK_FREEZES = 2;
+  const MAX_STREAK_DAYS = 36500;
+  const MAX_COUNTER = 1000000;
+  const MODULE_KEYS = MODULES.map((m) => m.key);
+  const MISSIONS_PER_DAY = 3;
+  // One mission is drawn from each group per day (see pickMissions).
+  const MISSION_GROUPS = [
+    ["idiom", "rhetoric", "punctuation", "essay"], // 語文基礎
+    ["poetry", "classicalProse", "history", "reading"], // 閱讀文化
+    ["mandarin", "cangjie"], // 字音輸入
+  ];
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+
+  // Whole days since the epoch for a "YYYY-MM-DD" string, or null if it is not
+  // a real calendar date (so "2026-13-45" and "2026-02-30" are rejected).
+  function dayNumber(str) {
+    if (typeof str !== "string" || !DATE_RE.test(str)) return null;
+    const y = Number(str.slice(0, 4));
+    const m = Number(str.slice(5, 7));
+    const d = Number(str.slice(8, 10));
+    const t = Date.UTC(y, m - 1, d);
+    const back = new Date(t);
+    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== m - 1 || back.getUTCDate() !== d) return null;
+    return Math.round(t / 86400000);
+  }
+
+  function isValidDateStr(str) {
+    return dayNumber(str) !== null;
+  }
+
+  // Days from date `a` to date `b` (positive when b is later). Both must be valid.
+  function daysBetween(a, b) {
+    return dayNumber(b) - dayNumber(a);
+  }
+
+  // Deterministic: the same date always gives the same 3 missions, one per
+  // MISSION_GROUPS group. Group B's extra `floor(day/4)` term keeps the A/B
+  // pairing from repeating in a fixed 4-day cycle.
+  function pickMissions(dateStr) {
+    const day = dayNumber(dateStr) || 0;
+    const [a, b, c] = MISSION_GROUPS;
+    return [a[day % a.length], b[(day + Math.floor(day / 4)) % b.length], c[day % c.length]];
+  }
+
+  function defaultStats() {
+    return {
+      daysCompleted: 0, // days on which all 3 missions were finished
+      missionsCompleted: 0,
+      bestStreak: 0,
+      freezesUsed: 0,
+      perfectSessions: 0, // sessions of >= 5 questions with every one correct
+      mistakesCleared: 0, // 錯題 removed by answering correctly
+      sessions: Object.fromEntries(MODULE_KEYS.map((k) => [k, 0])), // finished sessions per module
+    };
+  }
+
+  function defaultDaily(dateStr) {
+    return { date: dateStr, missions: pickMissions(dateStr), done: [] };
+  }
+
   function defaultState() {
     const moduleProgress = {};
     MODULES.forEach((m) => {
       moduleProgress[m.key] = defaultModuleProgress();
     });
-    return { level: "p5", moduleProgress };
+    return {
+      level: "p5",
+      moduleProgress,
+      daily: defaultDaily(todayStr()),
+      streak: { count: 0, lastDate: null },
+      streakFreezes: 1,
+      stats: defaultStats(),
+    };
   }
 
-  function loadState() {
+  function isPlainObject(v) {
+    return v !== null && typeof v === "object" && !Array.isArray(v);
+  }
+
+  function nonNegInt(v) {
+    return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
+  }
+
+  function cappedInt(v, max) {
+    return Math.min(nonNegInt(v), max);
+  }
+
+  // Rebuilds the daily/streak/stats fields from untrusted data (a saved
+  // state of any age, or an imported backup) and rolls the day over to
+  // `today`. Missing or malformed pieces fall back to defaults — it never
+  // throws and never rejects the whole file. Returns ONLY the new fields.
+  function normalizeGamification(raw, today = todayStr()) {
+    const src = isPlainObject(raw) ? raw : {};
+
+    const st = isPlainObject(src.stats) ? src.stats : {};
+    const sess = isPlainObject(st.sessions) ? st.sessions : {};
+    const stats = defaultStats();
+    stats.daysCompleted = cappedInt(st.daysCompleted, MAX_COUNTER);
+    stats.missionsCompleted = cappedInt(st.missionsCompleted, MAX_COUNTER);
+    stats.freezesUsed = cappedInt(st.freezesUsed, MAX_COUNTER);
+    stats.perfectSessions = cappedInt(st.perfectSessions, MAX_COUNTER);
+    stats.mistakesCleared = cappedInt(st.mistakesCleared, MAX_COUNTER);
+    MODULE_KEYS.forEach((k) => {
+      stats.sessions[k] = cappedInt(sess[k], MAX_COUNTER);
+    });
+
+    const sk = isPlainObject(src.streak) ? src.streak : {};
+    const lastDate = isValidDateStr(sk.lastDate) ? sk.lastDate : null;
+    // A streak with no valid last day cannot be continued, so count it as 0.
+    const count = lastDate ? cappedInt(sk.count, MAX_STREAK_DAYS) : 0;
+    stats.bestStreak = Math.max(cappedInt(st.bestStreak, MAX_STREAK_DAYS), count);
+
+    // Saves from before this feature have no `streakFreezes` → start with 1.
+    const streakFreezes =
+      src.streakFreezes === undefined ? 1 : Math.min(cappedInt(src.streakFreezes, MAX_STREAK_FREEZES), MAX_STREAK_FREEZES);
+
+    // Daily progress only carries over if it is for today; otherwise a fresh day.
+    const d = isPlainObject(src.daily) ? src.daily : {};
+    let daily = defaultDaily(today);
+    if (d.date === today) {
+      const missionsOk =
+        Array.isArray(d.missions) &&
+        d.missions.length === MISSIONS_PER_DAY &&
+        d.missions.every((k) => MODULE_KEYS.includes(k)) &&
+        new Set(d.missions).size === MISSIONS_PER_DAY;
+      const missions = missionsOk ? d.missions.slice() : daily.missions;
+      const done = Array.isArray(d.done)
+        ? [...new Set(d.done.filter((k) => typeof k === "string" && missions.includes(k)))]
+        : [];
+      daily = { date: today, missions, done };
+    }
+
+    return { daily, streak: { count, lastDate }, streakFreezes, stats };
+  }
+
+    function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
@@ -56,6 +196,9 @@ window.App = window.App || {};
           parsed.moduleProgress[m.key].mistakes = [];
         }
       });
+      // Adds the daily/streak/stats fields to saves that predate them, and
+      // rolls the day over — same code path as importing a backup.
+      Object.assign(parsed, normalizeGamification(parsed));
       return parsed;
     } catch (e) {
       console.error("Failed to load Chinese Ops data:", e);
@@ -109,6 +252,7 @@ window.App = window.App || {};
     if (!prev.includes(itemId)) return state;
     return {
       ...state,
+      stats: state.stats ? { ...state.stats, mistakesCleared: state.stats.mistakesCleared + 1 } : state.stats,
       moduleProgress: {
         ...state.moduleProgress,
         [moduleKey]: { ...state.moduleProgress[moduleKey], mistakes: prev.filter((id) => id !== itemId) },
@@ -116,20 +260,87 @@ window.App = window.App || {};
     };
   }
 
+  // Called once per finished practice session (the same moment as
+  // recordPracticeResult). Updates the day's missions, the streak and the
+  // lifetime stats. Pure: returns { state, events } — `events` is a transient
+  // description of what just happened for the UI (never persisted).
+  function recordSession(state, moduleKey, correctCount, totalCount, today = todayStr()) {
+    const events = { missionCompleted: false, dayCompleted: false, streakIncreased: false, streakReset: false, freezesUsedNow: 0 };
+    if (!MODULE_KEYS.includes(moduleKey) || !(totalCount >= 1)) return { state, events };
+
+    const correct = Math.min(Math.max(nonNegInt(correctCount), 0), totalCount);
+    // Roll over first: the app may have been left open past midnight.
+    let daily = state.daily && state.daily.date === today ? state.daily : defaultDaily(today);
+    let streak = state.streak;
+    let streakFreezes = state.streakFreezes;
+    const stats = { ...state.stats, sessions: { ...state.stats.sessions } };
+
+    stats.sessions[moduleKey] = (stats.sessions[moduleKey] || 0) + 1;
+    if (totalCount >= 5 && correct === totalCount) stats.perfectSessions += 1;
+
+    if (daily.missions.includes(moduleKey) && !daily.done.includes(moduleKey)) {
+      daily = { ...daily, done: [...daily.done, moduleKey] };
+      stats.missionsCompleted += 1;
+      events.missionCompleted = true;
+
+      if (daily.done.length === daily.missions.length) {
+        events.dayCompleted = true;
+        const prevCount = streak.count;
+        const gap = streak.lastDate ? daysBetween(streak.lastDate, today) : null;
+        if (gap !== null && gap <= 0) {
+          // The streak already counts today (or the device clock went backwards):
+          // don't count the day twice.
+          events.dayCompleted = false;
+        } else {
+          if (gap === null) {
+            streak = { count: 1, lastDate: today };
+          } else if (gap === 1) {
+            streak = { count: streak.count + 1, lastDate: today };
+          } else {
+            const missed = gap - 1; // whole days skipped; one freeze covers each
+            if (streakFreezes >= missed) {
+              streak = { count: streak.count + 1, lastDate: today };
+              streakFreezes -= missed;
+              stats.freezesUsed += missed;
+              events.freezesUsedNow = missed;
+            } else {
+              streak = { count: 1, lastDate: today };
+              events.streakReset = prevCount > 0;
+            }
+          }
+          events.streakIncreased = streak.count > prevCount;
+          stats.daysCompleted += 1;
+          stats.bestStreak = Math.max(stats.bestStreak, streak.count);
+          // Earn a freeze back at every 7-day milestone, capped.
+          if (events.streakIncreased && streak.count % 7 === 0 && streakFreezes < MAX_STREAK_FREEZES) streakFreezes += 1;
+        }
+      }
+    }
+
+    return { state: { ...state, daily, streak, streakFreezes, stats }, events };
+  }
+
+  // What the streak looks like *today*, for display (the stored count only
+  // changes when a day is completed, so it can be stale after missed days).
+  // status: "none" | "doneToday" | "pending" (counted through yesterday) |
+  //         "saved" (days were missed but freezes would cover them) | "broken"
+  function getStreakView(state, today = todayStr()) {
+    const { count, lastDate } = state.streak;
+    if (!lastDate || count <= 0) return { count: 0, status: "none", freezesNeeded: 0 };
+    const gap = daysBetween(lastDate, today);
+    if (gap <= 0) return { count, status: "doneToday", freezesNeeded: 0 };
+    if (gap === 1) return { count, status: "pending", freezesNeeded: 0 };
+    const missed = gap - 1;
+    if (state.streakFreezes >= missed) return { count, status: "saved", freezesNeeded: missed };
+    return { count: 0, status: "broken", freezesNeeded: missed };
+  }
+
   // ---- Backup / restore ----
   // localStorage holds exactly one key for this app (STORAGE_KEY); it is the
   // only entry in `data`. Add further keys here if the app ever uses more.
   const BACKUP_APP = "chinese-ops";
-  const BACKUP_VERSION = 1;
+  const BACKUP_VERSION = 2; // v2 added daily/streak/stats; v1 files still import (new fields default)
   const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
-
-  function isPlainObject(v) {
-    return v !== null && typeof v === "object" && !Array.isArray(v);
-  }
-
-  function nonNegInt(v) {
-    return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
-  }
 
   // Rebuilds a state object from untrusted data, keeping only known fields
   // with the right types; returns null if it is not recognisable progress.
@@ -148,6 +359,10 @@ window.App = window.App || {};
         : [];
       state.moduleProgress[m.key] = { practiceStats: { correct, attempts }, mistakes };
     });
+    // Whitelist for the daily/streak/stats fields — anything not copied here
+    // is silently lost on restore, so new progress fields MUST be added to
+    // normalizeGamification.
+    Object.assign(state, normalizeGamification(raw));
     return state;
   }
 
@@ -202,5 +417,14 @@ window.App = window.App || {};
     recordPracticeResult,
     addMistake,
     removeMistake,
+    MAX_STREAK_FREEZES,
+    MISSION_GROUPS,
+    todayStr,
+    isValidDateStr,
+    daysBetween,
+    pickMissions,
+    normalizeGamification,
+    recordSession,
+    getStreakView,
   };
 })();
