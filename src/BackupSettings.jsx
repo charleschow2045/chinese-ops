@@ -36,7 +36,7 @@ window.App = window.App || {};
     });
     const level = Storage.LEVELS.find((l) => l.key === state.level);
     const streak = Storage.getStreakView(state, Storage.todayStr()).count;
-    return { attempts, correct, mistakes, streak, bestStreak: state.stats.bestStreak, levelLabel: level ? level.label : "" };
+    return { attempts, correct, mistakes, streak, badges: Storage.earnedBadgeKeys(state).length, bestStreak: state.stats.bestStreak, levelLabel: level ? level.label : "" };
   }
 
   function BackupSettings({ state, onRestore }) {
@@ -133,6 +133,9 @@ window.App = window.App || {};
                   <p>練習錯題：{sum.mistakes} 題</p>
                   <p>
                     連續日數：{sum.streak} 日（最長 {sum.bestStreak} 日）
+                  </p>
+                  <p>
+                    徽章：{sum.badges} / {Storage.BADGES.length}
                   </p>
                 </div>
                 <div className="flex gap-3">

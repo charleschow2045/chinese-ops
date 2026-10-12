@@ -56,9 +56,14 @@ window.App = window.App || {};
           backgroundColor: "#5E1C17",
           color: "#F7F0E3",
           boxShadow: "0 3px 10px rgba(36,31,27,0.35)",
+          // The banner's own background extends under the status bar of the home-screen version.
+          paddingTop: "var(--sat)",
         }}
       >
-        <div className="max-w-2xl mx-auto px-4 py-2 flex flex-col gap-2">
+        <div
+          className="max-w-2xl mx-auto py-2 flex flex-col gap-2"
+          style={{ paddingLeft: "max(1rem, var(--sal))", paddingRight: "max(1rem, var(--sar))" }}
+        >
           <p className="text-base font-bold leading-snug">
             🧪 測試模式　測試日期 {date}
             {!validParam && <span className="text-sm font-normal">（網址日期無效，已使用今日）</span>}

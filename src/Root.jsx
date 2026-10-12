@@ -17,6 +17,7 @@ window.App = window.App || {};
     PunctuationModule,
     ClassicalProseModule,
     TestModeBanner,
+    BadgesScreen,
   } = window.App;
 
   function Root() {
@@ -105,13 +106,29 @@ window.App = window.App || {};
           <span className="absolute bottom-64 left-10 text-3xl opacity-[0.14]">🐉</span>
         </div>
 
-        <div className="relative px-4 pb-10 max-w-2xl mx-auto">
-          <header className="pt-6 pb-4">
+        <div
+          className="relative max-w-2xl mx-auto"
+          style={{
+            paddingLeft: "max(1rem, var(--sal))",
+            paddingRight: "max(1rem, var(--sar))",
+            paddingBottom: "calc(2.5rem + var(--sab))",
+          }}
+        >
+          {/* In test mode the banner already covers the status bar, so no extra top inset here. */}
+          <header className="pb-4" style={{ paddingTop: Storage.TEST_MODE ? "1.5rem" : "calc(1.5rem + var(--sat))" }}>
             <h1 className="text-3xl font-serif font-black tracking-tight" style={{ color: "#B0342A" }}>🏮 中文學習</h1>
           </header>
 
           <main>
-            {view === "home" && <Home state={state} today={today} onChangeLevel={changeLevel} onOpenModule={openModule} onRestore={restoreProgress} />}
+            {view === "home" && <Home
+                state={state}
+                today={today}
+                onChangeLevel={changeLevel}
+                onOpenModule={openModule}
+                onOpenBadges={() => setView("badges")}
+                onRestore={restoreProgress}
+              />}
+            {view === "badges" && <BadgesScreen state={state} onBack={goHome} />}
             {view === "poetry" && (
               <PoetryModule
                 level={state.level}

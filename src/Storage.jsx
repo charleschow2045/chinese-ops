@@ -365,6 +365,100 @@ window.App = window.App || {};
     return { count: 0, status: "broken", freezesNeeded: missed };
   }
 
+  // ---- 徽章 (badges) ----
+  // Pure functions of the saved state — "earned" is always recomputed, never
+  // stored, so it can't drift out of sync (and old backups earn what they
+  // already qualify for, e.g. 累計答對 comes from the existing practiceStats).
+  // Each entry: key, seal (the one character stamped on its 印章), name, group
+  // ("streak" | "milestone" | "module" | "special"; module badges also carry
+  // `module`), condition (what to do), meaning (成語 meaning, 書面語, per
+  // 教育部《成語典》), progress(state) → { cur, target }; earned = cur >= target.
+  const MODULE_BADGE_SESSIONS = 5;
+  const sumValues = (o) => Object.values(o).reduce((a, b) => a + b, 0);
+  const totalCorrect = (s) => Object.values(s.moduleProgress).reduce((a, p) => a + p.practiceStats.correct, 0);
+  const prog = (cur, target) => ({ cur: Math.min(cur, target), target });
+
+  const streakBadge = (key, seal, name, days, meaning) => ({
+    key, seal, name, group: "streak", condition: `連續 ${days} 日完成每日任務`, meaning,
+    progress: (s) => prog(s.stats.bestStreak, days),
+  });
+  const moduleBadge = (module, seal, name, meaning) => ({
+    key: `module_${module}`, seal, name, group: "module", module,
+    condition: `完成${MODULES.find((m) => m.key === module).label} ${MODULE_BADGE_SESSIONS} 節練習`, meaning,
+    progress: (s) => prog(s.stats.sessions[module], MODULE_BADGE_SESSIONS),
+  });
+
+  const BADGES = [
+    streakBadge("streak_3", "序", "循序漸進", 3, "依照一定的次序和步驟，一步步往前推進。"),
+    streakBadge("streak_7", "恆", "持之以恆", 7, "有恆心，堅持到底。"),
+    streakBadge("streak_14", "累", "日積月累", 14, "逐日逐月，長時間不斷累積。"),
+    streakBadge("streak_30", "鍥", "鍥而不捨", 30, "不斷雕刻而不停止，比喻有恆心，不放棄。"),
+    streakBadge("streak_60", "滴", "水滴石穿", 60, "比喻只要持之以恆，力量雖小，最終也必有成就。"),
+    {
+      key: "freeze_used", seal: "備", name: "有備無患", group: "streak", condition: "首次使用保護符保住連續日數",
+      meaning: "事先做好準備，就能免除後患。", progress: (s) => prog(s.stats.freezesUsed, 1),
+    },
+    {
+      key: "first_session", seal: "啼", name: "初試啼聲", group: "milestone", condition: "完成第 1 節練習",
+      meaning: "第一次展現才華或本領。", progress: (s) => prog(sumValues(s.stats.sessions), 1),
+    },
+    {
+      key: "first_day", seal: "功", name: "大功告成", group: "milestone", condition: "首次完成一日全部 3 個任務",
+      meaning: "完成偉大、艱鉅的事務；泛指事情順利完成。", progress: (s) => prog(s.stats.daysCompleted, 1),
+    },
+    {
+      key: "correct_100", seal: "多", name: "積少成多", group: "milestone", condition: "累計答對 100 題",
+      meaning: "累積少量而成為大量。", progress: (s) => prog(totalCorrect(s), 100),
+    },
+    {
+      key: "correct_1000", seal: "富", name: "學富五車", group: "milestone", condition: "累計答對 1000 題",
+      meaning: "讀過的書多，學識廣博。", progress: (s) => prog(totalCorrect(s), 1000),
+    },
+    moduleBadge("poetry", "詩", "詩情畫意", "像詩畫一樣美好的意境。"),
+    moduleBadge("essay", "章", "出口成章", "才思敏捷，談吐有文采。"),
+    moduleBadge("cangjie", "手", "得心應手", "心裏怎樣想，手便能怎樣做，比喻技藝熟練，運用自如。"),
+    moduleBadge("mandarin", "腔", "字正腔圓", "咬字清晰，發音正確。"),
+    moduleBadge("idiom", "賅", "言簡意賅", "言辭簡單而意思完備。"),
+    moduleBadge("history", "古", "博古通今", "學問淵博，通曉古今。"),
+    moduleBadge("reading", "卷", "開卷有益", "打開書本閱讀，就能得到好處。"),
+    moduleBadge("rhetoric", "龍", "畫龍點睛", "在關鍵處加上精要的一筆，使整體更加生動傳神。"),
+    moduleBadge("punctuation", "苟", "一絲不苟", "做事認真，一點也不馬虎。"),
+    moduleBadge("classicalProse", "溫", "溫故知新", "溫習學過的課業，而能領悟新的道理。"),
+    {
+      key: "all_modules", seal: "博", name: "博學多才", group: "special", condition: "10 個模組各完成至少 1 節練習",
+      meaning: "學識廣博，又有多方面的才能。",
+      progress: (s) => prog(MODULE_KEYS.filter((k) => s.stats.sessions[k] >= 1).length, MODULE_KEYS.length),
+    },
+    {
+      key: "perfect_session", seal: "字", name: "一字不差", group: "special", condition: "在一節（至少 5 題）的練習中全部答對",
+      meaning: "一個字也沒有差錯，完全正確。", progress: (s) => prog(s.stats.perfectSessions, 1),
+    },
+    {
+      key: "mistakes_cleared", seal: "改", name: "知過必改", group: "special", condition: "累計清除 10 條錯題",
+      meaning: "知道自己有過錯，一定改正。", progress: (s) => prog(s.stats.mistakesCleared, 10),
+    },
+  ];
+
+  const BADGE_GROUPS = [
+    { key: "streak", label: "連續日數" },
+    { key: "milestone", label: "起步與累計" },
+    { key: "module", label: "模組" },
+    { key: "special", label: "特別" },
+  ];
+
+  function badgeProgress(state, badge) {
+    return badge.progress(state);
+  }
+
+  function isBadgeEarned(state, badge) {
+    const p = badge.progress(state);
+    return p.cur >= p.target;
+  }
+
+  function earnedBadgeKeys(state) {
+    return BADGES.filter((b) => isBadgeEarned(state, b)).map((b) => b.key);
+  }
+
   // ---- Backup / restore ----
   // localStorage holds exactly one key for this app (STORAGE_KEY); it is the
   // only entry in `data`. Add further keys here if the app ever uses more.
@@ -467,5 +561,10 @@ window.App = window.App || {};
     normalizeGamification,
     recordSession,
     getStreakView,
+    BADGES,
+    BADGE_GROUPS,
+    badgeProgress,
+    isBadgeEarned,
+    earnedBadgeKeys,
   };
 })();

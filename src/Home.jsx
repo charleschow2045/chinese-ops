@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { Storage } = window.App;
-  const { INK, MODULE_ACCENTS, FEEDBACK, TYPE, PaperCard, Seal } = window.App.UI;
+  const { INK, MODULE_ACCENTS, FEEDBACK, REVIEW_ACCENT, TYPE, PaperCard, Seal } = window.App.UI;
 
   const SUB = INK.subInk;
   const MISSION_ACCENT = MODULE_ACCENTS.essay; // vermillion family
@@ -193,21 +193,52 @@ window.App = window.App || {};
     );
   }
 
-  function Home({ state, today, onChangeLevel, onOpenModule, onRestore }) {
+  // Entry to the badge collection: shows how many are earned.
+  function BadgesEntry({ state, onOpen }) {
+    const earned = Storage.earnedBadgeKeys(state).length;
+    return (
+      <button
+        onClick={onOpen}
+        className="flex items-center justify-center gap-2 rounded-2xl px-4 py-3 transition-all active:translate-y-[2px]"
+        style={{
+          flex: "1 1 170px",
+          backgroundColor: INK.paperCard,
+          border: `1.5px solid ${REVIEW_ACCENT.tintBorder}`,
+          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.16)",
+        }}
+      >
+        <span className="text-2xl">🏅</span>
+        <span className="text-left">
+          <span className={`block text-base leading-tight ${TYPE.heading}`} style={{ color: INK.ink }}>
+            徽章
+          </span>
+          <span className="block text-sm font-bold leading-tight" style={{ color: SUB }}>
+            {earned} / {Storage.BADGES.length}
+          </span>
+        </span>
+      </button>
+    );
+  }
+
+  function Home({ state, today, onChangeLevel, onOpenModule, onOpenBadges, onRestore }) {
     const { BackupSettings } = window.App;
     return (
       <div className="flex flex-col gap-3">
         <MissionsCard state={state} today={today || Storage.todayStr()} onOpenModule={onOpenModule} />
 
-        <div
-          className="rounded-2xl p-3"
-          style={{
-            backgroundColor: INK.paperCard,
-            border: "1.5px solid #E9DFC7",
-            boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.16)",
-          }}
-        >
-          <LevelSelector level={state.level} onChangeLevel={onChangeLevel} />
+        <div className="flex flex-wrap gap-3">
+          <div
+            className="rounded-2xl p-3"
+            style={{
+              flex: "1 1 320px",
+              backgroundColor: INK.paperCard,
+              border: "1.5px solid #E9DFC7",
+              boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.16)",
+            }}
+          >
+            <LevelSelector level={state.level} onChangeLevel={onChangeLevel} />
+          </div>
+          <BadgesEntry state={state} onOpen={onOpenBadges} />
         </div>
 
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>

@@ -30,6 +30,15 @@
   </script>
 
   <style>
+    /* Notch / status-bar insets for the home-screen (standalone) version: the page
+       uses viewport-fit=cover + a translucent status bar, so content would
+       otherwise sit under the clock. All 0 in a normal Safari tab. */
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+    }
     body { font-family: "Noto Sans TC", "Noto Sans HK", "Baloo 2", ui-rounded, system-ui, sans-serif; }
   </style>
 </head>
@@ -69,6 +78,7 @@
   <script type="text/babel" src="./src/ClassicalProseModule.jsx"></script>
   <script type="text/babel" src="./src/BackupSettings.jsx"></script>
   <script type="text/babel" src="./src/TestModeBanner.jsx"></script>
+  <script type="text/babel" src="./src/BadgesScreen.jsx"></script>
   <script type="text/babel" src="./src/Home.jsx"></script>
   <script type="text/babel" src="./src/Root.jsx"></script>
   <script type="text/babel" src="./src/main.jsx"></script>
