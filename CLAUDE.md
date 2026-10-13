@@ -1382,13 +1382,39 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   a Tailwind 3 CLI-built stylesheet substituted for the CDN scripts (same engine as the Play CDN, but NOT
   the real CDN build, Google fonts or iPad Safari). A driver finished one real session in each of the 10
   modules and confirmed it was recorded, the 3 missions completed, streak 1 and 初試啼聲 / 大功告成 /
-  博學多才 earned. These scripts lived in the session scratchpad and are **not in the repo**.
+  博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
+  scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
 - **Phase 6 — NOT started, waits for the user's explicit go-ahead (they will first ask for a visual-style
   sample):** improve the screens *inside* modules — list rows for 詩詞 / 歷史故事 etc. should not all
   share one icon (e.g. the title's first character as a seal, or a dynasty tag) and should show whether the
   item was done; a larger, easier 「返回主頁」 button; text in module screens no smaller than 13 px.
   Until then module-internal screens are unchanged (`BadgesScreen` already uses the larger back button).
+
+## 單元測試 (tests/)
+Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
+notices, 測試模式). **Optional dev tooling — the app itself still needs no Node, no build step.**
+- **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 4 files, **55 tests**.
+- **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
+  `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
+  loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
+  `chineseOps:v1` and/or sets the URL query (`"?today=2026-10-12"` = 測試模式); `makeRunner(label)`
+  gives the `t(name, fn)` / `t.done()` helpers. A failed `assert` makes the file exit non-zero.
+- **Files:** `storage.test.js` (23 — v1/v2 backup import, `loadState` migration, garbage input, dates,
+  `pickMissions`, `recordSession` streak / 保護符 / rollover / clock-went-back scenarios,
+  `getStreakView`, `removeMistake` counting) · `badges.test.js` (12 — exact approved names/order,
+  thresholds, retroactive 累計答對, module badges, backup round trip) · `notices.test.js` (13 —
+  `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
+  the test key never touches `chineseOps:v1`; test backups refused in normal mode).
+- **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
+  add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
+  `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
+  (the test fails on purpose if a name changes unnoticed).
+- **Checked to be sensitive:** deliberately breaking `BACKUP_VERSION`, and making test mode use the real
+  key, each made the relevant files FAIL (then reverted).
+- **Not covered:** screens, layout, touch behaviour, fonts — those need a real browser / the iPad.
+  Because `tests/` sits in the repo root it is also served by GitHub Pages (harmless static files).
 
 ## 歷史故事改版 第 1 次 (按主題分類) — done
 - `HistoryModule.jsx`: level filter replaced by category tabs (戰爭故事 12 / 治國與時代發展 9 /
