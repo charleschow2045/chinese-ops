@@ -1394,6 +1394,18 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   `prefers-reduced-motion`. **Nothing in `src/` or the root `index.html` was touched.** The user picks a
   direction first; then the real screens are restyled. The page layout was written from the user's text
   description of two reference images (the images themselves were not visible to Claude).
+  - **Direction chosen: A (淡紫漸層 + 磨砂玻璃).** Step 2 = two variants of A in `design-preview/`:
+    `style-a1.html` 清新通透 (paler background, more transparent cards, softer shadows, light-glass
+    level card) and `style-a2.html` 深靛型格 (deep indigo band on top holding the greeting + a dark level
+    card using the 科舉 title ladder 童生→秀才→舉人→進士→探花→榜眼→狀元, light near-opaque content cards,
+    deep-indigo buttons and nav). B and C are kept only for comparison. Both variants keep the seal-style
+    badges / cloud ornament (cloud hidden on phones) and dropped 「我的」 from the bottom nav.
+  - **Bottom nav = 主頁 / 學習 / 任務 / 徽章.** The real app only has Home, 徽章 and the 10 module screens
+    (backup is an inline panel on Home), so 學習 (module grid) and 任務 (missions card) are *sections of
+    Home*: in the mock they scroll to the section and the highlight follows the page (a tap locks the
+    highlight until the user scrolls themselves; instant jump under `prefers-reduced-motion`); only 徽章
+    would be a real screen switch. If a variant is chosen, implement 學習/任務 as in-page jumps first;
+    separate screens would be new work.
   - If a sample is chosen, these mock-only elements need a real definition first (the app has no such
     data today): a global 等級/Lv + 稱號 (the mock reuses the idiom 科舉 ladder 童生→狀元 driven by total
     finished sessions), a per-module 進度 % (the mock shows an invented mastery %; the app only has 答對/
