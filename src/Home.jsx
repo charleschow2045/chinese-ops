@@ -42,7 +42,7 @@ window.App = window.App || {};
     );
   }
 
-  function streakMessage(view, allDone) {
+  function streakMessage(view, allDone, best) {
     if (allDone) return view.count > 0 ? `今日任務全部完成！已連續 ${view.count} 日。` : "今日任務全部完成！";
     switch (view.status) {
       case "doneToday":
@@ -52,7 +52,9 @@ window.App = window.App || {};
       case "saved":
         return `已連續 ${view.count} 日，中間有 ${view.freezesNeeded} 日未練習，今日完成任務會使用 ${view.freezesNeeded} 個保護符保住連續日數。`;
       case "broken":
-        return "連續日數已中斷，完成今日 3 項任務重新開始。";
+        return best > 0
+          ? `連續日數已中斷（最長紀錄 ${best} 日），完成今日 3 項任務重新開始。`
+          : "連續日數已中斷，完成今日 3 項任務重新開始。";
       default:
         return "完成今日 3 項任務，開始累積連續日數。";
     }
@@ -101,6 +103,14 @@ window.App = window.App || {};
     const total = daily.missions.length;
     const allDone = doneCount === total;
     const freezes = state.streakFreezes;
+    // Highlight the two situations that need attention: a streak held up by
+    // protection charms ("saved") and one that has lapsed ("broken").
+    const boxed = !allDone && (view.status === "saved" || view.status === "broken");
+    const boxStyle = !boxed
+      ? {}
+      : view.status === "saved"
+      ? { backgroundColor: REVIEW_ACCENT.tint, border: `1.5px solid ${REVIEW_ACCENT.tintBorder}` }
+      : { backgroundColor: "#EDE6D5", border: "1.5px solid #D9CDB0" };
 
     return (
       <PaperCard accent={MISSION_ACCENT} className="!p-4">
@@ -114,16 +124,20 @@ window.App = window.App || {};
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className={`text-2xl leading-tight ${TYPE.display}`} style={{ color: INK.vermillion }}>
-              🔥 {view.count} 日
+            <p className={`text-2xl leading-tight ${TYPE.display}`} style={{ color: view.status === "broken" ? SUB : INK.vermillion }}>
+              <span style={view.status === "broken" ? { filter: "grayscale(1)", opacity: 0.6 } : undefined}>🔥</span> {view.count} 日
             </p>
             <p className="text-sm font-bold" style={{ color: SUB }}>
               🛡️ 保護符 ×{freezes}
             </p>
           </div>
         </div>
-        <p className="text-sm leading-snug mb-3" style={{ color: SUB }}>
-          {streakMessage(view, allDone)}
+        <p
+          className={`text-sm leading-snug mb-3 ${boxed ? "rounded-xl px-3 py-2" : ""}`}
+          style={{ color: boxed ? INK.ink : SUB, ...boxStyle }}
+        >
+          {view.status === "saved" && !allDone ? "🛡️ " : ""}
+          {streakMessage(view, allDone, state.stats.bestStreak)}
         </p>
         <div className="flex flex-col gap-2">
           {daily.missions.map((key) => (

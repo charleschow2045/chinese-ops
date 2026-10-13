@@ -126,4 +126,5 @@ window.App = window.App || {};
   }
 
   window.App.BadgesScreen = BadgesScreen;
+  window.App.badgeAccent = accentFor; // also used by NoticeStack
 })();

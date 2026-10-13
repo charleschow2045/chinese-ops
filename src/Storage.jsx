@@ -295,7 +295,7 @@ window.App = window.App || {};
   // lifetime stats. Pure: returns { state, events } — `events` is a transient
   // description of what just happened for the UI (never persisted).
   function recordSession(state, moduleKey, correctCount, totalCount, today = todayStr()) {
-    const events = { missionCompleted: false, dayCompleted: false, streakIncreased: false, streakReset: false, freezesUsedNow: 0 };
+    const events = { missionCompleted: false, dayCompleted: false, streakIncreased: false, streakReset: false, freezesUsedNow: 0, freezeEarned: false };
     if (!MODULE_KEYS.includes(moduleKey) || !(totalCount >= 1)) return { state, events };
 
     const correct = Math.min(Math.max(nonNegInt(correctCount), 0), totalCount);
@@ -342,7 +342,10 @@ window.App = window.App || {};
           stats.daysCompleted += 1;
           stats.bestStreak = Math.max(stats.bestStreak, streak.count);
           // Earn a freeze back at every 7-day milestone, capped.
-          if (events.streakIncreased && streak.count % 7 === 0 && streakFreezes < MAX_STREAK_FREEZES) streakFreezes += 1;
+          if (events.streakIncreased && streak.count % 7 === 0 && streakFreezes < MAX_STREAK_FREEZES) {
+            streakFreezes += 1;
+            events.freezeEarned = true;
+          }
         }
       }
     }
@@ -459,6 +462,66 @@ window.App = window.App || {};
     return BADGES.filter((b) => isBadgeEarned(state, b)).map((b) => b.key);
   }
 
+  // What to tell the child right after a finished session: pure function of the
+  // state before/after `recordSession` and its `events` (never persisted).
+  // Order = importance: the day / mission result, protection charms, then any
+  // newly earned badges (compared against `before`, so badges that were already
+  // earned — e.g. 累計答對 from old progress — never re-announce).
+  // Each notice: { id, kind: "day" | "mission" | "freeze" | "badge", icon, title, text, badgeKey? };
+  // `id` is stable per day/badge so repeated delivery replaces rather than stacks.
+  function buildNotices(before, after, events, moduleKey) {
+    const out = [];
+    const today = after.daily.date;
+    const mod = MODULES.find((m) => m.key === moduleKey);
+    if (events.dayCompleted) {
+      const count = after.streak.count;
+      out.push({
+        id: `day-${today}`,
+        kind: "day",
+        icon: "🎉",
+        title: "今日任務全部完成！",
+        text: events.streakReset
+          ? "連續日數中斷後重新開始，今日是第 1 日。"
+          : count <= 1
+          ? "連續日數由今日開始，今日是第 1 日。"
+          : `已連續 ${count} 日。`,
+      });
+    } else if (events.missionCompleted) {
+      out.push({
+        id: `mission-${today}-${moduleKey}`,
+        kind: "mission",
+        icon: "✅",
+        title: `完成任務：${mod ? mod.label : moduleKey}`,
+        text: `今日任務 ${after.daily.done.length} / ${after.daily.missions.length}`,
+      });
+    }
+    if (events.freezesUsedNow > 0) {
+      out.push({
+        id: `freeze-used-${today}`,
+        kind: "freeze",
+        icon: "🛡️",
+        title: `已使用 ${events.freezesUsedNow} 個保護符`,
+        text: `中間有 ${events.freezesUsedNow} 日未練習，保護符保住了連續日數（現為 ${after.streak.count} 日）。尚餘 ${after.streakFreezes} 個保護符。`,
+      });
+    }
+    if (events.freezeEarned) {
+      out.push({
+        id: `freeze-earned-${today}`,
+        kind: "freeze",
+        icon: "🛡️",
+        title: "獲得 1 個保護符",
+        text: `連續 ${after.streak.count} 日，保護符增至 ${after.streakFreezes} 個（最多 ${MAX_STREAK_FREEZES} 個）。`,
+      });
+    }
+    const had = new Set(earnedBadgeKeys(before));
+    BADGES.forEach((b) => {
+      if (!had.has(b.key) && isBadgeEarned(after, b)) {
+        out.push({ id: `badge-${b.key}`, kind: "badge", badgeKey: b.key, icon: "🏅", title: `獲得徽章：「${b.name}」`, text: b.meaning });
+      }
+    });
+    return out;
+  }
+
   // ---- Backup / restore ----
   // localStorage holds exactly one key for this app (STORAGE_KEY); it is the
   // only entry in `data`. Add further keys here if the app ever uses more.
@@ -566,5 +629,6 @@ window.App = window.App || {};
     badgeProgress,
     isBadgeEarned,
     earnedBadgeKeys,
+    buildNotices,
   };
 })();
