@@ -40,7 +40,7 @@ across multiple areas.
   sibling projects) — run it with
   `powershell -File .claude/static-server.ps1 -Root chinese-ops -Port 5700`
   - **Known quirk: the server is single-threaded** (one blocking
-    `AcceptTcpClient()` loop, no concurrency) — `index.html` now loads ~28
+    `AcceptTcpClient()` loop, no concurrency) — `index.html` now loads ~34
     separate `<script>`/content files, and a browser's parallel-connection
     burst on first load can overwhelm it, producing a page full of
     `net::ERR_CONNECTION_RESET`/`ERR_CONNECTION_REFUSED` errors on that
@@ -106,7 +106,10 @@ This shipped in two stages:
 - **Color system** — 5 core colors from the user's spec, in `INK`:
   `paper` #F7F0E3 (宣紙白, page bg), `paperCard` #FBF7EC (derived — slightly
   lighter tone for cards sitting on the page), `ink` #241F1B (墨黑, primary
-  text), `mutedInk` #8A7F6D (derived — warm gray-brown for captions/meta,
+  text), `subInk` #5C5344 (added with 每日任務: darker warm brown for small text
+  that must stay readable, 7:1 on `paperCard`; the home screen, BadgesScreen,
+  NoticeStack and BackupSettings use it instead of `mutedInk` (only 3.7:1)),
+  `mutedInk` #8A7F6D (derived — warm gray-brown for captions/meta,
   not a flat UI gray), `vermillion` #B0342A (印泥紅), `bamboo` #48603E
   (竹青), `ochre` #A9812F (赭金 — reserved mainly for badges/achievement UI,
   see IdiomModule's `MasteryBadge`/`BADGE_ACCENT`), `indigo` #37485B (靛青).
@@ -196,9 +199,11 @@ This shipped in two stages:
   new `INK.paper`/vermillion/ochre/indigo tones instead of
   `bg-amber-50`/rose/sky; the app's `<h1>` title is `font-serif font-black`
   in vermillion instead of `text-red-600`.
-- **`Home.jsx`'s module grid is `grid-cols-2` (5 rows × 2), not
-  `grid-cols-3`** — with 10 modules, a 3-column grid left a lonely single
-  card on its own final row; 2 columns divides evenly with none left over.
+- **`Home.jsx`'s module grid** was `grid-cols-2` (5 rows × 2, not `grid-cols-3`,
+  so no lonely card on the last row) with square cards; the 每日任務 work later
+  replaced the square cards with short horizontal ones in an
+  `auto-fill, minmax(260px, 1fr)` CSS grid — see "每日任務 · 連續日數 · 徽章 →
+  主頁版面". On an iPad held upright that is still 2 columns × 5 rows.
 - Every module file follows the same conversion shape: `const { PaperCard,
   InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.<moduleKey>;` at the top, then `Card`→
@@ -246,8 +251,8 @@ This shipped in two stages:
   input (multiple choice, drag, tap-to-build) over free typing in modules
   1, 2, 5, 7, 8, 9 — free typing is only appropriate within module 3 (Cangjie
   practice) and module 4 (Mandarin/pinyin)
-- Simple navigation: a home dashboard grid of the 10 modules (`grid-cols-2`,
-  5 rows × 2 — see UI redesign notes for why not 3×3), tap a module to open
+- Simple navigation: a home dashboard of the 10 modules (2 columns × 5 rows on an
+  iPad held upright, 1 column on a phone — see 每日任務 notes), tap a module to open
   it full-screen with a "← 返回主頁" back button (hub-and-spoke, same pattern
   as `english-ops`)
 - `src/AudioButtons.jsx` — shared 🔊 普通話 / 🔊 粵語 read-aloud buttons
@@ -1022,14 +1027,23 @@ Not yet committed/pushed until the user says so.
       practiceStats: { correct: number, attempts: number },
       mistakes: string[]   // content-item ids — see 錯題重溫 below
     },
-    // one entry per key in Storage.jsx's MODULES array (all 9 modules)
-  }
+    // one entry per key in Storage.jsx's MODULES array (all 10 modules)
+  },
+  // added by 每日任務 (backup version 2) — details in that section:
+  daily: { date: "YYYY-MM-DD", missions: [key, key, key], done: [key…] },
+  streak: { count: number, lastDate: "YYYY-MM-DD" | null },
+  streakFreezes: 0..2,
+  stats: { daysCompleted, missionsCompleted, bestStreak, freezesUsed,
+           perfectSessions, mistakesCleared, sessions: { <moduleKey>: number } }
 }
 ```
-All 9 modules use the same `{ practiceStats, mistakes }` shape (generated
+All 10 modules use the same `{ practiceStats, mistakes }` shape (generated
 generically from `MODULES` in `Storage.jsx`'s `defaultModuleProgress()`, not
 hand-listed per key) — extend this data model with a new top-level field
 (not a new per-module shape) if a future feature needs more than these two.
+**Any new top-level field MUST be added to `normalizeGamification` (or a sibling
+whitelist call in `sanitizeState`), otherwise it is silently dropped when a backup
+is restored.** (The key is `chineseOps:test` instead of `chineseOps:v1` in 測試模式.)
 
 ## 錯題重溫 (Mistake Review) — cross-module feature
 Built after user request ("any feature suggest?" → picked mistake review).
@@ -1197,7 +1211,7 @@ correctly since, and lets them specifically re-practice just those.
   batch 3 to `CLASSICAL_PROSE_ITEMS` unprompted.
 
 ## Build status
-- [x] Project scaffold — theme, storage, Home dashboard (3×3 module grid), hub-and-spoke nav
+- [x] Project scaffold — theme, storage, Home dashboard (see 每日任務 notes for the current layout), hub-and-spoke nav
 - [x] Module 1 — 詩詞學習 (Classical Poetry + 文言文)
 - [x] Module 2 — 作文金句
 - [x] Module 3 — 倉頡輸入法教學
@@ -1219,7 +1233,7 @@ missing features):
       could still have `origin` added back to more of the 495 lighter-schema
       entries if depth matters more than volume later
 - [ ] Expand history story library further beyond the current 36 curated items
-- [ ] Expand reading passage library further beyond the current 16 curated items (now 5 questions each)
+- [ ] Expand reading passage library further beyond the current 22 curated items (new 理解/語文 question format — see Module 7 REBUILD)
 - [ ] Expand rhetoric practice sentences further beyond the current 63 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
 - [ ] Classical prose library at 17 texts (2 batches so far) — expand
@@ -1261,12 +1275,120 @@ missing features):
 ## 備份與還原 (BackupSettings.jsx)
 - Home footer link "💾 備份與還原進度" opens an inline panel. The app uses exactly one
   localStorage key (`chineseOps:v1`); the backup file is
-  `{ app: "chinese-ops", version: 1, exportedAt, data: { "chineseOps:v1": state } }`,
+  `{ app: "chinese-ops", version: 2, exportedAt, data: { "chineseOps:v1": state } }`,
   downloaded as `chinese-ops-backup-YYYY-MM-DD.json` (local date).
+- **`BACKUP_VERSION` is 2** (v2 = 每日任務 fields). v1 files still import: missing
+  `daily`/`streak`/`streakFreezes`/`stats` fall back to defaults, a malformed piece
+  falls back per piece, the file is never rejected for it. A file with a *newer*
+  version is refused ("請重新載入") — this also protects a stale cached copy on the
+  iPad from silently dropping the streak. Bump the version again if a future change
+  cannot be read by the previous app.
 - `Storage.parseBackup(text)` never throws; rejects with reason invalid / wrongApp /
   newerVersion / tooBig, and `sanitizeState` rebuilds state from known fields only.
-  Restore always goes through a confirm screen (file date, level, 答對/練習題數, 錯題數).
+  Restore always goes through a confirm screen (file date, level, 答對/練習題數, 錯題數,
+  連續日數（最長）, 徽章 n / 23).
+- `loadState` and `sanitizeState` share `normalizeGamification(raw, today)`, so a saved
+  state of any age and an imported file end up in exactly the same shape (day rolled
+  over to today; dates must be real calendar dates; counters capped; only known
+  module keys; `done ⊆ missions`; unknown top-level fields dropped).
+- 測試模式 backups: see "每日任務 · 連續日數 · 徽章 → 測試模式" (separate key, `TEST` in the
+  file name, `testMode: true`, refused by normal mode with reason `testFile`).
 - If a second localStorage key is ever added, add it to `buildBackup`/`parseBackup`.
+
+## 每日任務 · 連續日數 · 徽章 (built Oct 2026, 5 phases, all deployed; phase 6 NOT started)
+Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` /
+`storage.jsx`, read-only reference — never edit it) but deliberately different:
+1. english-ops needs *every* module done each day; here **3 missions/day** (10 modules is too
+   much for a P5 child).
+2. english-ops lets one streak freeze cover a gap of ANY length; here **one 保護符 per missed day**.
+3. english-ops' `markModuleComplete` never rolls the date over (an app left open past midnight
+   counts into yesterday); `recordSession` always rolls over first.
+4. english-ops shows the stored streak count even after missed days; here `getStreakView` shows
+   the *effective* streak (已中斷 → 0).
+5. english-ops' import rejects a file lacking `dailyProgress`; here missing pieces default.
+6. Everything about 測試模式 (below) is new.
+- **Data + logic** live in `Storage.jsx` as pure functions (no localStorage, `today` is a parameter
+  defaulting to `todayStr()`), so they can be unit-tested by loading the file in `node:vm`.
+- **Hook point:** all 10 modules already call `onRecordPractice(correct, total)` exactly once when a
+  session finishes. `Root.recordPractice(moduleKey)` turns that into
+  `recordPracticeResult` + `recordSession` — **no module file knows about missions or badges**.
+  State is updated with a *functional* `setState` because History/Reading/ClassicalProse call
+  `onRecordPractice` and then `onAnswerItem` in the same event; the notices are computed from a
+  `stateRef` snapshot instead. Idiom's stage count (`attempts / QUESTION_COUNT`) is unaffected.
+- **Missions:** `pickMissions(dateStr)` is deterministic per date, one module from each group:
+  A 語文基礎 `idiom, rhetoric, punctuation, essay` · B 閱讀文化 `poetry, classicalProse, history,
+  reading` · C 字音輸入 `mandarin, cangjie` (group B uses `(day + floor(day/4)) % 4` so the A/B
+  pairing does not repeat on a fixed 4-day cycle). The day's three are stored in `daily.missions`
+  (so adding a module mid-day cannot change them). **Done = one finished session of that module,
+  any score** (same philosophy as 成語's stage-based 稱號); `total >= 1` required. Sessions in other
+  modules still count toward `stats`/badges, not toward missions.
+- **Streak:** the day counts when all 3 are done. `gap = daysBetween(lastDate, today)`: gap 1 → +1;
+  gap ≥ 2 → needs `gap − 1` 保護符 (consumed, streak +1) else reset to 1; `gap ≤ 0` (device clock
+  moved back) → not counted twice. Start with 1 保護符, +1 at every 7th streak day, cap 2.
+  `getStreakView(state, today)` → `doneToday | pending | saved | broken | none`; Home shows 「保住」
+  (ochre box + 🛡️) and 「已中斷」 (grey flame, 0 日, 最長紀錄).
+  Known limits: a `lastDate` far in the future (clock set forward, a session done, clock set back)
+  parks the streak until the real date catches up; restoring an older backup can make the app see
+  missed days (保護符 used or streak reset on the next completed day).
+- **Badges (23)** — `BADGES` in `Storage.jsx`, each `{ key, seal (one unique character), name, group,
+  condition, meaning, progress(state) → {cur,target} }`; earned = `cur >= target`, **always computed
+  (`earnedBadgeKeys`), never stored**. Streak badges use `stats.bestStreak`, so they survive a break.
+  `累計答對` comes from the existing `practiceStats` (retroactive for old saves); per-module
+  sessions, perfect sessions, mistakes cleared and the rest count from the day 每日任務 shipped.
+  | group | badges (condition) |
+  |---|---|
+  | 連續日數 | 循序漸進 (3 日) · 持之以恆 (7) · 日積月累 (14) · 鍥而不捨 (30) · 水滴石穿 (60) · 有備無患 (首次用保護符) |
+  | 起步與累計 | 初試啼聲 (第 1 節) · 大功告成 (首次完成一日 3 任務) · 積少成多 (答對 100) · 學富五車 (答對 1000) |
+  | 模組 (各 5 節) | 詩情畫意 詩詞 · 出口成章 作文金句 · 得心應手 倉頡 · 字正腔圓 普通話 · 言簡意賅 成語 · 博古通今 歷史 · 開卷有益 閱讀理解 · 畫龍點睛 修辭 · 一絲不苟 標點 · 溫故知新 文言文 |
+  | 特別 | 博學多才 (10 模組各 ≥1 節) · 一字不差 (≥5 題全對) · 知過必改 (清除 10 條錯題) |
+  **All 23 names are real 成語 and were checked against 教育部《成語典》** (writing + meaning, Oct 2026;
+  有備無患 replaced 亡羊補牢 for the 保護符 badge at the user's request — a charm is prepared in advance).
+  Pitfalls recorded on purpose: 持之以**恆** (not 恒),
+  鍥而不**捨**, 言簡意**賅** (not 該), and the dictionary has **知過必改** (not 知過能改) and
+  **妙語如珠** (not 妙語連珠, which is why it is not used). Earlier invented names
+  (三日成章, 七日不輟, 初試筆墨, 日課有成, 倉頡傳人, 小有所成) were rejected for not being 成語 — don't
+  reintroduce made-up four-character names; verify any new one first. To add a badge: append to
+  `BADGES` (unique `key` and `seal`), no storage/backup change needed.
+- **回饋橫幅 (`NoticeStack.jsx`)**: `Storage.buildNotices(before, after, events, moduleKey)` →
+  完成任務 / 今日任務全部完成 / 已使用保護符 / 獲得保護符 / 獲得徽章 (only badges not already earned
+  *before* the session). Fixed to the bottom of ANY screen, 44px × buttons + 全部關閉, auto-dismiss
+  after 25 s, adds bottom padding to the page while visible (it covered the 備份 link before that),
+  max 4. **In memory only** — never saved, never in a backup.
+- **主頁版面 (`Home.jsx`)**: 今日任務 card (3 mission rows, 🔥 N 日, 🛡️ 保護符 ×k, status line) →
+  程度 chips + 🏅 徽章 n / 23 button on one row → module tiles (horizontal, `auto-fill minmax(260px,1fr)`
+  grid; each shows 「答對 N 題 · 錯題 M」 from `practiceStats`/`mistakes`, or 「未開始」) → 備份連結.
+  The missions card plus all 10 module tiles fit one iPad-portrait screen (820 px wide; the 備份 link
+  sits near y≈1050, so Safari may need a small scroll); 1 column on a phone. No text under 13 px;
+  secondary text uses `INK.subInk`. `BadgesScreen.jsx`: seal tiles, locked ones dashed 「？」 + progress bar,
+  成語意思 on every tile, 「下一個目標」, and a back button ≥ 48 px high.
+- **測試模式**: open the site with `?today=YYYY-MM-DD` (any `today` parameter, even empty/invalid,
+  selects it; an invalid value uses the real date). Then the app uses localStorage key
+  **`chineseOps:test`** and pretends it is that date, and **never reads or writes `chineseOps:v1`**.
+  A sticky 「測試模式」banner (`TestModeBanner.jsx`) is always on top: ◀ 前一日 / 後一日 ▶ (reloads with the
+  new date, test data kept) / 清除測試資料 (removes only the test key) / 離開測試模式. Backups made in
+  test mode are named `…-TEST-…`, carry `testMode: true` and `data["chineseOps:test"]`, and normal mode
+  refuses them (`testFile`); test mode may import a normal backup (writes the test key only).
+  Purpose: test streaks on the iPad the child really uses without touching the real streak.
+  Mode is decided once at load from the URL (`Storage.TEST_MODE`).
+- **Safe area:** `index.html` defines `--sat/--sar/--sab/--sal` from `env(safe-area-inset-*)`; the title,
+  side/bottom padding, the test banner (its background extends under the status bar) and NoticeStack use
+  them, because the home-screen version has `black-translucent` + `viewport-fit=cover`. All 0 in a
+  Safari tab. (Verified only by overriding the variables, not on a real home-screen app.)
+- **Real-iPad notes:** the home-screen app and the Safari tab have SEPARATE localStorage on iOS — test in
+  a Safari tab with `?today=`, and export a backup first.
+- **How it was verified (cloud sandbox has no CDN access):** unit tests load `Storage.jsx` in `node:vm`
+  with a stub `window`/`localStorage` (backup v1/v2, garbage input, dates, streak/freeze scenarios,
+  badges, notices — 48 checks); browser tests used Playwright + Chromium with React/Babel from npm and
+  a Tailwind 3 CLI-built stylesheet substituted for the CDN scripts (same engine as the Play CDN, but NOT
+  the real CDN build, Google fonts or iPad Safari). A driver finished one real session in each of the 10
+  modules and confirmed it was recorded, the 3 missions completed, streak 1 and 初試啼聲 / 大功告成 /
+  博學多才 earned. These scripts lived in the session scratchpad and are **not in the repo**.
+- **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
+- **Phase 6 — NOT started, waits for the user's explicit go-ahead (they will first ask for a visual-style
+  sample):** improve the screens *inside* modules — list rows for 詩詞 / 歷史故事 etc. should not all
+  share one icon (e.g. the title's first character as a seal, or a dynasty tag) and should show whether the
+  item was done; a larger, easier 「返回主頁」 button; text in module screens no smaller than 13 px.
+  Until then module-internal screens are unchanged (`BadgesScreen` already uses the larger back button).
 
 ## 歷史故事改版 第 1 次 (按主題分類) — done
 - `HistoryModule.jsx`: level filter replaced by category tabs (戰爭故事 12 / 治國與時代發展 9 /
