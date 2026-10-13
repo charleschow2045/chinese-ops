@@ -1419,6 +1419,31 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
     「返回主頁」 button; text in module screens no smaller than 13 px. Module-internal screens are unchanged
     until then (`BadgesScreen` already uses the larger back button). Delete `design-preview/` once the
     decision is made and applied.
+  - **Final choice: A2 (深靛型格).** Phase 6 is now split into sub-phases:
+    - **6a 地基 (done): only ADDS the A2 style foundation to `src/theme.jsx`; it is applied to NO screen.**
+      Nothing existing was modified — `INK`, `MODULE_ACCENTS`, `PaperCard`, `InkButton`, `Seal`, `FEEDBACK`,
+      `REVIEW_ACCENT`, `TYPE` and the legacy `COLORS`/`Button`/`Card` are untouched (`git diff` of theme.jsx is
+      +240 / −0; the new exports are attached with a separate `Object.assign(window.App.UI, …)` after the
+      original `window.App.UI = {…}`). `Root.jsx`, `Home.jsx`, every module, `Storage.jsx` and `tests/` were not
+      touched; the only change to `index.html` is that the Google Fonts link also loads Zen Maru Gothic
+      (wght 500;700;900). Verified: `node tests/run-all.js` 55/55; real app (Home, poetry list/detail/Q1,
+      history list, test mode, seeded `Math.random`) screenshotted before vs after — byte-identical PNGs.
+    - New in `window.App.UI`: `A2` (colour / gradient / shadow / font tokens copied verbatim from
+      `design-preview/style-a2.html`; font stack Zen Maru Gothic → Noto Sans TC → PingFang HK → PingFang TC →
+      Hiragino Maru Gothic ProN → system-ui; numerals Baloo 2), `MODULE_ICONS` (10 keys = `Storage.MODULES`;
+      `{emoji, tint, tintBorder, bar}`, 10 distinct tints), `A2Card`, `A2Button` (≥ 48 px high, ≥ 16 px text),
+      `A2BackButton` (≥ 48 px high, ≥ 96 px wide, ≥ 16 px bold, `label` default 「← 返回」, `onClick`),
+      `A2ModuleIcon` (`moduleKey`, `size`), `A2Background` (fixed, `pointer-events-none`, gradient + 3 blurred
+      blobs; `blobs` prop, default true; **not mounted anywhere yet**), `A2_MIN_FONT_PX = 13`,
+      `A2_MIN_TAP_PX = 44`. The components enforce the floors themselves (a caller cannot go below them).
+    - `design-preview/theme-check.html` renders the real `theme.jsx` components (cards, buttons, back button,
+      10 icons, background toggle, token swatches) for comparison with `style-a2.html`. It is a dev page like
+      the other previews; delete it together with `design-preview/` when Phase 6 is finished.
+    - **6b (NOT started): first change Home and the `Root.jsx` background to A2.** Already decided for 6b:
+      (1) drop the 「Lv.」 number — show only the 科舉 title and progress to the next title; (2) the title is
+      computed from existing data — the sum of `stats.sessions` over all modules (= cumulative finished
+      sessions) — so there is **no new storage field**, hence no `normalizeGamification` whitelist or backup
+      change. Still to be defined at that point: per-module 進度 (the mock shows an invented %), greeting.
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,

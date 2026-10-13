@@ -205,6 +205,233 @@ window.App = window.App || {};
     );
   }
 
+  // ---------------------------------------------------------------------
+  // A2 system (階段 6a) — ADDITIVE ONLY. Nothing above is changed and no screen
+  // uses this yet (6b applies it to Home / Root). Every value below is copied
+  // from design-preview/style-a2.html (its :root variables and A2 overrides);
+  // do not tweak colours here without changing the sample first.
+  // Names are prefixed `A2` / `MODULE_ICONS` so they cannot clash with the
+  // "文房" (`INK`, `PaperCard`, …) or legacy names.
+  // ---------------------------------------------------------------------
+  const A2_MIN_FONT_PX = 13; // no text inside an A2 component may be smaller than this
+  const A2_MIN_TAP_PX = 44; // pressable elements: at least 44 px (back / primary buttons: 48 px)
+
+  const A2 = {
+    // fonts: rounded face first, then Traditional-Chinese fallbacks, so the layout still works when
+    // the Google Fonts request is blocked or slow
+    font: '"Zen Maru Gothic","Noto Sans TC","PingFang HK","PingFang TC","Hiragino Maru Gothic ProN",system-ui,sans-serif',
+    numFont: '"Baloo 2","Zen Maru Gothic",system-ui,sans-serif',
+    // text + accent
+    ink: "#1B1840",
+    sub: "#46406C",
+    acc: "#4A39C8",
+    accD: "#3626A8",
+    accInk: "#fff",
+    accShadow: "#2B1F9A",
+    // page background (gradient + three blurred blobs, see A2Background)
+    bg: "linear-gradient(180deg,#ECE8FB 0%,#F5F1FD 45%,#F9EFFA 100%)",
+    blob1: "#B9A8FF",
+    blob2: "#FFB3D9",
+    blob3: "#A8D4FF",
+    cloud: "#BDB0FF",
+    // cards
+    glass: "rgba(255,255,255,.97)",
+    glassBd: "#E0D9F6",
+    glassSolid: "#FFFFFF",
+    shadow: "0 14px 28px -16px rgba(52,38,150,.4),0 1px 2px rgba(30,20,90,.1)",
+    // top band + level card
+    band: "linear-gradient(160deg,#15123F 0%,#241D7B 52%,#3A2CAA 100%)",
+    bandShadow: "0 26px 46px -26px rgba(21,18,63,.7)",
+    lvBg: "linear-gradient(135deg,#3F31BC 0%,#5A3FD2 55%,#6C44DB 100%)",
+    lvBd: "rgba(255,255,255,.28)",
+    lvShadow: "0 22px 40px -16px rgba(12,8,60,.75),inset 0 1px 0 rgba(255,255,255,.32)",
+    // seals (red chop badges / title stamp)
+    sealBg: "linear-gradient(145deg,#CC4232,#A32A21)",
+    sealInk: "#FFF6EF",
+    stampBg: "linear-gradient(150deg,#D0443A,#A32A21)",
+    stampInk: "#FFF3EC",
+    // chips, rows, tracks
+    fireBg: "#FFE3CF",
+    fireInk: "#7A3000",
+    shieldBg: "#E0E5FF",
+    shieldInk: "#243B98",
+    row: "#F4F1FE",
+    rowBd: "#E3DCF8",
+    rowDone: "#DDF3E8",
+    ok: "#157A52",
+    segTrack: "#ECE7FB",
+    barTrack: "#E3DDF5",
+    hot: "#C42A21",
+    hotInk: "#A7231B",
+    todayBg: "#FFDDE6",
+    todayInk: "#9A1239",
+    // segmented control (selected) + bottom dock
+    segOn: "linear-gradient(135deg,#3F31BC,#5640D4)",
+    segOnShadow: "0 10px 18px -10px #2B1F9A",
+    dock: "rgba(22,18,66,.95)",
+    dockShadow: "0 22px 44px -14px rgba(22,18,66,.7)",
+    dockInk: "#D4CDFF",
+    dockOn: "linear-gradient(135deg,#7458EA,#5640D4)",
+    dockOnShadow: "0 10px 20px -8px #5640D4",
+    noteBg: "rgba(255,255,255,.9)",
+    noteBd: "#DCD4F5",
+  };
+
+  // One entry per module (keys match Storage.MODULES): emoji, soft tint for the icon tile, its
+  // border, and the progress-bar colour. Copied from the module list of style-a2.html.
+  const MODULE_ICONS = {
+    poetry: { emoji: "📜", tint: "#ECE7FF", tintBorder: "#D5CBFF", bar: "#7B61F2" },
+    essay: { emoji: "✍️", tint: "#FFE4F1", tintBorder: "#FBC3DD", bar: "#E8559A" },
+    cangjie: { emoji: "⌨️", tint: "#FFEBD7", tintBorder: "#FBCFA3", bar: "#EE8226" },
+    mandarin: { emoji: "🗣️", tint: "#FFE4DF", tintBorder: "#FBC0B8", bar: "#E5584A" },
+    idiom: { emoji: "🀄", tint: "#DDF6F1", tintBorder: "#AEE8DE", bar: "#1FA08E" },
+    history: { emoji: "🏯", tint: "#E7F4D9", tintBorder: "#C7E4A6", bar: "#4C9A3F" },
+    reading: { emoji: "📖", tint: "#E0EEFF", tintBorder: "#B7D6FB", bar: "#3B83E0" },
+    rhetoric: { emoji: "🎭", tint: "#F3E1FC", tintBorder: "#E0B4F4", bar: "#B054DC" },
+    punctuation: { emoji: "❝", tint: "#FFE1E7", tintBorder: "#F8B9C6", bar: "#D14B6A" },
+    classicalProse: { emoji: "🏺", tint: "#E2E8FF", tintBorder: "#BCC8F7", bar: "#4A62C9" },
+  };
+  const MODULE_ICON_FALLBACK = { emoji: "📘", tint: A2.segTrack, tintBorder: A2.glassBd, bar: A2.acc };
+
+  // Near-solid white card (style-a2 `.card`). `style` may override anything except what the
+  // card needs to stay readable: text colour and font default to the A2 ink / font.
+  function A2Card({ children, className = "", style = {} }) {
+    return (
+      <div
+        className={className}
+        style={{
+          background: A2.glass,
+          border: `1px solid ${A2.glassBd}`,
+          borderRadius: 26,
+          boxShadow: A2.shadow,
+          padding: 18,
+          color: A2.ink,
+          fontFamily: A2.font,
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  // Primary button: deep indigo, white 16 px bold text, >= 48 px tall, sinks 2 px when pressed.
+  // The size floors are applied AFTER `style`, so a caller cannot make it smaller than the floors.
+  function A2Button({ children, onClick, className = "", style = {}, disabled = false, type = "button" }) {
+    return (
+      <button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        className={`active:translate-y-[2px] disabled:opacity-50 disabled:pointer-events-none ${className}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 28px",
+          border: 0,
+          borderRadius: 999,
+          background: A2.acc,
+          color: A2.accInk,
+          fontFamily: A2.font,
+          fontWeight: 900,
+          lineHeight: 1.25,
+          boxShadow: `0 10px 18px -10px ${A2.accShadow}`,
+          WebkitTapHighlightColor: "transparent",
+          cursor: "pointer",
+          ...style,
+          minHeight: Math.max(48, style.minHeight || 0),
+          minWidth: Math.max(A2_MIN_TAP_PX, style.minWidth || 0),
+          fontSize: Math.max(16, style.fontSize || 16),
+        }}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  // Back button (will replace each module's own small "← 返回" / "← 返回主頁"): >= 48 px tall and
+  // >= 96 px wide, 16 px bold text in the dark accent colour on a light tile.
+  function A2BackButton({ label = "← 返回", onClick, className = "", style = {} }) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`active:translate-y-[2px] ${className}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 20px",
+          border: 0,
+          borderRadius: 999,
+          background: A2.segTrack,
+          color: A2.accD,
+          fontFamily: A2.font,
+          fontWeight: 900,
+          lineHeight: 1.25,
+          WebkitTapHighlightColor: "transparent",
+          cursor: "pointer",
+          ...style,
+          minHeight: Math.max(48, style.minHeight || 0),
+          minWidth: Math.max(96, style.minWidth || 0),
+          fontSize: Math.max(16, style.fontSize || 16),
+        }}
+      >
+        {label}
+      </button>
+    );
+  }
+
+  // Rounded tile with a module's emoji on its soft tint (style-a2 `.ico`; 54 px by default).
+  // Radius and emoji size scale with `size`; the emoji never goes below A2_MIN_FONT_PX.
+  function A2ModuleIcon({ moduleKey, size = 54, className = "", style = {} }) {
+    const m = MODULE_ICONS[moduleKey] || MODULE_ICON_FALLBACK;
+    return (
+      <div
+        aria-hidden="true"
+        className={className}
+        style={{
+          width: size,
+          height: size,
+          flex: "none",
+          display: "grid",
+          placeItems: "center",
+          borderRadius: Math.round((size * 19) / 54),
+          background: m.tint,
+          border: `1px solid ${m.tintBorder}`,
+          fontSize: Math.max(A2_MIN_FONT_PX, Math.round((size * 29) / 54)),
+          lineHeight: 1,
+          ...style,
+        }}
+      >
+        {m.emoji}
+      </div>
+    );
+  }
+
+  // Fixed full-screen backdrop: A2 gradient plus three blurred colour blobs (style-a2 `.bg`,
+  // `.b1`–`.b3`). Not mounted anywhere yet. NOTE: style-a2.html itself hides the blobs
+  // (`.bg{display:none}`), so pass `blobs={false}` to match the sample exactly.
+  function A2Background({ blobs = true }) {
+    const blob = { position: "absolute", borderRadius: "50%", filter: "blur(60px)", opacity: 0.55 };
+    return (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none"
+        style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, overflow: "hidden", zIndex: 0, background: A2.bg }}
+      >
+        {blobs && (
+          <>
+            <div style={{ ...blob, width: 360, height: 360, left: -100, top: -60, background: A2.blob1 }} />
+            <div style={{ ...blob, width: 420, height: 420, right: -140, top: 200, background: A2.blob2 }} />
+            <div style={{ ...blob, width: 380, height: 380, left: "18%", bottom: -130, background: A2.blob3 }} />
+          </>
+        )}
+      </div>
+    );
+  }
+
   window.App.UI = {
     // legacy
     COLORS,
@@ -220,4 +447,17 @@ window.App = window.App || {};
     InkButton,
     Seal,
   };
+
+  // 階段 6a: A2 additions, attached separately so the export above stays untouched.
+  Object.assign(window.App.UI, {
+    A2,
+    A2_MIN_FONT_PX,
+    A2_MIN_TAP_PX,
+    MODULE_ICONS,
+    A2Card,
+    A2Button,
+    A2BackButton,
+    A2ModuleIcon,
+    A2Background,
+  });
 })();
