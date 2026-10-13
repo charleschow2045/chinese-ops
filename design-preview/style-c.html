@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>樣板 C｜文房升級｜中文學習 設計樣板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+--font:"Noto Sans TC","PingFang HK","PingFang TC","Hiragino Sans CNS",system-ui,sans-serif;
+--head:"Noto Serif TC","Songti TC","PMingLiU",serif;--num-font:"Noto Serif TC","Songti TC",serif;
+--ink:#241F1B;--sub:#5C5344;--acc:#B0342A;--acc-d:#8B2B24;--acc-ink:#FBF7EC;
+--bg:radial-gradient(circle at 6% 3%,rgba(176,52,42,.13),transparent 36%),radial-gradient(circle at 98% 22%,rgba(169,129,47,.16),transparent 38%),radial-gradient(circle at 28% 99%,rgba(55,72,91,.13),transparent 42%),#F7F0E3;
+--blob1:#B0342A;--blob2:#A9812F;--blob3:#37485B;--cloud:#A9812F;
+--glass:#FBF7EC;--glass-bd:#E4D8BC;--glass-solid:#FBF7EC;
+--shadow:0 1px 2px rgba(36,31,27,.06),0 12px 26px -12px rgba(36,31,27,.24),inset 0 1px 0 rgba(255,255,255,.7);
+--lv-bg:#FBF7EC;--lv-bd:#E4D8BC;--lv-shadow:0 1px 2px rgba(36,31,27,.06),0 14px 28px -12px rgba(36,31,27,.26);
+--fire-bg:#F6E4E1;--fire-ink:#8B2B24;--shield-bg:#E4E8EC;--shield-ink:#23303D;
+--row:#F3ECDA;--row-bd:#E4D8BC;--row-done:#E4E9DE;--ok:#48603E;
+--seg-track:#EDE4CF;--bar-track:#DDD0AE;--hot:#B0342A;--hot-ink:#8B2B24;--today-bg:#F1E7CF;--today-ink:#664A0F;
+--dock:rgba(36,31,27,.94);--dock-shadow:0 20px 40px -14px rgba(36,31,27,.6);--note-bg:rgba(251,247,236,.92);--note-bd:#E4D8BC;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;background:var(--bg)}
+body{font-family:var(--font);color:var(--ink);min-height:100vh;font-size:16px;line-height:1.5}
+a{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+ul{list-style:none}
+.note{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:8px 20px;background:var(--note-bg);border-bottom:1px solid var(--note-bd);font-size:14px;line-height:1.5;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.note .back{display:inline-flex;align-items:center;min-height:44px;font-weight:800;color:var(--acc-d)}
+.note .tag{background:var(--acc);color:var(--acc-ink);border-radius:999px;padding:2px 12px;font-weight:800;font-size:14px}
+.note p{flex:1 1 340px}
+.bg{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.bg i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+.b1{width:360px;height:360px;left:-100px;top:-60px;background:var(--blob1)}
+.b2{width:420px;height:420px;right:-140px;top:200px;background:var(--blob2)}
+.b3{width:380px;height:380px;left:18%;bottom:-130px;background:var(--blob3)}
+.page{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:20px 20px calc(136px + env(safe-area-inset-bottom))}
+.card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:28px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);padding:18px}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.card,.mod,.dock,.note,.circ,.avatar{background:var(--glass-solid)}}
+.hero{position:relative;display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.hello{flex:1;min-width:0}
+.hi{font-size:27px;font-weight:900;line-height:1.2;letter-spacing:.02em}
+.sub{color:var(--sub);font-size:15px;margin-top:2px}
+.avatar{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:31px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:var(--shadow);flex:none}
+.cloud{position:absolute;right:70px;top:-6px;width:120px;height:60px;opacity:.5;color:var(--cloud)}
+/* level card */
+.level{display:flex;align-items:center;gap:18px;margin-bottom:16px;padding:18px 20px;background:var(--lv-bg);border:1px solid var(--lv-bd);color:#fff;box-shadow:var(--lv-shadow)}
+.ring{position:relative;width:96px;height:96px;flex:none;display:grid;place-items:center}
+.ring svg{position:absolute;inset:0}
+.rt{stroke:rgba(255,255,255,.3)}
+.rp{stroke:#fff}
+.ring div{position:relative;display:grid;justify-items:center;line-height:1}
+.ring small{font-size:13px;font-weight:800;letter-spacing:.08em;opacity:.95}
+.ring b{font-family:var(--num-font);font-size:32px;font-weight:800;line-height:1}
+.lv-text{flex:1;min-width:0;display:grid;gap:6px}
+.lv-title{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;line-height:1.2}
+.lv-sub{font-size:14px;font-weight:700}
+.lv-text .bar{background:rgba(255,255,255,.3);height:10px}
+.lv-text .bar i{background:#fff}
+.lv-next{font-size:14px}
+.seal{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:7px;background:linear-gradient(145deg,#CC4232,#A32A21);color:#FFF6EF;font-family:"Noto Serif TC","Songti TC",serif;font-weight:900;font-size:17px;line-height:1;transform:rotate(6deg);box-shadow:0 3px 8px rgba(150,36,28,.4)}
+.seal.sm{width:30px;height:30px;font-size:16px}
+/* shortcuts */
+.shortcuts{display:flex;justify-content:space-between;gap:6px;margin:0 2px 16px}
+.sc{flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.circ{position:relative;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font-size:27px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.sl{font-size:13px;font-weight:800;text-align:center;line-height:1.25}
+.dot{position:absolute;top:-3px;right:-3px;min-width:23px;height:23px;padding:0 6px;border-radius:12px;background:var(--hot);color:#fff;font-size:13px;font-style:normal;font-weight:800;display:grid;place-items:center;border:2px solid #fff}
+/* missions */
+.mission{margin-bottom:16px}
+.m-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px 14px;flex-wrap:wrap}
+.m-head h2{font-size:23px;font-weight:900;line-height:1.2}
+.m-count{font-size:15px;font-weight:800;color:var(--acc-d)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:4px;min-height:36px;border-radius:999px;padding:4px 13px;font-size:14px;font-weight:800}
+.fire{background:var(--fire-bg);color:var(--fire-ink)}
+.shield{background:var(--shield-bg);color:var(--shield-ink)}
+.m-msg{color:var(--sub);font-size:14px;margin:10px 0 12px}
+.m-list{display:grid;gap:10px}
+.m-list a{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 14px 8px 10px;border-radius:22px;background:var(--row);border:1px solid var(--row-bd)}
+.m-list .done a{background:var(--row-done)}
+.mi{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-size:25px;background:rgba(255,255,255,.85);flex:none}
+.mn{flex:1;display:grid;min-width:0}
+.mn b{font-size:16px;font-weight:900}
+.mn small{font-size:14px;color:var(--sub)}
+.go{font-weight:900;color:var(--acc-d);font-size:15px;white-space:nowrap}
+.mk{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;font-weight:900;font-size:17px}
+/* 程度 + 徽章 */
+.pair{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-bottom:20px}
+.seg{display:grid;gap:10px;align-content:start;padding:14px 16px}
+.seg h3,.badge-entry h3{font-size:17px;font-weight:900;line-height:1.2}
+.opts{display:flex;gap:6px;background:var(--seg-track);padding:5px;border-radius:999px}
+.seg button{flex:1;min-height:44px;border-radius:999px;font-weight:900;font-size:16px;color:var(--sub)}
+.seg button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);box-shadow:0 8px 16px -8px var(--acc)}
+.badge-entry{display:grid;gap:8px;align-content:start;padding:14px 16px}
+.be-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.be-count{font-family:var(--num-font);font-weight:800;font-size:19px;color:var(--acc-d)}
+.seals{display:flex;gap:8px;align-items:center;min-height:36px}
+.seals .more{width:30px;height:30px;border-radius:7px;border:2px dashed var(--sub);display:grid;place-items:center;color:var(--sub);font-weight:900;font-size:15px}
+.be-next{font-size:14px;color:var(--sub)}
+/* modules */
+.sec{font-size:21px;font-weight:900;margin:2px 4px 12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.mod{display:flex;align-items:center;gap:12px;min-height:88px;padding:12px 14px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4)}
+.ico{width:54px;height:54px;border-radius:19px;display:grid;place-items:center;font-size:29px;background:var(--t);border:1px solid var(--b);flex:none}
+.mb{flex:1;min-width:0;display:grid;gap:3px}
+.mt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mt b{font-size:16px;font-weight:900;line-height:1.25}
+.today{font-size:13px;font-weight:800;border-radius:999px;padding:0 8px;line-height:1.55;background:var(--today-bg);color:var(--today-ink)}
+.mb small{font-size:14px;color:var(--sub);line-height:1.3}
+.mb em{font-style:normal;font-weight:800;color:var(--hot-ink)}
+.bar{display:block;height:8px;border-radius:99px;background:var(--bar-track);overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--c,var(--acc))}
+.pct{align-self:flex-start;font-family:var(--num-font);font-weight:800;font-size:20px;line-height:1.2}
+.pct u{font-size:13px;text-decoration:none;opacity:.85}
+.backup{display:flex;justify-content:center;align-items:center;gap:6px;min-height:48px;margin:20px auto 0;font-size:14px;font-weight:800;color:var(--sub);text-decoration:underline;text-underline-offset:4px}
+/* floating capsule dock */
+.dock{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(560px,calc(100% - 28px));display:flex;gap:4px;padding:8px;border-radius:999px;background:var(--dock);border:1px solid var(--glass-bd);box-shadow:var(--dock-shadow);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6)}
+.di{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;border-radius:999px;color:var(--sub);font-size:13px;font-weight:800;line-height:1.2}
+.di.on{background:var(--acc);color:var(--acc-ink);box-shadow:0 10px 20px -8px var(--acc)}
+@media (max-width:620px){
+  .grid,.pair{grid-template-columns:1fr}
+  .hi{font-size:24px}
+  .level{padding:16px}
+  .ring{width:84px;height:84px}
+  .cloud{right:60px}
+  .page{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .mod,.sc .circ,.di,.seg button,.m-list a{transition:transform .12s ease,box-shadow .12s ease,background-color .12s ease}
+  .mod:active,.sc:active .circ,.m-list a:active{transform:scale(.98)}
+}
+
+.bg i{opacity:.13}
+.hi,.m-head h2,.sec,.lv-title,.seg h3,.badge-entry h3,.mt b,.mn b,.sl,.be-count,.pct,.chip,.go,.m-count,.lv-sub,.stamp,.ladder b{font-family:var(--head)}
+.hi{font-size:30px;letter-spacing:.04em}
+.card,.mod,.circ,.avatar,.note,.dock{-webkit-backdrop-filter:none;backdrop-filter:none}
+.note{background:var(--note-bg)}
+.card{border-radius:24px;border-width:1.5px}
+.avatar{border:2px solid var(--ink);box-shadow:inset 0 0 0 3px #FBF7EC,inset 0 0 0 4px rgba(36,31,27,.35),0 6px 12px -6px rgba(36,31,27,.35)}
+/* 等級卡：科舉稱號 + 竹簡進度條 */
+.level.scroll{position:relative;display:grid;grid-template-columns:auto 1fr;gap:10px 22px;align-items:center;color:var(--ink);padding:26px 24px 18px;margin-bottom:16px}
+.level.scroll::before,.level.scroll::after{content:"";position:absolute;left:18px;right:18px;height:0;border-top:3px double #C9B98F}
+.level.scroll::before{top:9px}
+.level.scroll::after{bottom:9px}
+.stamp{width:74px;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:linear-gradient(150deg,#C63E32,#A02A21);color:#FBEFE6;border-radius:9px;font-weight:900;font-size:32px;line-height:1.05;transform:rotate(-3deg);box-shadow:0 10px 16px -8px rgba(120,30,24,.6),inset 0 0 0 3px rgba(255,235,225,.35)}
+.lv-main{display:grid;gap:7px;min-width:0}
+.lv-title{font-size:26px;font-weight:900;line-height:1.15;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lv-title span{font-family:var(--font);font-size:14px;font-weight:700;color:var(--sub)}
+.lv-sub{font-size:15px;font-weight:700}
+.slips{display:flex;gap:5px}
+.slips i{flex:1;height:18px;border-radius:4px;background:#E4D8BC;border:1px solid #CDBE95}
+.slips i.on{background:linear-gradient(180deg,#6F8A55,#48603E);border-color:#3A4F31;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.lv-next{font-size:14px;color:var(--sub)}
+.ladder{grid-column:1/-1;display:flex;justify-content:space-between;gap:6px;margin-top:6px;padding-top:12px;border-top:1px dashed #CDBE95;overflow-x:auto;scrollbar-width:none}
+.ladder::-webkit-scrollbar{display:none}
+.ladder span{flex:1 0 auto;min-width:54px;display:grid;justify-items:center;align-content:start;gap:6px;font-size:13px;color:var(--sub);font-weight:700}
+.ladder span::before{content:"";width:12px;height:12px;border-radius:50%;background:#E4D8BC;border:2px solid #BBAA7C}
+.ladder span.past::before{background:#48603E;border-color:#3A4F31}
+.ladder span.now{color:#8B2B24}
+.ladder span.now::before{width:16px;height:16px;margin:-2px 0 -2px;background:#B0342A;border-color:#8B2B24;box-shadow:0 0 0 4px rgba(176,52,42,.18)}
+.ladder b{font-weight:900;font-size:14px}
+/* 圓形印章圈快捷入口 */
+.circ{background:#FBF7EC;border:2px solid var(--ink);box-shadow:inset 0 0 0 3px #FBF7EC,inset 0 0 0 4px rgba(36,31,27,.32),0 8px 14px -8px rgba(36,31,27,.4)}
+.dot{border-radius:6px;transform:rotate(8deg);border:0;box-shadow:0 2px 5px rgba(120,30,24,.4)}
+/* 任務 */
+.m-list a{background:var(--row)}
+.m-list .done a{background:var(--row-done)}
+.mi{background:#FBF7EC;border:1px solid #E4D8BC}
+.mk{border-radius:7px;transform:rotate(6deg);box-shadow:0 3px 8px rgba(40,60,30,.4)}
+.chip{border:1px solid rgba(36,31,27,.1)}
+/* 程度 + 徽章 */
+.seg button[aria-pressed=true]{box-shadow:0 3px 0 #7A211A}
+.opts{border:1px solid #E0D3B3}
+/* 模組卡：色條在底部，同現有 app 一致 */
+.mod{position:relative;overflow:hidden;border-radius:20px;border-width:1.5px;padding-bottom:17px;box-shadow:0 1px 2px rgba(36,31,27,.05),0 10px 20px -10px rgba(36,31,27,.2)}
+.mod::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--c)}
+.ico{border-radius:15px}
+.bar{height:7px}
+.pct{font-size:19px}
+/* 墨色膠囊導航 */
+.dock{background:var(--dock);border:1px solid rgba(255,255,255,.1)}
+.di{color:#E6DCC4}
+.di.on{background:#B0342A;color:#FBF7EC;box-shadow:0 8px 16px -8px #B0342A}
+@media (max-width:620px){
+  .level.scroll{padding:24px 16px 16px;gap:8px 16px}
+  .stamp{width:62px;height:82px;font-size:27px}
+}
+</style>
+</head>
+<body class="style-c">
+<div class="note"><a class="back" href="./index.html">← 樣板列表</a><span class="tag">樣板 C</span><p>設計說明：保留現有「文房」米色書卷風，並引入參考圖的版面細節——科舉稱號等級卡（竹簡進度條）、印章圈式圓形快捷入口、墨色膠囊導航列。</p></div>
+<div class="bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+<main class="page">
+  <header class="hero">
+    <div class="hello"><p class="hi">早晨，同學</p><p class="sub">2026年10月12日 · 今日也一起學中文吧</p></div>
+    <div class="avatar" aria-hidden="true">🐲</div>
+  </header>
+
+  <section class="card level scroll" aria-label="等級">
+    <div class="stamp" aria-hidden="true"><b>秀</b><b>才</b></div>
+    <div class="lv-main">
+      <p class="lv-title">Lv.4 <span>科舉稱號：秀才</span></p>
+      <p class="lv-sub">累計練習 37 / 45 節</p>
+      <div class="slips" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82" aria-label="等級進度"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      <p class="lv-next">再完成 8 節練習，晉升「舉人」</p>
+    </div>
+    <div class="ladder" aria-label="科舉之路"><span class="past"><b>童生</b></span><span class="now"><b>秀才</b></span><span class=""><b>舉人</b></span><span class=""><b>進士</b></span><span class=""><b>探花</b></span><span class=""><b>榜眼</b></span><span class=""><b>狀元</b></span></div>
+  </section>
+
+  <nav class="shortcuts" aria-label="快捷入口">
+<a class="sc" href="#"><span class="circ" aria-hidden="true">📝<i class="dot">5</i></span><span class="sl">練習錯題</span></a>
+<a class="sc" href="#"><span class="circ" aria-hidden="true">⌨️</span><span class="sl">打字練習</span></a>
+<a class="sc" href="#"><span class="circ" aria-hidden="true">🎧</span><span class="sl">聆聽練習</span></a>
+<a class="sc" href="#"><span class="circ" aria-hidden="true">📖</span><span class="sl">閱讀理解</span></a>
+<a class="sc" href="#"><span class="circ" aria-hidden="true">💾</span><span class="sl">備份</span></a>
+  </nav>
+
+  <section class="card mission" aria-label="今日任務">
+    <div class="m-head">
+      <div><h2>今日任務</h2><p class="m-count">1 / 3 已完成</p></div>
+      <div class="chips"><span class="chip fire">🔥 連續 7 日</span><span class="chip shield">🛡️ 保護符 ×2</span></div>
+    </div>
+    <p class="m-msg">已連續 7 日，完成今日 3 項任務即可延續。</p>
+    <ul class="m-list">
+<li class="done"><a href="#"><span class="mi" aria-hidden="true">❝</span><span class="mn"><b>標點符號</b><small>已完成</small></span><span class="mk" aria-label="已完成">✓</span></a></li>
+<li><a href="#"><span class="mi" aria-hidden="true">🏯</span><span class="mn"><b>中國歷史故事</b><small>完成一節練習即可</small></span><span class="go">開始 ›</span></a></li>
+<li><a href="#"><span class="mi" aria-hidden="true">🗣️</span><span class="mn"><b>普通話練習</b><small>完成一節練習即可</small></span><span class="go">開始 ›</span></a></li>
+    </ul>
+  </section>
+
+  <div class="pair">
+    <section class="card seg" aria-label="程度">
+      <h3>程度</h3>
+      <div class="opts"><button aria-pressed="false">小五</button><button aria-pressed="true">小六</button><button aria-pressed="false">中一</button></div>
+    </section>
+    <a class="card badge-entry" href="#" aria-label="徽章 11 / 23">
+      <div class="be-head"><h3>🏅 徽章</h3><span class="be-count">11 / 23</span></div>
+      <div class="seals" aria-hidden="true"><span class="seal sm">序</span><span class="seal sm">恆</span><span class="seal sm">啼</span><span class="more">？</span></div>
+      <p class="be-next">下一個：日積月累（7 / 14 日）</p>
+    </a>
+  </div>
+
+  <h2 class="sec">學習模組</h2>
+  <section class="grid" aria-label="學習模組">
+<a class="mod" href="#" style="--c:#37485B;--t:#E4E8EC;--b:#C3CDD6">
+  <span class="ico" aria-hidden="true">📜</span>
+  <span class="mb"><span class="mt"><b>詩詞學習</b></span><small>答對 120 題 · <em>錯題 3</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-label="詩詞學習進度"><i style="width:62%"></i></span></span>
+  <span class="pct">62<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#B0342A;--t:#F6E4E1;--b:#E8C4BE">
+  <span class="ico" aria-hidden="true">✍️</span>
+  <span class="mb"><span class="mt"><b>作文金句</b></span><small>答對 45 題</small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="35" aria-label="作文金句進度"><i style="width:35%"></i></span></span>
+  <span class="pct">35<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#A9812F;--t:#F1E7CF;--b:#E2CE9E">
+  <span class="ico" aria-hidden="true">⌨️</span>
+  <span class="mb"><span class="mt"><b>倉頡輸入法</b></span><small>答對 80 題 · <em>錯題 2</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-label="倉頡輸入法進度"><i style="width:48%"></i></span></span>
+  <span class="pct">48<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#C1503A;--t:#F7E6DE;--b:#EAC7B5">
+  <span class="ico" aria-hidden="true">🗣️</span>
+  <span class="mb"><span class="mt"><b>普通話練習</b><span class="today">今日任務</span></span><small>答對 60 題 · <em>錯題 3</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" aria-label="普通話練習進度"><i style="width:40%"></i></span></span>
+  <span class="pct">40<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#48603E;--t:#E4E9DE;--b:#C9D4BE">
+  <span class="ico" aria-hidden="true">🀄</span>
+  <span class="mb"><span class="mt"><b>成語學習</b></span><small>答對 333 題 · <em>錯題 5</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" aria-label="成語學習進度"><i style="width:78%"></i></span></span>
+  <span class="pct">78<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#5C6E3F;--t:#E9EADD;--b:#CFD3B9">
+  <span class="ico" aria-hidden="true">🏯</span>
+  <span class="mb"><span class="mt"><b>中國歷史故事</b><span class="today">今日任務</span></span><small>答對 12 題 · <em>錯題 1</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" aria-label="中國歷史故事進度"><i style="width:20%"></i></span></span>
+  <span class="pct">20<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#8C6B28;--t:#EDE3CB;--b:#D9C592">
+  <span class="ico" aria-hidden="true">📖</span>
+  <span class="mb"><span class="mt"><b>閱讀理解</b></span><small>答對 30 題</small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25" aria-label="閱讀理解進度"><i style="width:25%"></i></span></span>
+  <span class="pct">25<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#BE9648;--t:#F4EBD6;--b:#E6D4A8">
+  <span class="ico" aria-hidden="true">🎭</span>
+  <span class="mb"><span class="mt"><b>修辭手法</b></span><small>未開始</small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="修辭手法進度"><i style="width:0%"></i></span></span>
+  <span class="pct">0<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#8B2B24;--t:#EFDBD8;--b:#DCB6B0">
+  <span class="ico" aria-hidden="true">❝</span>
+  <span class="mb"><span class="mt"><b>標點符號</b><span class="today">今日任務</span></span><small>答對 98 題 · <em>錯題 4</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" aria-label="標點符號進度"><i style="width:70%"></i></span></span>
+  <span class="pct">70<u>%</u></span>
+</a>
+<a class="mod" href="#" style="--c:#4B5F73;--t:#E7ECEF;--b:#C7D1D8">
+  <span class="ico" aria-hidden="true">🏺</span>
+  <span class="mb"><span class="mt"><b>文言文選讀</b></span><small>答對 5 題 · <em>錯題 1</em></small>
+    <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10" aria-label="文言文選讀進度"><i style="width:10%"></i></span></span>
+  <span class="pct">10<u>%</u></span>
+</a>
+  </section>
+
+  <a class="backup" href="#">💾 備份與還原進度</a>
+</main>
+
+<nav class="dock" aria-label="主導航">
+<a href="#" class="di on" aria-current="page"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg><span>主頁</span></a>
+<a href="#" class="di"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 0 4 21.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H12v16h6.5a1.5 1.5 0 0 1 1.5 1.5z"/></svg><span>學習</span></a>
+<a href="#" class="di"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>任務</span></a>
+<a href="#" class="di"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9.5" r="5.5"/><path d="m8.5 14 -1.5 7 5-3 5 3-1.5-7"/></svg><span>徽章</span></a>
+<a href="#" class="di"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg><span>我的</span></a>
+</nav>
+<script>
+// Preview-only behaviour: the 程度 chips and the dock just toggle their "selected" look.
+document.querySelectorAll('.seg button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.seg button').forEach(function(x){x.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true')})});
+document.querySelectorAll('.dock .di').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();document.querySelectorAll('.dock .di').forEach(function(x){x.classList.remove('on');x.removeAttribute('aria-current')});a.classList.add('on');a.setAttribute('aria-current','page')})});
+document.querySelectorAll('a[href="#"]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault()})});
+</script>
+</body>
+</html>

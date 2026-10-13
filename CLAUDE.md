@@ -1385,11 +1385,28 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — NOT started, waits for the user's explicit go-ahead (they will first ask for a visual-style
-  sample):** improve the screens *inside* modules — list rows for 詩詞 / 歷史故事 etc. should not all
-  share one icon (e.g. the title's first character as a seal, or a dynasty tag) and should show whether the
-  item was done; a larger, easier 「返回主頁」 button; text in module screens no smaller than 13 px.
-  Until then module-internal screens are unchanged (`BadgesScreen` already uses the larger back button).
+- **Phase 6 — visual-style sample stage (Oct 2026), real app NOT changed yet.** Step 1 = three standalone
+  mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
+  淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
+  `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
+  Google Fonts), `noindex`, designed for iPad portrait (820 px) and checked at 390 px: text ≥ 13 px, taps
+  ≥ 44 px, contrast ≥ 4.5:1 measured against the real pixels behind the text, no transitions under
+  `prefers-reduced-motion`. **Nothing in `src/` or the root `index.html` was touched.** The user picks a
+  direction first; then the real screens are restyled. The page layout was written from the user's text
+  description of two reference images (the images themselves were not visible to Claude).
+  - If a sample is chosen, these mock-only elements need a real definition first (the app has no such
+    data today): a global 等級/Lv + 稱號 (the mock reuses the idiom 科舉 ladder 童生→狀元 driven by total
+    finished sessions), a per-module 進度 % (the mock shows an invented mastery %; the app only has 答對/
+    錯題 counts), a greeting/avatar, and bottom-nav destinations 學習 / 任務 / 我的 (today there is only
+    Home + one screen per module + 徽章 + 備份, so nav items would need real screens or a reduced set).
+  - Fonts in A/B: Zen Maru Gothic (rounded, Japanese font with Traditional coverage gaps — falls back per
+    glyph to Noto Sans TC) + Baloo 2 for numerals; C: Noto Serif TC + Noto Sans TC. Not verified on a real
+    iPad (the sandbox cannot load Google Fonts), so check glyph consistency there.
+  - Remaining Phase 6 scope after a style is chosen: module list rows that don't all share one icon
+    (e.g. the title's first character as a seal, or a dynasty tag) and show done/not done; a larger easier
+    「返回主頁」 button; text in module screens no smaller than 13 px. Module-internal screens are unchanged
+    until then (`BadgesScreen` already uses the larger back button). Delete `design-preview/` once the
+    decision is made and applied.
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
