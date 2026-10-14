@@ -1385,7 +1385,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home done; modules still 文房.** Step 1 = three standalone
+- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c-1 pilot (文言文選讀) done; the other 9 modules still 文房.** Step 1 = three standalone
   mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
   淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
   `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
@@ -1486,7 +1486,40 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         tiles (sample: white tiles); sample's 「早晨」 → 早安/午安/晚安 and 「今日也一起學中文吧」 → 「今天也一起學習中文吧」
         (書面語); 標點符號 icon is 「❝」 on the home (`MODULE_ICONS`), while the module screen itself still uses 「。」;
         the level card keeps the sample's 24–26 px title but is 640 px wide on iPad (container `max-w-2xl`) instead of 720 px.
-    - **6c (NOT started): apply A2 to the modules in batches**, replacing each module's back button with `A2BackButton`.
+    - **6c-1 共用機制 + 文言文選讀試點 (done, Oct 2026).** Modules are switched to A2 one batch at a time through a
+      React Context, so the 文房 look keeps working for every module not yet migrated.
+      - `theme.jsx` adds `A2Context` (default `false`) and `useA2()`. `PaperCard`, `InkButton` and `Seal` call `useA2()`:
+        with `false` they return exactly the old element tree; with `true` they render the A2 look — `PaperCard` =
+        near-white `A2.glass` card (`accent` accepted, not used), `InkButton` = `A2Button` (A2.acc, white, full round,
+        ≥ 48 px, ≥ 16 px; `accent` ignored; any `!important` size class such as `!text-sm` / `!py-2` in `className` is
+        dropped so callers cannot go below the floors), `Seal` = `A2.sealBg` / `A2.sealInk` (serif kept).
+      - `QuizQuestion.jsx`: `QuestionBlock` and `FixedQuizFlow` have an A2 branch (options on `A2.row`, ≥ 48 px;
+        correct = `A2.rowDone` + `A2.ok`, wrong = `A2.todayBg` + `A2.hot` / `A2.hotInk`; result card; the back button is
+        `A2BackButton`). Logic, shuffling and scoring are unchanged. `AudioButtons.jsx` was NOT edited: it is built from
+        `InkButton`, so it becomes two A2 buttons automatically.
+      - `Root.jsx`: `A2_VIEWS = ["home", "classicalProse"]` (add a module key here to migrate it). A view in `A2_VIEWS`
+        gets the `A2Background` + `A2.bg` / `A2.ink` backdrop and no 「🏮 中文學習」 header (a spacer keeps the safe-area
+        top padding on module screens); every other view keeps the 文房 backdrop and header exactly. The `A2Context`
+        provider wraps only `<main>` (so `TestModeBanner` / `NoticeStack` are never affected) and its value is
+        `A2_VIEWS.includes(view) && view !== "home"`: **on the home screen the context stays `false`** because Home is
+        built from A2 pieces directly and still embeds `BackupSettings` (文房 look until 6d). To turn the backup panel
+        A2 early, drop the `&& view !== "home"` in `Root.jsx`.
+      - `ClassicalProseModule.jsx` keeps its original 文房 screens untouched and adds A2 versions
+        (`ListViewA2`, `PassageDetailA2`, `PassageListRowA2`, `A2SegControl`) chosen with `useA2()`: back buttons are
+        `A2BackButton` (122×48 / 96×48), title row with `A2ModuleIcon` (🏺), 程度 as the same A2 segmented control as
+        home (44 px, 全部/小五/小六/中一), 只看錯題 as a 48 px chip, rows with a seal-red source stamp. UI text is
+        `A2.font`; the 原文 lines and the glossary terms stay `font-serif`. No text below 14 px. All behaviour (filters,
+        mistakes, `FixedQuizFlow`, `onRecordPractice`, `onAnswerItem`) is unchanged. The old 文房 branches are meant to be
+        deleted in 6d once every screen is A2.
+      - Verification: tests 67/67; SHA-256 of `#root.innerHTML` for 30 non-A2 screens (home, badges, the 9 other
+        modules' lists, detail screens of poetry / idiom / history, a first-question screen and an answered-question
+        screen of poetry / essay / idiom / history / rhetoric / punctuation, cangjie and mandarin drills, reading
+        passage + questions) identical between commit `1a0cc9e` and the new build (seeded `Math.random`, test mode);
+        pilot screens at 820 / 390 (list, 只看錯題 filter, detail, question, correct, wrong, result): no horizontal
+        overflow, no text < 13 px, no pressable < 44 px, no overlap, back buttons ≥ 96×48; a full session recorded
+        (`stats.sessions.classicalProse` 0 → 1, home 累計練習 37 → 38), backup JSON unchanged (version 2, same keys).
+    - **6c-2 (NOT started):** 修辭、標點、作文、詩詞. **6c-3 (NOT started):** 成語、閱讀理解、歷史. **6c-4 (NOT started):**
+      倉頡、普通話. Each batch = add the keys to `A2_VIEWS` + give that module's own screens an A2 version.
     - **6d (NOT started): 徽章頁 (`BadgesScreen`), 備份設定 (`BackupSettings`), 回饋橫幅 (`NoticeStack`), the bottom
       navigation bar, then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
       (and `design-preview/theme-check.html`).

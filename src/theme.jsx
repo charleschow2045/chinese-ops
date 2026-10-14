@@ -139,6 +139,26 @@ window.App = window.App || {};
   // from MODULE_ACCENTS) tints the border toward that module's color when
   // given; otherwise a neutral warm border is used.
   function PaperCard({ children, className = "", accent, style = {} }) {
+    const a2 = useA2();
+    // 階段 6c: inside an A2 screen the card becomes the near-white A2 card (`accent` is accepted but not used).
+    if (a2) {
+      return (
+        <div
+          className={`relative p-5 ${className}`}
+          style={{
+            background: A2.glass,
+            border: `1px solid ${A2.glassBd}`,
+            borderRadius: 26,
+            boxShadow: A2.shadow,
+            color: A2.ink,
+            fontFamily: A2.font,
+            ...style,
+          }}
+        >
+          {children}
+        </div>
+      );
+    }
     const borderColor = accent ? accent.tintBorder : "#E9DFC7";
     return (
       <div
@@ -164,6 +184,18 @@ window.App = window.App || {};
   // instead of a flat hard-edged rectangle. `accent` is a MODULE_ACCENTS
   // entry; defaults to the essay (vermillion) tone if omitted.
   function InkButton({ children, onClick, accent, className = "", disabled = false, type = "button" }) {
+    const a2 = useA2();
+    // 階段 6c: inside an A2 screen every InkButton is the A2 primary button (A2.acc, white 16 px text,
+    // >= 48 px high, sinks 2 px). `accent` is ignored. Callers' `!important` size overrides (e.g. `!text-sm`,
+    // `!py-2`) are dropped so they cannot push the button below the A2 size floors.
+    if (a2) {
+      const kept = String(className).split(/\s+/).filter((c) => c && !c.startsWith("!")).join(" ");
+      return (
+        <A2Button type={type} onClick={onClick} disabled={disabled} className={kept}>
+          {children}
+        </A2Button>
+      );
+    }
     const a = accent || MODULE_ACCENTS.essay;
     return (
       <button
@@ -189,6 +221,18 @@ window.App = window.App || {};
   // caller's own `className` (the parent must be `relative`; `PaperCard`
   // already is).
   function Seal({ label, accent, className = "" }) {
+    const a2 = useA2();
+    // 階段 6c: inside an A2 screen the chop uses the A2 seal red (`accent` ignored); the serif face stays.
+    if (a2) {
+      return (
+        <div
+          className={`w-12 h-12 rounded-lg flex items-center justify-center font-serif font-black text-base leading-none select-none ${className}`}
+          style={{ background: A2.sealBg, color: A2.sealInk, transform: "rotate(6deg)", boxShadow: "0 3px 8px rgba(150,36,28,.4)" }}
+        >
+          {label}
+        </div>
+      );
+    }
     const a = accent || MODULE_ACCENTS.classicalProse;
     return (
       <div
@@ -213,6 +257,12 @@ window.App = window.App || {};
   // Names are prefixed `A2` / `MODULE_ICONS` so they cannot clash with the
   // "文房" (`INK`, `PaperCard`, …) or legacy names.
   // ---------------------------------------------------------------------
+  // 階段 6c: "A2 switch". Root provides `true` while an A2 screen is showing; the shared components
+  // (PaperCard, InkButton, Seal, QuestionBlock, FixedQuizFlow, and AudioButtons through InkButton) then
+  // render their A2 look. The default is `false`, in which case they output exactly what they did before.
+  const A2Context = React.createContext(false);
+  const useA2 = () => React.useContext(A2Context);
+
   const A2_MIN_FONT_PX = 13; // no text inside an A2 component may be smaller than this
   const A2_MIN_TAP_PX = 44; // pressable elements: at least 44 px (back / primary buttons: 48 px)
 
@@ -459,5 +509,7 @@ window.App = window.App || {};
     A2BackButton,
     A2ModuleIcon,
     A2Background,
+    A2Context,
+    useA2,
   });
 })();
