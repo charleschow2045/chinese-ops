@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useA2 } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.poetry;
   const { QuestionBlock, isCorrectAnswer } = window.App.QuizQuestion;
   const { POETRY_ITEMS, POETRY_LEVEL_LABEL } = window.App.Content;
@@ -51,7 +51,7 @@ window.App = window.App || {};
   // line of the poem, so it must never be the blanked answer nor a distractor.
   const isRealLine = (l) => /[一-鿿]/.test(l);
 
-  function buildFillBlankQuestion(pool, item) {
+  function buildFillBlankQuestion(pool, item, a2) {
     const candidates = item.lines.map((l, i) => i).filter((i) => isRealLine(item.lines[i]));
     const lineIdx = candidates[Math.floor(Math.random() * candidates.length)];
     const correct = item.lines[lineIdx];
@@ -61,7 +61,20 @@ window.App = window.App || {};
       .filter((l, i, arr) => isRealLine(l) && l !== correct && arr.indexOf(l) === i);
     const distractors = shuffle(otherLines).slice(0, 3);
     const options = shuffle([correct, ...distractors]);
-    const prompt = (
+    const prompt = a2 ? (
+      <div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
+          《{item.title}》 · {item.author} — 哪一句才是正確的？
+        </p>
+        <div className="text-xl leading-relaxed font-serif" style={{ fontWeight: 700 }}>
+          {item.lines.map((l, i) => (
+            <p key={i} style={i === lineIdx ? { color: A2.accD } : undefined}>
+              {i === lineIdx ? "＿＿＿＿＿＿＿" : l}
+            </p>
+          ))}
+        </div>
+      </div>
+    ) : (
       <div>
         <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
           《{item.title}》 · {item.author} — 哪一句才是正確的？
@@ -85,10 +98,19 @@ window.App = window.App || {};
     return { itemId: item.id, type: "author", prompt, options, correctIndex: options.indexOf(item.author) };
   }
 
-  function buildMeaningQuestion(pool, item) {
+  function buildMeaningQuestion(pool, item, a2) {
     const distractors = sampleOthers(pool, item, 3, (it) => it.meaningQuiz);
     const options = shuffle([item.meaningQuiz, ...distractors]);
-    const prompt = (
+    const prompt = a2 ? (
+      <div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
+          《{item.title}》 · {item.author}
+        </p>
+        <p className="mb-2" style={{ fontWeight: 800 }}>
+          <span className="font-serif">「{item.lines.find(isRealLine)}」</span>……這句的意思最貼近以下哪一項？
+        </p>
+      </div>
+    ) : (
       <div>
         <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
           《{item.title}》 · {item.author}
@@ -103,10 +125,10 @@ window.App = window.App || {};
   // 練習錯題); `pool` still supplies distractors, so a small mistake set
   // doesn't run short of plausible wrong options — same pattern as
   // RhetoricModule/PunctuationModule.
-  function buildQuestions(pool, count, chooseFrom) {
+  function buildQuestions(pool, count, chooseFrom, a2) {
     const builders = [buildFillBlankQuestion, buildAuthorQuestion, buildMeaningQuestion];
     const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item));
+    return chosen.map((item, i) => builders[i % builders.length](pool, item, a2));
   }
 
   // `relatedStories` = [{ storyId, title, relation, note }] pairings from
@@ -267,7 +289,8 @@ window.App = window.App || {};
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
     const QUESTION_COUNT = 8;
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
+    const a2 = useA2();
+    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom, a2));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -294,6 +317,23 @@ window.App = window.App || {};
       }
     }
 
+    if (done && a2) {
+      return (
+        <PaperCard accent={ACCENT} className="text-center">
+          <p className="text-5xl mb-2">🎉</p>
+          <h2 className="text-xl mb-1" style={{ color: A2.ink, fontWeight: 900, fontFamily: A2.font }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: A2.accD, fontFamily: A2.font }}>
+            答對了 {correctCount} / {questions.length} 題
+          </p>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+            完成
+          </InkButton>
+        </PaperCard>
+      );
+    }
+
     if (done) {
       return (
         <PaperCard accent={ACCENT} className="text-center">
@@ -308,6 +348,28 @@ window.App = window.App || {};
             完成
           </InkButton>
         </PaperCard>
+      );
+    }
+
+    if (a2) {
+      return (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <A2BackButton label="← 返回" onClick={onBack} />
+            <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
+              第 {qIndex + 1} / {questions.length} 題
+            </span>
+          </div>
+
+          <PaperCard accent={ACCENT}>
+            <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
+            {answered && (
+              <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
+                {isLast ? "完成 🎉" : "下一題 →"}
+              </InkButton>
+            )}
+          </PaperCard>
+        </div>
       );
     }
 
@@ -363,11 +425,291 @@ window.App = window.App || {};
     );
   }
 
+  // ---------------------------------------------------------------------
+  // 階段 6c-2: A2 versions of this module's screens, used only while Root's A2 switch is on (useA2()).
+  // The 文房 screens above are untouched. UI text is A2.font; 原文 / 例句 stay serif; text >= 14 px;
+  // every pressable >= 44 px; back buttons are A2BackButton (>= 96 x 48).
+  // ---------------------------------------------------------------------
+  const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
+  const A2_BODY = { fontSize: 16, color: A2.ink, margin: 0, lineHeight: 1.7 };
+
+  function A2SegControl({ options, value, onChange, label }) {
+    return (
+      <div role="group" aria-label={label} style={{ display: "flex", gap: 6, background: A2.segTrack, padding: 5, borderRadius: 999 }}>
+        {options.map((o) => {
+          const active = value === o.key;
+          return (
+            <button
+              key={o.key}
+              aria-pressed={active}
+              onClick={() => onChange(o.key)}
+              style={{
+                flex: 1,
+                minHeight: 44,
+                borderRadius: 999,
+                border: 0,
+                fontFamily: A2.font,
+                fontSize: 16,
+                fontWeight: 900,
+                cursor: "pointer",
+                ...(active ? { background: A2.segOn, color: "#fff", boxShadow: A2.segOnShadow } : { background: "transparent", color: A2.sub }),
+              }}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function A2Section({ title, children }) {
+    return (
+      <PaperCard>
+        <h3 style={{ ...A2_LABEL, marginBottom: 8 }}>{title}</h3>
+        {children}
+      </PaperCard>
+    );
+  }
+
+  function A2Header({ moduleKey, title, onBack }) {
+    return (
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <A2BackButton label="← 返回主頁" onClick={onBack} />
+        <div className="flex items-center gap-2">
+          <A2ModuleIcon moduleKey={moduleKey} size={44} />
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0, fontFamily: A2.font }}>{title}</h1>
+        </div>
+      </div>
+    );
+  }
+
+  function A2ListRow({ moduleKey, tile, title, serifTitle, sub, onOpen }) {
+    const m = MODULE_ICONS[moduleKey];
+    return (
+      <button
+        onClick={onOpen}
+        className="w-full flex items-center gap-3 text-left active:translate-y-[2px] transition-all"
+        style={{
+          minHeight: 72,
+          padding: "10px 14px 10px 12px",
+          borderRadius: 22,
+          background: A2.glass,
+          border: `1px solid ${A2.glassBd}`,
+          boxShadow: A2.shadow,
+          color: A2.ink,
+          fontFamily: A2.font,
+          cursor: "pointer",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          className="shrink-0 flex items-center justify-center"
+          style={{ width: 48, height: 48, borderRadius: 17, background: m.tint, border: `1px solid ${m.tintBorder}`, fontSize: 24, lineHeight: 1 }}
+        >
+          {tile}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className={`truncate${serifTitle ? " font-serif" : ""}`} style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>
+            {title}
+          </p>
+          {sub && (
+            <p className="truncate" style={{ fontSize: 14, color: A2.sub, margin: 0 }}>
+              {sub}
+            </p>
+          )}
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 22, fontWeight: 900, color: A2.accD }}>
+          ›
+        </span>
+      </button>
+    );
+  }
+
+  // 練習錯題 is a secondary action (filter-style chip), not a second primary button.
+  function A2ReviewButton({ count, onClick }) {
+    return (
+      <button
+        onClick={onClick}
+        className="w-full mt-2 transition-all"
+        style={{ minHeight: 48, borderRadius: 999, border: 0, background: A2.fireBg, color: A2.fireInk, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer" }}
+      >
+        練習錯題 ({count}) 📝
+      </button>
+    );
+  }
+
+  // 體裁 pill for A2: same tones as FormPill, but 13 px text.
+  function FormPillA2({ item }) {
+    if (!item.form) return null;
+    const tone = FORM_PILL_TONES.find((t) => t.match(item.form));
+    if (!tone) return null;
+    const label = item.form === "詞" && item.ciTune ? `詞．${item.ciTune}` : item.form;
+    return (
+      <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 999, fontSize: 13, fontWeight: 700, background: tone.bg, color: tone.text, marginBottom: 12 }}>
+        {label}
+      </span>
+    );
+  }
+
+  function PoemDetailA2({ item, onBack, onPractice, relatedStories = [], onOpenStory }) {
+    const [showPinyin, setShowPinyin] = useState(false);
+    return (
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: A2.sub }}>
+            {POETRY_LEVEL_LABEL[item.level]} · {item.type === "prose" ? "文言文" : "詩詞"}
+          </span>
+        </div>
+
+        <PaperCard>
+          <h2 style={{ fontSize: 24, fontWeight: 900, color: A2.ink, margin: 0, lineHeight: 1.3 }}>{item.title}</h2>
+          <p style={{ fontSize: 14, fontWeight: 700, color: A2.sub, margin: "2px 0 8px" }}>
+            {item.dynasty} · {item.author}
+          </p>
+          <div>
+            <FormPillA2 item={item} />
+          </div>
+
+          <div className="text-lg leading-loose font-serif" style={{ color: A2.ink }}>
+            {item.lines.map((l, i) => (
+              <div key={i}>
+                <p>{l}</p>
+                {showPinyin && item.pinyin && (
+                  <p style={{ fontSize: 15, fontWeight: 700, color: A2.accD, margin: "0 0 4px", fontFamily: A2.font }}>{item.pinyin[i]}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {item.pinyin && (
+            <button
+              aria-pressed={showPinyin}
+              onClick={() => setShowPinyin((v) => !v)}
+              className="mt-3"
+              style={{ minHeight: 44, padding: "0 18px", borderRadius: 999, border: 0, background: A2.segTrack, color: A2.accD, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer" }}
+            >
+              {showPinyin ? "隱藏拼音" : "顯示拼音"}
+            </button>
+          )}
+
+          <AudioButtons text={item.lines.join("")} accent={ACCENT} className="mt-3" />
+        </PaperCard>
+
+        {item.annotations && (
+          <A2Section title="詞語註釋">
+            <div className="flex flex-col gap-2">
+              {item.annotations.map((a, i) => (
+                <p key={i} style={{ fontSize: 15, color: A2.ink, margin: 0, lineHeight: 1.6 }}>
+                  <span className="font-serif font-bold" style={{ color: A2.accD }}>
+                    {a.term}
+                  </span>
+                  {a.jyutping && (
+                    <span style={{ fontWeight: 700, color: A2.accD }}>
+                      {" "}
+                      （粵音：{a.jyutping}）
+                    </span>
+                  )}
+                  {" — "}
+                  {a.meaning}
+                </p>
+              ))}
+            </div>
+          </A2Section>
+        )}
+
+        {item.type === "prose" ? (
+          <A2Section title="逐句解釋">
+            <div className="flex flex-col gap-2">
+              {item.lineExplanations.map((exp, i) => (
+                <div key={i} className="rounded-xl p-3" style={{ background: A2.row, border: `1px solid ${A2.rowBd}` }}>
+                  <p className="font-serif font-bold" style={{ fontSize: 15, color: A2.ink, margin: "0 0 4px" }}>
+                    {item.lines[i]}
+                  </p>
+                  <p style={{ fontSize: 15, color: A2.sub, margin: 0, lineHeight: 1.6 }}>{exp}</p>
+                </div>
+              ))}
+            </div>
+          </A2Section>
+        ) : (
+          <A2Section title="譯文">
+            <p style={A2_BODY}>{item.translation || item.explanation}</p>
+          </A2Section>
+        )}
+
+        <A2Section title="背景">
+          <p style={A2_BODY}>{item.background}</p>
+        </A2Section>
+
+        {relatedStories.length > 0 && (
+          <A2Section title="相關歷史故事">
+            <div className="flex flex-col gap-3">
+              {relatedStories.map((s) => (
+                <div key={s.storyId}>
+                  <p style={{ fontSize: 15, color: A2.ink, margin: 0, lineHeight: 1.7 }}>
+                    <span style={{ display: "inline-block", borderRadius: 999, padding: "1px 10px", fontSize: 13, fontWeight: 800, marginRight: 6, background: A2.segTrack, color: A2.accD }}>
+                      {s.relation}
+                    </span>
+                    {s.note}
+                  </p>
+                  <button
+                    onClick={() => onOpenStory(s.storyId)}
+                    className="mt-1"
+                    style={{ minHeight: 44, display: "inline-flex", alignItems: "center", border: 0, background: "transparent", color: A2.accD, fontFamily: A2.font, fontSize: 16, fontWeight: 900, textDecoration: "underline", textUnderlineOffset: 4, cursor: "pointer", textAlign: "left" }}
+                  >
+                    📖 {s.title} →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </A2Section>
+        )}
+
+        <InkButton accent={ACCENT} className="w-full" onClick={onPractice}>
+          開始練習 🎯
+        </InkButton>
+      </div>
+    );
+  }
+
+  function ListViewA2({ filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
+    return (
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <A2Header moduleKey="poetry" title="詩詞學習" onBack={onBack} />
+
+        <PaperCard>
+          <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
+          <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
+            開始隨機練習 🎲
+          </InkButton>
+          {mistakeItems.length > 0 && <A2ReviewButton count={mistakeItems.length} onClick={() => startPractice(POETRY_ITEMS, mistakeItems)} />}
+        </PaperCard>
+
+        <div className="flex flex-col gap-3">
+          {filtered.map((item) => (
+            <A2ListRow
+              key={item.id}
+              moduleKey="poetry"
+              tile={item.type === "prose" ? "📜" : "🖌️"}
+              title={item.title}
+              serifTitle
+              sub={`${item.dynasty} · ${item.author} · ${POETRY_LEVEL_LABEL[item.level]}`}
+              onOpen={() => openItem(item.id)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // `nav` (optional) is set when another module links here:
   //   { poemId, scopeIds?, from? } — open that poem's detail directly;
   //   `scopeIds` limits the practice pool (e.g. the 戰爭詩詞 set) and `from`
   //   ({ module, opts }) is where the back button returns to.
   function PoetryModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
+    const a2 = useA2();
     const startPoem = nav && POETRY_ITEMS.some((it) => it.id === nav.poemId) ? nav.poemId : null;
     const [view, setView] = useState(startPoem ? "detail" : "list"); // list | detail | practice
     const [filterLevel, setFilterLevel] = useState(level || "all");
@@ -419,8 +761,9 @@ window.App = window.App || {};
     }, [selectedItem]);
 
     if (view === "detail" && selectedItem) {
+      const Detail = a2 ? PoemDetailA2 : PoemDetail;
       return (
-        <PoemDetail
+        <Detail
           item={selectedItem}
           onBack={leaveDetail}
           onPractice={() => startPractice(scopeItems || filtered)}
@@ -440,6 +783,20 @@ window.App = window.App || {};
           onBack={() => setView(selectedId && nav ? "detail" : "list")}
           onFinish={finishPractice}
           onAnswerItem={onAnswerItem}
+        />
+      );
+    }
+
+    if (a2) {
+      return (
+        <ListViewA2
+          filterLevel={filterLevel}
+          setFilterLevel={setFilterLevel}
+          filtered={filtered}
+          mistakeItems={mistakeItems}
+          startPractice={startPractice}
+          openItem={openItem}
+          onBack={onBack}
         />
       );
     }

@@ -1385,7 +1385,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c-1 pilot (文言文選讀) done; the other 9 modules still 文房.** Step 1 = three standalone
+- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c-1 pilot (文言文選讀) → 6c-2 (修辭、標點、作文、詩詞) done; the other 5 modules still 文房.** Step 1 = three standalone
   mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
   淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
   `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
@@ -1518,10 +1518,39 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         pilot screens at 820 / 390 (list, 只看錯題 filter, detail, question, correct, wrong, result): no horizontal
         overflow, no text < 13 px, no pressable < 44 px, no overlap, back buttons ≥ 96×48; a full session recorded
         (`stats.sessions.classicalProse` 0 → 1, home 累計練習 37 → 38), backup JSON unchanged (version 2, same keys).
-    - **6c-2 (NOT started):** 修辭、標點、作文、詩詞. **6c-3 (NOT started):** 成語、閱讀理解、歷史. **6c-4 (NOT started):**
-      倉頡、普通話. Each batch = add the keys to `A2_VIEWS` + give that module's own screens an A2 version.
+    - **6c-2 修辭、標點、作文、詩詞 (done, Oct 2026).** `A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation",
+      "essay", "poetry"]` (this is the current list). Same mechanism as 6c-1; the shared files (`theme.jsx`,
+      `QuizQuestion.jsx`, `AudioButtons.jsx`) were NOT touched.
+      - Each module file keeps its 文房 screens untouched and adds A2 versions chosen with `useA2()`: a copy of the small
+        helper set (`A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton`) + `ListViewA2` +
+        `…DetailA2` (`DeviceDetailA2`, `MarkDetailA2`, `EssayDetailA2`, `PoemDetailA2`). `PracticeSession` has A2 branches
+        for the header (`A2BackButton` + 「第 n / N 題」) and the result card. Back buttons are `A2BackButton`
+        (122×48 on the list, 96×48 elsewhere), titles carry `A2ModuleIcon`, 程度 / 主題 are the same A2 segmented
+        control as home (44 px), the practice button is `InkButton`, **練習錯題 is a secondary 48 px chip**
+        (`A2.fireBg` / `A2.fireInk`), not a second primary button.
+      - Question prompts: the `build…Question` functions take an `a2` flag (`PracticeSession` passes `useA2()`), so the A2
+        prompts are built at generation time. Instruction lines are 15–16 px `A2.font`; the quoted sentences / poem
+        lines / 例句 / 原文 stay `font-serif`; the blank marker uses `A2.segTrack` / `A2.accD`. Question generation,
+        `Math.random` use, scoring, `onAnswerItem` and `onRecordPractice` are unchanged.
+      - Poetry: pinyin toggle is a 44 px pill; `FormPillA2` (13 px, same tone table; the original `FormPill` is still the one
+        exported to HistoryModule); related-story links are 44 px tall and open the 歷史故事 module, which is not A2 yet — the
+        view switch A2 → 文房 → A2 (via the story's back link) was checked: backdrop and header swap cleanly, no A2 leftovers.
+      - `!important` classes dropped by the A2 `InkButton`: only `AudioButtons.jsx` lines 33 and 36 (`!py-2 !text-sm` on both
+        buttons). Result in A2 (poetry detail): each button 295×48 at 820 px and 154×48 at 390 px, 16 px text (文房: 36 px high,
+        14 px). None of the four modules passes a `!` class.
+      - Verification: tests 67/67; SHA-256 of `#root.innerHTML` for 19 non-A2 screens (home, badges; idiom list / detail /
+        first question unanswered + answered; cangjie list + drill; mandarin list + pinyin drill; history list / story /
+        first question unanswered + answered; reading list / passage / questions; classicalProse list + detail) identical
+        between commit `9c356d8` and the new build; A2 screens of the four modules at 820 / 390 (list, filters, detail,
+        question, correct, wrong, result, 練習錯題 chip): no overflow, no text < 13 px, no pressable < 44 px, no overlap; one full
+        session per module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, wrong answers added to the mistake
+        list); backup export `version` 2 with unchanged top-level keys.
+      - The audit script ignores text clipped by `text-overflow: ellipsis` (a range rect covers the hidden part and looked like an overlap).
+    - **6c-3 (NOT started):** 成語、閱讀理解、歷史. **6c-4 (NOT started):** 倉頡、普通話. Each batch = add the keys to `A2_VIEWS`
+      + give that module's own screens an A2 version.
     - **6d (NOT started): 徽章頁 (`BadgesScreen`), 備份設定 (`BackupSettings`), 回饋橫幅 (`NoticeStack`), the bottom
-      navigation bar, then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
+      navigation bar, delete the old 「文房」 branches inside every module (and the `useA2()` switches / 文房 helpers that
+      become dead), then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
       (and `design-preview/theme-check.html`).
 
 ## 單元測試 (tests/)

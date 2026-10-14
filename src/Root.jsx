@@ -23,9 +23,9 @@ window.App = window.App || {};
   const { A2, A2Background, A2Context } = window.App.UI;
 
   // 階段 6c: the screens that use the A2 look (A2 backdrop, no app-title header, and — for module screens —
-  // A2 versions of the shared components through A2Context). 6c-1 = home + the 文言文選讀 pilot; each later
-  // batch adds its modules here.
-  const A2_VIEWS = ["home", "classicalProse"];
+  // A2 versions of the shared components through A2Context). 6c-1 = home + the 文言文選讀 pilot; 6c-2 adds
+  // 修辭 / 標點 / 作文 / 詩詞; each later batch adds its modules here.
+  const A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation", "essay", "poetry"];
 
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());
