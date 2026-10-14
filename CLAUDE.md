@@ -1295,7 +1295,7 @@ missing features):
   file name, `testMode: true`, refused by normal mode with reason `testFile`).
 - If a second localStorage key is ever added, add it to `buildBackup`/`parseBackup`.
 
-## 每日任務 · 連續日數 · 徽章 (built Oct 2026, 5 phases, all deployed; phase 6 NOT started)
+## 每日任務 · 連續日數 · 徽章 (built Oct 2026, 5 phases, all deployed; phase 6 = A2 restyle, 6a + 6b done)
 Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` /
 `storage.jsx`, read-only reference — never edit it) but deliberately different:
 1. english-ops needs *every* module done each day; here **3 missions/day** (10 modules is too
@@ -1354,7 +1354,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   *before* the session). Fixed to the bottom of ANY screen, 44px × buttons + 全部關閉, auto-dismiss
   after 25 s, adds bottom padding to the page while visible (it covered the 備份 link before that),
   max 4. **In memory only** — never saved, never in a backup.
-- **主頁版面 (`Home.jsx`)**: 今日任務 card (3 mission rows, 🔥 N 日, 🛡️ 保護符 ×k, status line) →
+- **主頁版面 (`Home.jsx`) — original 文房 layout, superseded by Phase 6b (A2) below; the content/logic is the same**: 今日任務 card (3 mission rows, 🔥 N 日, 🛡️ 保護符 ×k, status line) →
   程度 chips + 🏅 徽章 n / 23 button on one row → module tiles (horizontal, `auto-fill minmax(260px,1fr)`
   grid; each shows 「答對 N 題 · 錯題 M」 from `practiceStats`/`mistakes`, or 「未開始」) → 備份連結.
   The missions card plus all 10 module tiles fit one iPad-portrait screen (820 px wide; the 備份 link
@@ -1385,7 +1385,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — visual-style sample stage (Oct 2026), real app NOT changed yet.** Step 1 = three standalone
+- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home done; modules still 文房.** Step 1 = three standalone
   mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
   淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
   `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
@@ -1439,17 +1439,63 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
     - `design-preview/theme-check.html` renders the real `theme.jsx` components (cards, buttons, back button,
       10 icons, background toggle, token swatches) for comparison with `style-a2.html`. It is a dev page like
       the other previews; delete it together with `design-preview/` when Phase 6 is finished.
-    - **6b (NOT started): first change Home and the `Root.jsx` background to A2.** Already decided for 6b:
-      (1) drop the 「Lv.」 number — show only the 科舉 title and progress to the next title; (2) the title is
-      computed from existing data — the sum of `stats.sessions` over all modules (= cumulative finished
-      sessions) — so there is **no new storage field**, hence no `normalizeGamification` whitelist or backup
-      change. Still to be defined at that point: per-module 進度 (the mock shows an invented %), greeting.
+    - **6b 主頁 (done, Oct 2026): the A2 style is applied to the HOME SCREEN ONLY** (`Home.jsx`, plus the home
+      backdrop in `Root.jsx`). Every other screen (badges page, 10 modules, banners) is unchanged — verified
+      pixel-identical before/after (badges + each module's list and first-question screen, 21 screenshots, only
+      noise: a 6×2 px flicker in the 測試模式 banner that also differs between two runs of the OLD build).
+      - `Root.jsx`: `view === "home"` renders `A2Background` (gradient + 3 blobs) with `A2.bg` / `A2.ink`; every other
+        view keeps the 文房 backdrop (blobs + 4 watermark emoji) exactly as before. On home the app-title
+        `<h1>🏮 中文學習` header is not rendered (the band's greeting replaces it). Container is still `max-w-2xl`.
+      - `Home.jsx` (top to bottom): full-bleed deep-indigo band (`100vw` + `marginLeft: calc(50% - 50vw)`; safe-area
+        top padding except in 測試模式, where the banner already covers the status bar) with greeting (早安 5–11 時 /
+        午安 12–17 時 / 晚安 otherwise, 「，同學」) + date from `today` (so `?today=` is honoured) → 科舉稱號 card
+        (stamp, 「科舉稱號：秀才」, 「累計練習 37 / 45 節」, progress bar, 「再完成 8 節練習，晉升「舉人」」; 狀元 shows
+        「已登狀元」; seven-step ladder on ONE row at 820 and 390; **no 「Lv.」 number**) → 今日任務 card (logic unchanged)
+        → 程度 segmented control + 徽章 entry (up to 3 earned seals, closest-to-earned badge) → 10 module cards
+        (`A2ModuleIcon`, 「第 N 節」 top right, 「已精通」 from 100, milestone bar in `MODULE_ICONS[key].bar`,
+        「今日任務」 tag, 「答對 N 題 · 錯題 N」 / 未開始 / 即將推出) → backup. A small `<style>` block in `Home.jsx` holds the
+        media queries (cloud + 🐲 hidden below 480 px, one-column pair below 620 px), press feedback and focus ring.
+        Decorative values the sample has but `A2` lacks are local `BAND_*` / `LV_*` / `STAMP_SHADOW` constants at the top.
+      - **Backup panel (`BackupSettings.jsx`) was NOT restyled** (the 6b brief forbids touching that file): it still
+        shows the 文房 look inside the A2 page, until 6d. Home only wraps it in `.a2h-backup`, whose CSS makes its
+        toggle button ≥ 48 px high and ≥ 96 px wide.
+      - 稱號 and 里程 are **read-only views of `stats.sessions`** — no new stored field, no `normalizeGamification`,
+        `BACKUP_VERSION` (still 2) or backup-format change (verified: export JSON identical before/after; top-level
+        keys `app, data, exportedAt, testMode, version`; state keys `daily, level, moduleProgress, stats, streak,
+        streakFreezes`). **Consequence: `stats.sessions` only counts sessions finished since 每日任務 shipped, so a child
+        with older practice history starts at 童生 / 第 0 節 even if `practiceStats` is large (no retroactive credit).**
+      - `Storage.jsx` additions (pure, never write, never throw; bad values — NaN, negative, strings — count as 0, only
+        the 10 real module keys are summed): `TITLE_TIERS`, `getTitleView(state)` →
+        `{ index, key, name, seal, total, currentAt, nextName, nextAt, remaining, ratio, isMax }` (`ratio = total ÷ nextAt`,
+        capped at 1 — NOT progress inside the current band — so it matches the printed 「37 / 45」), `MODULE_MILESTONES`,
+        `getModuleMilestoneView(state, key)` → `{ sessions, nextAt, ratio, isMastered }`.
+        | 稱號 | 童生 | 秀才 | 舉人 | 進士 | 探花 | 榜眼 | 狀元 |
+        |---|---|---|---|---|---|---|---|
+        | 印章字 | 童 | 秀 | 舉 | 進 | 探 | 榜 | 狀 |
+        | 累計節數 ≥ | 0 | 10 | 45 | 100 | 180 | 300 | 600 |
+        模組里程 (per module, sessions): **5 → 15 → 30 → 60 → 100** (≥ 100 = 已精通, bar full).
+        `tests/titles.test.js` (12 tests): every boundary, 狀元, 37 → 秀才 / 舉人 / 8 / 0.822, junk input, milestone
+        boundaries, unknown module key, state JSON identical before/after the calls, saved shape unchanged.
+      - Known, pre-existing and NOT fixed in 6b: `Root` does not scroll to the top when the view changes. The phone
+        home already left the next screen scrolled (≈160 px); the A2 home is taller on iPad (≈1660 px vs ≈1290 px), so
+        opening a module from the lower half now also lands part-way down on iPad. A one-line `window.scrollTo(0, 0)`
+        on view change in `Root.jsx` would fix it — decision left to the user.
+      - Differences from `style-a2.html` (on purpose): no 「Lv.」 number; 「第 N 節」 instead of 「N%」; no bottom
+        dock; no 快捷圖示列; no 練習錯題 badge on the shortcuts; app-title header hidden; sample's blobs are
+        hidden (`.bg{display:none}`) but the app shows them (6b decision); mission-row icons are `A2ModuleIcon` tinted
+        tiles (sample: white tiles); sample's 「早晨」 → 早安/午安/晚安 and 「今日也一起學中文吧」 → 「今天也一起學習中文吧」
+        (書面語); 標點符號 icon is 「❝」 on the home (`MODULE_ICONS`), while the module screen itself still uses 「。」;
+        the level card keeps the sample's 24–26 px title but is 640 px wide on iPad (container `max-w-2xl`) instead of 720 px.
+    - **6c (NOT started): apply A2 to the modules in batches**, replacing each module's back button with `A2BackButton`.
+    - **6d (NOT started): 徽章頁 (`BadgesScreen`), 備份設定 (`BackupSettings`), 回饋橫幅 (`NoticeStack`), the bottom
+      navigation bar, then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
+      (and `design-preview/theme-check.html`).
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 4 files, **55 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 5 files, **67 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1460,7 +1506,8 @@ notices, 測試模式). **Optional dev tooling — the app itself still needs no
   `getStreakView`, `removeMistake` counting) · `badges.test.js` (12 — exact approved names/order,
   thresholds, retroactive 累計答對, module badges, backup round trip) · `notices.test.js` (13 —
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
-  the test key never touches `chineseOps:v1`; test backups refused in normal mode).
+  the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
+  `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see Phase 6b).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`

@@ -596,6 +596,60 @@ window.App = window.App || {};
     saveState(state);
   }
 
+  // ---- 科舉稱號 / 模組里程 (階段 6b) ----
+  // Read-only views over `stats.sessions` (finished practice sessions per module). Nothing is stored:
+  // the title and the per-module milestone are recomputed from the saved counters every time, so
+  // there is no new field to back up or migrate. Bad or missing data counts as 0 and never throws.
+  const TITLE_TIERS = [
+    { key: "tongsheng", name: "童生", seal: "童", at: 0 },
+    { key: "xiucai", name: "秀才", seal: "秀", at: 10 },
+    { key: "juren", name: "舉人", seal: "舉", at: 45 },
+    { key: "jinshi", name: "進士", seal: "進", at: 100 },
+    { key: "tanhua", name: "探花", seal: "探", at: 180 },
+    { key: "bangyan", name: "榜眼", seal: "榜", at: 300 },
+    { key: "zhuangyuan", name: "狀元", seal: "狀", at: 600 },
+  ];
+  // A module's session count is measured against the next milestone; at the last one it is 已精通.
+  const MODULE_MILESTONES = [5, 15, 30, 60, 100];
+
+  // A usable counter: a finite, non-negative number (whole sessions). Anything else is ignored.
+  const sessionCount = (v) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+  const sessionsOf = (state) => {
+    const sess = state && state.stats && state.stats.sessions;
+    return sess !== null && typeof sess === "object" ? sess : {};
+  };
+
+  function getTitleView(state) {
+    const sess = sessionsOf(state);
+    const total = MODULE_KEYS.reduce((a, k) => a + sessionCount(sess[k]), 0);
+    let index = 0;
+    TITLE_TIERS.forEach((tier, i) => {
+      if (total >= tier.at) index = i;
+    });
+    const cur = TITLE_TIERS[index];
+    const next = TITLE_TIERS[index + 1] || null;
+    return {
+      index,
+      key: cur.key,
+      name: cur.name,
+      seal: cur.seal,
+      total,
+      currentAt: cur.at,
+      nextName: next ? next.name : null,
+      nextAt: next ? next.at : null,
+      remaining: next ? next.at - total : 0,
+      ratio: next ? Math.min(1, total / next.at) : 1,
+      isMax: !next,
+    };
+  }
+
+  function getModuleMilestoneView(state, moduleKey) {
+    const sessions = MODULE_KEYS.includes(moduleKey) ? sessionCount(sessionsOf(state)[moduleKey]) : 0;
+    const nextAt = MODULE_MILESTONES.find((m) => m > sessions);
+    if (nextAt === undefined) return { sessions, nextAt: null, ratio: 1, isMastered: true };
+    return { sessions, nextAt, ratio: Math.min(1, sessions / nextAt), isMastered: false };
+  }
+
   window.App.Storage = {
     STORAGE_KEY,
     TEST_MODE,
@@ -630,5 +684,9 @@ window.App = window.App || {};
     isBadgeEarned,
     earnedBadgeKeys,
     buildNotices,
+    TITLE_TIERS,
+    MODULE_MILESTONES,
+    getTitleView,
+    getModuleMilestoneView,
   };
 })();

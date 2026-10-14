@@ -20,6 +20,7 @@ window.App = window.App || {};
     BadgesScreen,
     NoticeStack,
   } = window.App;
+  const { A2, A2Background } = window.App.UI;
 
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());
@@ -125,10 +126,18 @@ window.App = window.App || {};
       setState((s) => (isCorrect ? Storage.removeMistake(s, moduleKey, itemId) : Storage.addMistake(s, moduleKey, itemId)));
     }
 
+    const isHome = view === "home";
+
     return (
       <>
       <TestModeBanner />
-      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: "#F7F0E3", color: "#241F1B" }}>
+      <div
+        className="min-h-screen relative overflow-hidden"
+        style={isHome ? { background: A2.bg, color: A2.ink } : { backgroundColor: "#F7F0E3", color: "#241F1B" }}
+      >
+        {/* 階段 6b: only the home screen uses the A2 backdrop; every other view keeps the 文房 one below. */}
+        {isHome && <A2Background />}
+        {!isHome && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#B0342A" }} />
           <div className="absolute top-24 -right-20 w-80 h-80 rounded-full opacity-[0.14] blur-3xl" style={{ backgroundColor: "#A9812F" }} />
@@ -138,6 +147,7 @@ window.App = window.App || {};
           <span className="absolute bottom-24 right-12 text-4xl opacity-[0.14]">🖌️</span>
           <span className="absolute bottom-64 left-10 text-3xl opacity-[0.14]">🐉</span>
         </div>
+        )}
 
         <div
           className="relative max-w-2xl mx-auto"
@@ -148,9 +158,12 @@ window.App = window.App || {};
           }}
         >
           {/* In test mode the banner already covers the status bar, so no extra top inset here. */}
+          {/* The A2 home screen has its own top band (greeting + title card), so the app title header is not shown there. */}
+          {!isHome && (
           <header className="pb-4" style={{ paddingTop: Storage.TEST_MODE ? "1.5rem" : "calc(1.5rem + var(--sat))" }}>
             <h1 className="text-3xl font-serif font-black tracking-tight" style={{ color: "#B0342A" }}>🏮 中文學習</h1>
           </header>
+          )}
 
           <main>
             {view === "home" && <Home
