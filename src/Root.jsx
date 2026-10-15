@@ -24,8 +24,8 @@ window.App = window.App || {};
 
   // 階段 6c: the screens that use the A2 look (A2 backdrop, no app-title header, and — for module screens —
   // A2 versions of the shared components through A2Context). 6c-1 = home + the 文言文選讀 pilot; 6c-2 adds
-  // 修辭 / 標點 / 作文 / 詩詞; 6c-3 adds 成語 / 閱讀理解 / 歷史; each later batch adds its modules here.
-  const A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation", "essay", "poetry", "idiom", "reading", "history"];
+  // 修辭 / 標點 / 作文 / 詩詞; 6c-3 adds 成語 / 閱讀理解 / 歷史; 6c-4 adds 倉頡 / 普通話 (all 10 modules are now A2).
+  const A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"];
 
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());

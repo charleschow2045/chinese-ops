@@ -1519,7 +1519,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         overflow, no text < 13 px, no pressable < 44 px, no overlap, back buttons ≥ 96×48; a full session recorded
         (`stats.sessions.classicalProse` 0 → 1, home 累計練習 37 → 38), backup JSON unchanged (version 2, same keys).
     - **6c-2 修辭、標點、作文、詩詞 (done, Oct 2026).** `A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation",
-      "essay", "poetry"]` (this is the current list). Same mechanism as 6c-1; the shared files (`theme.jsx`,
+      "essay", "poetry"]` (the list at the end of 6c-2; see 6c-4 for the final one). Same mechanism as 6c-1; the shared files (`theme.jsx`,
       `QuizQuestion.jsx`, `AudioButtons.jsx`) were NOT touched.
       - Each module file keeps its 文房 screens untouched and adds A2 versions chosen with `useA2()`: a copy of the small
         helper set (`A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton`) + `ListViewA2` +
@@ -1567,11 +1567,37 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         question, correct, wrong, result, open-question reveal) no overflow / text < 13 px / pressable < 44 px / overlap; one full session per
         module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, backup version 2 with unchanged keys). Reading has per-passage
         mistakes, so a wrong answer on an already-flagged passage leaves the mistake count unchanged.
-    - **6c-4 倉頡、普通話 (NOT started).** Add "cangjie", "mandarin" to `A2_VIEWS` + A2 versions of their screens.
-    - **6d (NOT started): 徽章頁 (`BadgesScreen`), 備份設定 (`BackupSettings`), 回饋橫幅 (`NoticeStack`), the bottom
-      navigation bar, delete the old 「文房」 branches inside every module (and the `useA2()` switches / 文房 helpers that
-      become dead), then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
-      (and `design-preview/theme-check.html`).
+    - **6c-4 倉頡、普通話 (done, Oct 2026).** `A2_VIEWS` is now **home + all 10 modules**: `["home", "classicalProse", "rhetoric",
+      "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"]`. `theme.jsx`, `QuizQuestion.jsx`,
+      `AudioButtons.jsx`, `Storage.jsx`, `Home.jsx`, `tests/` untouched; 文房 branches kept. No behaviour change: the speech / audio /
+      recognition / pinyin-input code is shared and unchanged — only the JSX returned under `useA2()` differs.
+      - 倉頡: the module has **no on-screen keyboard** — the child types on the device keyboard into a text field — so there are no
+        keyboard keys to size; the pressables are the 拆字練習 character grid (`auto-fill minmax(48px)`, 48 px high), buttons and the
+        input (56 px high, 24 px). A2 copies: `RootChartA2`, `AuxiliaryShapesA2`, `DecompositionDiagramA2` (letters 13 px, root chars
+        serif 22 px), `CompoundExamplesA2`, `CharBreakdownA2`, `QuickExplainerA2`, `ReferenceViewA2`, plus A2 branches in
+        `TypingPractice` / `PracticeSession`. **五色 category colours are kept** (`CATEGORY_TONES` tints / borders / dots identify the
+        category); text on a tint uses a darker shade of the same hue (`TONE_TEXT`) because the original ochre text on its tint was ≈ 3 : 1.
+      - 普通話: `A2TopBar` + A2 branches in all 6 places that had a back button (hub 「← 返回主頁」, 聆聽, 拼音默寫, 朗讀/說話 (shared
+        `SpeechDrill`), 拼音輸入法 intro 「← 返回」, IME drill 「← 返回」) — all `A2BackButton` with their original labels and targets.
+        Pinyin with tone marks (ā á ǎ à ǖ…) is set in `A2_PINYIN_FONT` (Noto Sans TC first) because Zen Maru Gothic / Baloo 2 may lack
+        some tone-mark glyphs; pinyin ≥ 14 px. 🔊 重播 / 顯示拼音 / 我已經讀了 are 48 px pills (the last was an underlined text link).
+      - `!` classes dropped by the A2 `InkButton`: `AudioButtons.jsx` 33 / 36 (not used by these two modules) and, new here,
+        `MandarinModule.jsx` `SpeechDrill` 🔊 播放示範 / 🎙️ 開始錄音 (`!px-2 !py-2 !text-base`, only in the A2 branch, so the 文房 render is
+        unchanged). Result in A2: each 295×48 at 820 px / 154×48 at 390 px, 16 px text.
+      - Cangjie and Mandarin do not track mistakes (by design, see 錯題重溫), so there is no 練習錯題 UI here; each finished session still
+        calls `onRecordPractice` once (跟打練習 also counts as one 倉頡 session; each Mandarin activity counts as one).
+      - Verification: tests 67/67; `#root.innerHTML` SHA-256 of 37 screens (home, badges, poetry / essay / rhetoric / punctuation /
+        classicalProse / idiom / reading / history list + detail + first question unanswered / answered) identical to `9ee90bc`; 27 screens of
+        the 文房 branches of 倉頡 / 普通話 (A2 switched off in a copy: drill, 跟打, listening, 朗讀 + 顯示拼音, 說話 + manual, IME intro + drill)
+        identical to `9ee90bc`; A2 screens at 820 / 390 (reference, 拆字 selected, both 倉頡 drills incl. wrong / correct / hidden hint / result;
+        Mandarin hub + level, every one of the 5 activities incl. wrong / correct / pinyin shown / mic-denied message / manual / result) no
+        overflow, no text < 13 px, no pressable < 44 px, no overlap; one real session per activity recorded (`stats.sessions.cangjie` +2,
+        `mandarin` +5), backup `version` 2 with unchanged keys; 0 console errors; mic permission denied path shows 「無法取得麥克風權限…」.
+    - **6d (NOT started)** is what remains of Phase 6 (see below). The 10 modules are all A2 now, but each module file still holds both the
+      文房 and A2 versions and its own copy of the small A2 helper set (`A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton`).
+    - **6d (NOT started): 刪除各模組舊文房分支（`useA2()` 切換同文房 helper）、備份面板（`BackupSettings`）同回饋橫幅（`NoticeStack`）同
+      導航列套 A2、徽章頁（`BadgesScreen`）套 A2、全站掃描細字（< 13 px）同返回掣（< 96×48）、刪除 `design-preview/`（連 `design-preview/theme-check.html`）。**
+      Open suggestion (not done): move the per-module copies of the A2 helper set into one shared file when the 文房 branches are deleted.
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
