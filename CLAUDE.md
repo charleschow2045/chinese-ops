@@ -1546,8 +1546,28 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         session per module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, wrong answers added to the mistake
         list); backup export `version` 2 with unchanged top-level keys.
       - The audit script ignores text clipped by `text-overflow: ellipsis` (a range rect covers the hidden part and looked like an overlap).
-    - **6c-3 (NOT started):** 成語、閱讀理解、歷史. **6c-4 (NOT started):** 倉頡、普通話. Each batch = add the keys to `A2_VIEWS`
-      + give that module's own screens an A2 version.
+    - **6c-3 成語、閱讀理解、歷史 (done, Oct 2026).** `A2_VIEWS` = `["home", "classicalProse", "rhetoric", "punctuation",
+      "essay", "poetry", "idiom", "reading", "history"]`. Same mechanism and helper set as 6c-2 (each file carries its own copy of
+      `A2SegControl`/`A2Section`/`A2Header`/`A2ListRow`/`A2ReviewButton` — candidate for extraction into a shared file in 6d);
+      `theme.jsx`, `QuizQuestion.jsx`, `AudioButtons.jsx` untouched. 文房 branches kept.
+      - 成語: `MasteryBadgeA2` is deliberately different from the home 科舉稱號 card (warm `A2.fireBg` panel, label 「成語稱號（只計算成語
+        學習的練習）」, next step 「再完成 N 次成語練習…」, level-up text 「你的成語稱號晉升為「X」」); `MASTERY_TIERS` / stage maths
+        unchanged. `CharacterPinyinCardA2` (pinyin ≥ 13 px over serif hanzi), 填字題 blank is serif 36 px via the `a2` flag of the builders.
+      - 閱讀理解: A2 only — passage text serif 17 px, line-height 2, paragraph gap 16 px with ①②③; passage and 題目 are separate cards;
+        entering the questions scrolls to top (and on each new question), and returning to the passage restores the saved
+        `window.scrollY` (`passageScroll` ref + `useLayoutEffect` in `ReadingModule`, both guarded by `useA2()`; the 文房 path is unchanged).
+        Option buttons ≥ 48 px, open-question textarea ≥ 112 px, self-mark buttons 48 px.
+      - 歷史: category tabs = 2-column 48 px pills with counts; `SourceTagA2` 13 px — 神話與民間傳說 uses a darker ochre (`#7A5D20`) for
+        contrast, all four 出處 labels and 出處說明 text unchanged; `FormPillA2` is a local copy (Poetry's exported `FormPill` untouched).
+        Poem ↔ story links (both directions, war-poem tab) verified: A2 backdrop node persists, no 文房 blobs/title appear, back returns to the right screen.
+      - `!` classes dropped by the A2 `InkButton`: still only `AudioButtons.jsx` lines 33 / 36 (`!py-2 !text-sm`). Measured in A2: idiom and
+        history detail each button 295×48 at 820 px / 154×48 at 390 px, 16 px text. No 6c-3 module passes a `!` class.
+      - Verification: tests 67/67; `#root.innerHTML` SHA-256 of 21 non-A2 screens identical to `e4b0f4d`; 13 screens (home, badges, idiom /
+        history / reading 文房 branches with A2 switched off) identical to `e4b0f4d`; A2 screens at 820 / 390 (list, 只看錯題, detail / passage,
+        question, correct, wrong, result, open-question reveal) no overflow / text < 13 px / pressable < 44 px / overlap; one full session per
+        module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, backup version 2 with unchanged keys). Reading has per-passage
+        mistakes, so a wrong answer on an already-flagged passage leaves the mistake count unchanged.
+    - **6c-4 倉頡、普通話 (NOT started).** Add "cangjie", "mandarin" to `A2_VIEWS` + A2 versions of their screens.
     - **6d (NOT started): 徽章頁 (`BadgesScreen`), 備份設定 (`BackupSettings`), 回饋橫幅 (`NoticeStack`), the bottom
       navigation bar, delete the old 「文房」 branches inside every module (and the `useA2()` switches / 文房 helpers that
       become dead), then a site-wide scan for text < 13 px and small back buttons; finally delete `design-preview/`
