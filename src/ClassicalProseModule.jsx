@@ -11,7 +11,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, TYPE, A2, A2BackButton, A2ModuleIcon, useA2 } = window.App.UI;
+  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
@@ -31,142 +31,8 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function PassageDetail({ item, onBack, onStartQuestions }) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.source} · {CLASSICAL_PROSE_LEVEL_LABEL[item.level]}
-          </span>
-        </div>
-
-        {/* Original-text card: a "scroll" treatment — a warmer inset panel
-            with top/bottom rule lines standing in for scroll rollers, plus
-            a seal-stamp corner badge citing the source book, and the
-            classical text itself set in the serif face to read as more
-            literary than the surrounding UI chrome. */}
-        <PaperCard accent={ACCENT} className="overflow-visible">
-          <Seal label={sourceAbbrev(item.source)} accent={ACCENT} className="absolute -top-3 -right-3 z-10" />
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.title}
-          </h2>
-          <p className={`text-sm mb-3 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.dynasty}
-          </p>
-          <div
-            className="rounded-2xl px-4 py-4"
-            style={{
-              backgroundColor: ACCENT.tint,
-              borderTop: `3px double ${ACCENT.tintBorder}`,
-              borderBottom: `3px double ${ACCENT.tintBorder}`,
-            }}
-          >
-            <div className="text-lg leading-loose font-serif" style={{ color: INK.ink }}>
-              {item.lines.map((l, i) => (
-                <p key={i}>{l}</p>
-              ))}
-            </div>
-          </div>
-          <AudioButtons text={item.lines.join("")} accent={ACCENT} className="mt-3" />
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            重點文言字詞
-          </p>
-          <div className="flex flex-col gap-2">
-            {item.glossary.map((g, i) => (
-              <p key={i} className={`text-sm ${TYPE.body}`} style={{ color: INK.ink }}>
-                <span className={TYPE.heading} style={{ color: ACCENT.solid }}>
-                  {g.term}
-                </span>
-                {g.jyutping && (
-                  <span className="font-bold" style={{ color: ACCENT.solid }}>
-                    {" "}
-                    （粵音：{g.jyutping}）
-                  </span>
-                )}
-                {" — "}
-                {g.meaning}
-              </p>
-            ))}
-          </div>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            白話語譯（逐句對照）
-          </p>
-          <div className="flex flex-col gap-2">
-            {item.lineExplanations.map((exp, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-3"
-                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
-              >
-                <p className="text-sm font-serif font-bold mb-1" style={{ color: INK.ink }}>
-                  {item.lines[i]}
-                </p>
-                <p className={`text-sm ${TYPE.body}`} style={{ color: INK.mutedInk }}>
-                  {exp}
-                </p>
-              </div>
-            ))}
-          </div>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            出處及背景
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {item.background}
-          </p>
-        </PaperCard>
-
-        <InkButton accent={ACCENT} className="w-full" onClick={onStartQuestions}>
-          開始問答 ✏️
-        </InkButton>
-      </div>
-    );
-  }
-
-  function PassageListRow({ item, onOpen }) {
-    return (
-      <button
-        onClick={onOpen}
-        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
-        style={{
-          backgroundColor: INK.paperCard,
-          border: `1.5px solid ${ACCENT.tintBorder}`,
-          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
-        }}
-      >
-        <div
-          className="w-11 h-11 rounded-md flex items-center justify-center text-sm font-serif font-black shrink-0"
-          style={{ backgroundColor: ACCENT.solid, color: ACCENT.on, transform: "rotate(-4deg)" }}
-        >
-          {sourceAbbrev(item.source)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.title}
-          </p>
-          <p className={`text-xs truncate ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.source} · {CLASSICAL_PROSE_LEVEL_LABEL[item.level]}
-          </p>
-        </div>
-      </button>
-    );
-  }
-
   // ---------------------------------------------------------------------
-  // 階段 6c-1: A2 versions of the three screens (pilot module). They are used only while Root's A2 switch
-  // is on (`useA2()`); the original 文房 screens above are untouched and are what runs otherwise.
-  // UI text uses A2.font; the classical 原文 lines stay in the serif face. Text >= 13 px (mostly 14-18),
+  // A2 screens. UI text uses A2.font; the classical 原文 lines stay in the serif face. Text >= 13 px (mostly 14-18),
   // every pressable >= 44 px, back buttons are A2BackButton.
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
@@ -359,7 +225,6 @@ window.App = window.App || {};
   }
 
   function ClassicalProseModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
-    const a2 = useA2();
     const [view, setView] = useState("list"); // list | passage | questions
     const [filterLevel, setFilterLevel] = useState(level || "all");
     const [onlyMistakes, setOnlyMistakes] = useState(false);
@@ -386,8 +251,7 @@ window.App = window.App || {};
     }
 
     if (view === "passage" && selectedItem) {
-      const Detail = a2 ? PassageDetailA2 : PassageDetail;
-      return <Detail item={selectedItem} onBack={() => setView("list")} onStartQuestions={() => setView("questions")} />;
+      return <PassageDetailA2 item={selectedItem} onBack={() => setView("list")} onStartQuestions={() => setView("questions")} />;
     }
 
     if (view === "questions" && selectedItem) {
@@ -402,76 +266,17 @@ window.App = window.App || {};
       );
     }
 
-    if (a2) {
-      return (
-        <ListViewA2
-          filtered={filtered}
-          filterLevel={filterLevel}
-          setFilterLevel={setFilterLevel}
-          mistakes={mistakes}
-          onlyMistakes={onlyMistakes}
-          setOnlyMistakes={setOnlyMistakes}
-          onBack={onBack}
-          openItem={openItem}
-        />
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回主頁
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            文言文選讀
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            程度
-          </p>
-          <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => {
-              const active = filterLevel === l.key;
-              return (
-                <button
-                  key={l.key}
-                  onClick={() => setFilterLevel(l.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-                  style={
-                    active
-                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
-                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
-                  }
-                >
-                  {l.label}
-                </button>
-              );
-            })}
-          </div>
-          {(mistakes || []).length > 0 && (
-            <button
-              onClick={() => setOnlyMistakes((v) => !v)}
-              className={`w-full mt-2 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-              style={
-                onlyMistakes
-                  ? { backgroundColor: INK.ochre, color: INK.ink }
-                  : { backgroundColor: INK.paper, color: "#7A5D20", border: "1.5px solid #E2CE9E" }
-              }
-            >
-              📝 只看錯題 ({mistakes.length})
-            </button>
-          )}
-        </PaperCard>
-
-        <div className="flex flex-col gap-3">
-          {filtered.map((item) => (
-            <PassageListRow key={item.id} item={item} onOpen={() => openItem(item.id)} />
-          ))}
-        </div>
-      </div>
+      <ListViewA2
+        filtered={filtered}
+        filterLevel={filterLevel}
+        setFilterLevel={setFilterLevel}
+        mistakes={mistakes}
+        onlyMistakes={onlyMistakes}
+        setOnlyMistakes={setOnlyMistakes}
+        onBack={onBack}
+        openItem={openItem}
+      />
     );
   }
 

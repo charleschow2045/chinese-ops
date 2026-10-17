@@ -6,11 +6,11 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useA2 } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.rhetoric;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
-  const { RHETORIC_DEVICES, RHETORIC_PRACTICE_SENTENCES, RHETORIC_LEVEL_LABEL } = window.App.Content;
+  const { RHETORIC_DEVICES, RHETORIC_PRACTICE_SENTENCES } = window.App.Content;
 
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
@@ -19,20 +19,13 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function buildDeviceQuestion(pool, item, a2) {
+  function buildDeviceQuestion(pool, item) {
     const distractors = sampleOthers(pool, item, 3, (it) => it.device);
     const options = shuffle([item.device, ...distractors]);
-    const prompt = a2 ? (
+    const prompt = (
       <div>
         <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
         <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句運用了什麼修辭手法？</p>
-      </div>
-    ) : (
-      <div>
-        <p className="text-xl leading-relaxed mb-2">「{item.sentence}」</p>
-        <p className="text-sm" style={{ color: INK.mutedInk }}>
-          這句運用了什麼修辭手法？
-        </p>
       </div>
     );
     return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.device) };
@@ -42,24 +35,17 @@ window.App = window.App || {};
   // just naming the device, asks what *effect* it achieves, testing
   // understanding of why a writer would use it, not just pattern-matching
   // keywords like 像/難道/什麼是.
-  function buildEffectQuestion(pool, item, a2) {
+  function buildEffectQuestion(pool, item) {
     const device = RHETORIC_DEVICES.find((d) => d.name === item.device);
     const otherDevices = RHETORIC_DEVICES.filter((d) => d.name !== item.device);
     const distractors = shuffle(otherDevices)
       .slice(0, 3)
       .map((d) => d.effect);
     const options = shuffle([device.effect, ...distractors]);
-    const prompt = a2 ? (
+    const prompt = (
       <div>
         <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
         <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句運用了「{item.device}」，這樣寫有什麼作用？</p>
-      </div>
-    ) : (
-      <div>
-        <p className="text-xl leading-relaxed mb-2">「{item.sentence}」</p>
-        <p className="text-sm" style={{ color: INK.mutedInk }}>
-          這句運用了「{item.device}」，這樣寫有什麼作用？
-        </p>
       </div>
     );
     return { itemId: item.id, prompt, options, correctIndex: options.indexOf(device.effect) };
@@ -70,73 +56,15 @@ window.App = window.App || {};
   // lets 練習錯題 (mistake review) restrict *which* sentences come up
   // without also shrinking the distractor pool down to just those few
   // items (see RhetoricModule's mistake-review button below).
-  function buildQuestions(pool, count, chooseFrom, a2) {
+  function buildQuestions(pool, count, chooseFrom) {
     const builders = [buildDeviceQuestion, buildEffectQuestion];
     const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item, a2));
-  }
-
-  function DeviceDetail({ item, onBack, onPractice }) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <h2 className={`text-2xl text-center ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.name}
-          </h2>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            定義
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {item.definition}
-          </p>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            辨認小貼士
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {item.tip}
-          </p>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            例句
-          </p>
-          <div className="flex flex-col gap-2">
-            {item.examples.map((ex, i) => (
-              <p
-                key={i}
-                className="rounded-xl p-3"
-                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}`, color: INK.ink }}
-              >
-                {ex}
-              </p>
-            ))}
-          </div>
-        </PaperCard>
-
-        <InkButton accent={ACCENT} className="w-full" onClick={onPractice}>
-          開始練習 🎯
-        </InkButton>
-      </div>
-    );
+    return chosen.map((item, i) => builders[i % builders.length](pool, item));
   }
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
     const QUESTION_COUNT = 8;
-    const a2 = useA2();
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom, a2));
+    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -162,7 +90,7 @@ window.App = window.App || {};
       }
     }
 
-    if (done && a2) {
+    if (done) {
       return (
         <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
@@ -179,52 +107,11 @@ window.App = window.App || {};
       );
     }
 
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
-              第 {qIndex + 1} / {questions.length} 題
-            </span>
-          </div>
-
-          <PaperCard accent={ACCENT}>
-            <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
-            {answered && (
-              <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
-                {isLast ? "完成 🎉" : "下一題 →"}
-              </InkButton>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
@@ -240,39 +127,8 @@ window.App = window.App || {};
       </div>
     );
   }
-
-  function DeviceListRow({ item, onOpen }) {
-    return (
-      <button
-        onClick={onOpen}
-        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
-        style={{
-          backgroundColor: INK.paperCard,
-          border: `1.5px solid ${ACCENT.tintBorder}`,
-          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
-        }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-          style={{ backgroundColor: ACCENT.tint }}
-        >
-          🎭
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.name}
-          </p>
-          <p className={`text-xs truncate ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.definition}
-          </p>
-        </div>
-      </button>
-    );
-  }
-
   // ---------------------------------------------------------------------
-  // 階段 6c-2: A2 versions of this module's screens, used only while Root's A2 switch is on (useA2()).
-  // The 文房 screens above are untouched. UI text is A2.font; 原文 / 例句 stay serif; text >= 14 px;
+  // A2 screens. UI text is A2.font; 原文 / 例句 stay serif; text >= 14 px;
   // every pressable >= 44 px; back buttons are A2BackButton (>= 96 x 48).
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
@@ -448,7 +304,6 @@ window.App = window.App || {};
   }
 
   function RhetoricModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
-    const a2 = useA2();
     const [view, setView] = useState("list"); // list | detail | practice
     const [filterLevel, setFilterLevel] = useState(level || "all");
     const [selectedId, setSelectedId] = useState(null);
@@ -487,8 +342,7 @@ window.App = window.App || {};
     }
 
     if (view === "detail" && selectedItem) {
-      const Detail = a2 ? DeviceDetailA2 : DeviceDetail;
-      return <Detail item={selectedItem} onBack={() => setView("list")} onPractice={() => startPractice(filteredSentences)} />;
+      return <DeviceDetailA2 item={selectedItem} onBack={() => setView("list")} onPractice={() => startPractice(filteredSentences)} />;
     }
 
     if (view === "practice" && practiceScope) {
@@ -503,74 +357,16 @@ window.App = window.App || {};
       );
     }
 
-    if (a2) {
-      return (
-        <ListViewA2
-          filterLevel={filterLevel}
-          setFilterLevel={setFilterLevel}
-          mistakeItems={mistakeItems}
-          startPractice={startPractice}
-          filteredSentences={filteredSentences}
-          openItem={openItem}
-          onBack={onBack}
-        />
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回主頁
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            修辭手法
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            程度（影響練習例句）
-          </p>
-          <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => {
-              const active = filterLevel === l.key;
-              return (
-                <button
-                  key={l.key}
-                  onClick={() => setFilterLevel(l.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-                  style={
-                    active
-                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
-                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
-                  }
-                >
-                  {l.label}
-                </button>
-              );
-            })}
-          </div>
-          <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filteredSentences)}>
-            開始練習 🎯
-          </InkButton>
-          {mistakeItems.length > 0 && (
-            <InkButton
-              accent={REVIEW_ACCENT}
-              className="w-full mt-2"
-              onClick={() => startPractice(RHETORIC_PRACTICE_SENTENCES, mistakeItems)}
-            >
-              練習錯題 ({mistakeItems.length}) 📝
-            </InkButton>
-          )}
-        </PaperCard>
-
-        <div className="flex flex-col gap-3">
-          {RHETORIC_DEVICES.map((item) => (
-            <DeviceListRow key={item.id} item={item} onOpen={() => openItem(item.id)} />
-          ))}
-        </div>
-      </div>
+      <ListViewA2
+        filterLevel={filterLevel}
+        setFilterLevel={setFilterLevel}
+        mistakeItems={mistakeItems}
+        startPractice={startPractice}
+        filteredSentences={filteredSentences}
+        openItem={openItem}
+        onBack={onBack}
+      />
     );
   }
 

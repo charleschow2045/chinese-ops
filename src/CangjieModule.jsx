@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo, useRef, useEffect } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE, A2, A2BackButton, A2ModuleIcon, useA2 } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
   const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL, CANGJIE_TYPING_TEXTS } =
@@ -34,276 +34,8 @@ window.App = window.App || {};
     return acc;
   }, {});
 
-  function RootChart() {
-    return (
-      <div className="flex flex-col gap-3">
-        {CANGJIE_CATEGORIES.map((cat) => {
-          const tone = CATEGORY_TONES[cat.color] || CATEGORY_TONES.amber;
-          return (
-            <PaperCard key={cat.key} className="!p-3" accent={{ tintBorder: tone.tintBorder }}>
-              <p className="text-sm mb-2 font-bold" style={{ color: tone.solid }}>
-                {cat.label}
-              </p>
-              <div className="grid grid-cols-4 gap-2">
-                {CANGJIE_ROOTS.filter((r) => r.category === cat.key).map((r) => (
-                  <div
-                    key={r.letter}
-                    className="rounded-xl p-2 text-center"
-                    style={{ backgroundColor: tone.tint, border: `1.5px solid ${tone.tintBorder}`, color: tone.solid }}
-                  >
-                    <p className="text-xl font-extrabold">{r.char}</p>
-                    <p className="text-xs font-bold opacity-70">
-                      {r.letter}
-                      {r.definition ? `・${r.definition}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </PaperCard>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // 輔助字形總覽: all 24 letters, grouped by the 4 official classes
-  // (哲理類 / 筆劃類 / 人體類 / 字形類). Only text-verified shapes are shown
-  // (see the note above AUXILIARY_SHAPES in cangjieContent.jsx); letters
-  // without one are listed as 暫未收錄 rather than guessed.
-  function AuxiliaryShapes() {
-    const classes = CANGJIE_CATEGORIES.filter((c) => c.key !== "special");
-    const covered = new Set(CANGJIE_AUXILIARY_SHAPES.map((a) => a.rootLetter));
-    const totalLetters = CANGJIE_ROOTS.filter((r) => r.category !== "special").length;
-    return (
-      <PaperCard accent={ACCENT}>
-        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          輔助字形總覽
-        </p>
-        <p className={`text-sm mb-3 leading-relaxed ${TYPE.body}`} style={{ color: INK.mutedInk }}>
-          24 個字母除了本身的字根，還會衍生出「輔助字形」——較小、常出現在字部件裏的變形寫法，輸入時一律打所屬字母。
-          例如「氵」屬「水」，打 E；「扌」屬「手」，打 Q。下表按四大類列出 {totalLetters} 個字母各自已核實的輔助字形
-          （目前 {covered.size}/{totalLetters} 個字母有收錄）。
-        </p>
-        <div className="flex flex-col gap-4">
-          {classes.map((cat) => {
-            const tone = CATEGORY_TONES[cat.color] || CATEGORY_TONES.amber;
-            return (
-              <div key={cat.key}>
-                <p className="text-sm mb-2 font-bold" style={{ color: tone.solid }}>
-                  {cat.label}
-                </p>
-                <div className="flex flex-col gap-2">
-                  {CANGJIE_ROOTS.filter((r) => r.category === cat.key).map((r) => {
-                    const shapes = CANGJIE_AUXILIARY_SHAPES.filter((a) => a.rootLetter === r.letter);
-                    return (
-                      <div
-                        key={r.letter}
-                        className="rounded-xl p-3"
-                        style={{ backgroundColor: tone.tint, border: `1.5px solid ${tone.tintBorder}` }}
-                      >
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <p className="text-xl font-extrabold" style={{ color: INK.ink }}>
-                            {r.char}
-                          </p>
-                          <span className="text-sm font-bold" style={{ color: tone.solid }}>
-                            {r.letter}
-                            {r.definition ? `・${r.definition}` : ""}
-                          </span>
-                          {shapes.length > 0 && <span style={{ color: INK.mutedInk }}>→</span>}
-                          {shapes.map((a) => (
-                            <span key={a.shape} className="text-xl font-extrabold" style={{ color: tone.solid }}>
-                              {a.shape}
-                            </span>
-                          ))}
-                        </div>
-                        {shapes.length > 0 ? (
-                          <div className="mt-1 flex flex-col gap-0.5">
-                            {shapes.map((a) => (
-                              <p key={a.shape} className="text-sm" style={{ color: INK.mutedInk }}>
-                                <span className="font-bold" style={{ color: INK.ink }}>
-                                  {a.shape}
-                                </span>{" "}
-                                常見於：{a.examples.join("、")}
-                              </p>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-                            {CANGJIE_NO_AUX_OFFICIAL[r.letter] || "暫未收錄已核實的輔助字形"}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-xs mt-3 leading-relaxed" style={{ color: INK.mutedInk }}>
-          資料根據朱邦復工作室《第五代倉頡輸入法手冊》，並逐字核對例字的倉頡碼；官方完整表約有 90 個輔助字形，
-          其餘多以圖像形式發佈，未能核實的暫不列出。
-        </p>
-      </PaperCard>
-    );
-  }
-  // 拆解圖 — a visual decomposition diagram: each root tile (character +
-  // its key letter) combines left-to-right into the final compound
-  // character, instead of only describing the breakdown as plain text.
-  function DecompositionDiagram({ code, resultChar }) {
-    const letters = code.split("");
-    return (
-      <div className="flex items-center justify-center flex-wrap gap-1.5 py-1">
-        {letters.map((letter, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && (
-              <span className="font-extrabold text-lg" style={{ color: ACCENT.tintBorder }}>
-                +
-              </span>
-            )}
-            <div
-              className="rounded-lg px-2 py-1 text-center"
-              style={{ backgroundColor: INK.paperCard, border: `1.5px solid ${ACCENT.tintBorder}` }}
-            >
-              <p className="text-lg font-extrabold leading-tight" style={{ color: INK.ink }}>
-                {ROOT_CHAR_BY_LETTER[letter] || "?"}
-              </p>
-              <p className="text-[10px] font-bold leading-tight" style={{ color: ACCENT.solid }}>
-                {letter}
-              </p>
-            </div>
-          </React.Fragment>
-        ))}
-        <span className="font-extrabold text-lg" style={{ color: ACCENT.tintBorder }}>
-          =
-        </span>
-        <div className="rounded-lg px-3 py-1 text-center" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.solid}` }}>
-          <p className="text-2xl font-extrabold leading-tight" style={{ color: ACCENT.solid }}>
-            {resultChar}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  function CompoundExamples() {
-    return (
-      <PaperCard accent={ACCENT}>
-        <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          組字例子（拆解圖）
-        </p>
-        <div className="flex flex-col gap-2">
-          {CANGJIE_COMPOUND_EXAMPLES.map((ex) => (
-            <div
-              key={ex.char}
-              className="rounded-xl p-3"
-              style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
-            >
-              <div className="flex items-baseline gap-2 mb-1">
-                <p className="text-2xl font-extrabold" style={{ color: INK.ink }}>
-                  {ex.char}
-                </p>
-                <p className="text-sm font-bold" style={{ color: ACCENT.solid }}>
-                  碼：{ex.code}
-                </p>
-              </div>
-              <DecompositionDiagram code={ex.code} resultChar={ex.char} />
-              <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-                {ex.note}
-              </p>
-            </div>
-          ))}
-        </div>
-      </PaperCard>
-    );
-  }
-
-  // 拆字練習: tap a character to reveal its Cangjie code and the
-  // root-by-root breakdown (phase 1 — 50 verified common characters).
-  function CharBreakdown() {
-    const [selected, setSelected] = useState(null);
-    const item = CANGJIE_CHAR_BREAKDOWN.find((c) => c.char === selected);
-    return (
-      <PaperCard accent={ACCENT}>
-        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          拆字練習（{CANGJIE_CHAR_BREAKDOWN.length} 個常用字）
-        </p>
-        <p className={`text-sm mb-3 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
-          先自己想一想怎樣拆，再點一個字，看看它的倉頡碼和拆解圖。
-        </p>
-        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 mb-3">
-          {CANGJIE_CHAR_BREAKDOWN.map((c) => {
-            const on = c.char === selected;
-            return (
-              <button
-                key={c.char}
-                onClick={() => setSelected(on ? null : c.char)}
-                className="rounded-lg py-1.5 text-xl font-extrabold transition-all"
-                style={
-                  on
-                    ? { backgroundColor: ACCENT.solid, color: ACCENT.on, border: `1.5px solid ${ACCENT.solid}` }
-                    : { backgroundColor: ACCENT.tint, color: INK.ink, border: `1.5px solid ${ACCENT.tintBorder}` }
-                }
-              >
-                {c.char}
-              </button>
-            );
-          })}
-        </div>
-        {item && (
-          <div className="rounded-xl p-3" style={{ backgroundColor: INK.paperCard, border: `1.5px solid ${ACCENT.tintBorder}` }}>
-            <div className="flex items-baseline gap-2 mb-1">
-              <p className="text-3xl font-extrabold" style={{ color: INK.ink }}>
-                {item.char}
-              </p>
-              <p className="text-sm font-bold" style={{ color: ACCENT.solid }}>
-                倉頡碼：{item.code}（{item.code.split("").map((l) => ROOT_CHAR_BY_LETTER[l]).join("")}）
-              </p>
-            </div>
-            <DecompositionDiagram code={item.code} resultChar={item.char} />
-            {item.code.length > 2 && (
-              <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-                速成碼（第一碼＋最後一碼）：{item.code[0] + item.code[item.code.length - 1]}
-              </p>
-            )}
-          </div>
-        )}
-      </PaperCard>
-    );
-  }
-  function QuickExplainer() {
-    const ex = CANGJIE_QUICK_EXAMPLE;
-    return (
-      <PaperCard accent={ACCENT}>
-        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          速成輸入法
-        </p>
-        <p className={`leading-relaxed mb-2 ${TYPE.body}`} style={{ color: INK.ink }}>
-          速成是倉頡的簡化版：不需要輸入完整的倉頡碼，只需輸入
-          <span className="font-extrabold" style={{ color: ACCENT.solid }}>
-            第一碼
-          </span>
-          和
-          <span className="font-extrabold" style={{ color: ACCENT.solid }}>
-            最後一碼
-          </span>
-          即可，最多兩個字母。好處是打字較快，缺點是需要從候選字當中選出正確的字。
-        </p>
-        <div className="rounded-xl p-3" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}>
-          <p className="font-extrabold" style={{ color: INK.ink }}>
-            例子：「{ex.char}」— 完整碼 {ex.fullCode} → 速成碼 {ex.quickCode}
-          </p>
-          <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-            {ex.note}
-          </p>
-        </div>
-      </PaperCard>
-    );
-  }
-
   // ---------------------------------------------------------------------
-  // 階段 6c-4: A2 versions of this module's screens, used only while Root's A2 switch is on (useA2()).
-  // The 文房 screens above/below are untouched. The 五色 category tints (CATEGORY_TONES) are kept as the
+  // A2 screens. The 五色 category tints (CATEGORY_TONES) are kept as the
   // category identifiers; text on a tint uses a darker shade of the same hue (TONE_TEXT) so it stays readable.
   // UI text is A2.font; root / example characters are serif; text >= 13 px; every pressable >= 44 px.
   // The module has no on-screen keyboard: the child types on the device keyboard into a text field.
@@ -609,41 +341,6 @@ window.App = window.App || {};
     );
   }
 
-  function ReferenceView({ onBack, onStartPractice, onStartTyping }) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回主頁
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            倉頡輸入法
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            倉頡輸入法用 24 個基本「字根」（加上一個特殊的「難」字鍵），對應鍵盤上的英文字母。學會這張表，就可以自己輸入中文
-            了！以下按官方的四大類（哲理類、筆劃類、人體類、字形類）分類，方便記憶：
-          </p>
-        </PaperCard>
-
-        <RootChart />
-        <AuxiliaryShapes />
-        <CompoundExamples />
-        <CharBreakdown />
-        <QuickExplainer />
-
-        <InkButton accent={ACCENT} className="w-full" onClick={onStartPractice}>
-          開始打字練習 ⌨️
-        </InkButton>
-        <InkButton accent={ACCENT} className="w-full" onClick={onStartTyping}>
-          跟打練習（看拆解圖打整句）✍️
-        </InkButton>
-      </div>
-    );
-  }
-
   // 跟打練習 (follow-along typing): shows a short phrase; for the current
   // character it shows the 拆解圖 (which roots to press) and the child types the
   // Cangjie letters, then Space/Enter — like the real input method. Only phrases
@@ -678,7 +375,6 @@ window.App = window.App || {};
       if (inputRef.current && !done) inputRef.current.focus();
     }, [pIdx, cIdx, done]);
 
-    const a2 = useA2();
     const phrase = phrases[pIdx];
     const ch = phrase ? phrase[cIdx] : "";
     const code = codeByChar[ch] || "";
@@ -722,7 +418,7 @@ window.App = window.App || {};
       }
     }
 
-    if (a2 && done) {
+    if (done) {
       const minutes = Math.max(elapsed, 1) / 60;
       const speed = Math.round((total / minutes) * 10) / 10;
       return (
@@ -742,125 +438,24 @@ window.App = window.App || {};
       );
     }
 
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <div className="flex items-center justify-between gap-3">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <span style={{ fontSize: 14, fontWeight: 900, color: A2.sub }}>
-              第 {pIdx + 1} / {phrases.length} 句
-            </span>
-          </div>
-
-          <PaperCard>
-            <p style={{ ...A2_NOTE, marginBottom: 8 }}>跟着打出這句話：輸入字母，然後按空白鍵（或 Enter）</p>
-            <p className="font-serif text-center tracking-widest mb-3" style={{ fontSize: 36, fontWeight: 900, margin: "0 0 12px", lineHeight: 1.4 }}>
-              {phrase.split("").map((c, i) => (
-                <span
-                  key={i}
-                  style={{
-                    color: i < cIdx ? "#A39BD0" : i === cIdx ? A2.acc : A2.ink,
-                    borderBottom: i === cIdx ? `3px solid ${A2.acc}` : "3px solid transparent",
-                  }}
-                >
-                  {c}
-                </span>
-              ))}
-            </p>
-
-            {showHint ? (
-              <div style={{ padding: 8, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
-                <p className="text-center" style={{ ...A2_NOTE, marginBottom: 4 }}>
-                  拆解圖：「{ch}」由以下字根組成
-                </p>
-                <DecompositionDiagramA2 code={code} resultChar={ch} />
-              </div>
-            ) : (
-              <p className="text-center" style={A2_NOTE}>
-                （拆解圖已隱藏，自己想想「{ch}」怎樣拆）
-              </p>
-            )}
-            <button
-              onClick={() => setShowHint((v) => !v)}
-              className="mt-3 w-full"
-              style={{ minHeight: 48, borderRadius: 999, border: 0, background: A2.segTrack, color: A2.accD, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer" }}
-            >
-              {showHint ? "隱藏拆解圖（挑戰自己）" : "顯示拆解圖"}
-            </button>
-          </PaperCard>
-
-          <PaperCard>
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              autoCapitalize="characters"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="打字母，按空白鍵確認"
-              aria-label="輸入倉頡碼"
-              style={A2_INPUT}
-            />
-            {msg && (
-              <p className="mt-2" style={{ fontSize: 15, fontWeight: 900, color: A2.hotInk, margin: "8px 0 0" }}>
-                {msg}
-              </p>
-            )}
-            <InkButton accent={ACCENT} className="w-full mt-3" onClick={submit} disabled={input.length === 0}>
-              確認（空白鍵）
-            </InkButton>
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      const minutes = Math.max(elapsed, 1) / 60;
-      const speed = Math.round((total / minutes) * 10) / 10;
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            跟打完成！
-          </h2>
-          <p className="text-lg font-bold" style={{ color: ACCENT.solid }}>
-            速度：{speed} 字／分鐘
-          </p>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            一次打對：{firstTry} / {total} 字
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(firstTry, total)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <div className="flex items-center justify-between gap-3">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ fontSize: 14, fontWeight: 900, color: A2.sub }}>
             第 {pIdx + 1} / {phrases.length} 句
           </span>
         </div>
 
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            跟着打出這句話：輸入字母，然後按空白鍵（或 Enter）
-          </p>
-          <p className="text-4xl font-extrabold text-center mb-3 tracking-widest">
+        <PaperCard>
+          <p style={{ ...A2_NOTE, marginBottom: 8 }}>跟着打出這句話：輸入字母，然後按空白鍵（或 Enter）</p>
+          <p className="font-serif text-center tracking-widest mb-3" style={{ fontSize: 36, fontWeight: 900, margin: "0 0 12px", lineHeight: 1.4 }}>
             {phrase.split("").map((c, i) => (
               <span
                 key={i}
                 style={{
-                  color: i < cIdx ? ACCENT.tintBorder : i === cIdx ? ACCENT.solid : INK.ink,
-                  borderBottom: i === cIdx ? `3px solid ${ACCENT.solid}` : "3px solid transparent",
+                  color: i < cIdx ? "#A39BD0" : i === cIdx ? A2.acc : A2.ink,
+                  borderBottom: i === cIdx ? `3px solid ${A2.acc}` : "3px solid transparent",
                 }}
               >
                 {c}
@@ -869,27 +464,27 @@ window.App = window.App || {};
           </p>
 
           {showHint ? (
-            <div className="rounded-xl p-2" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}>
-              <p className="text-xs text-center mb-1" style={{ color: INK.mutedInk }}>
+            <div style={{ padding: 8, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
+              <p className="text-center" style={{ ...A2_NOTE, marginBottom: 4 }}>
                 拆解圖：「{ch}」由以下字根組成
               </p>
-              <DecompositionDiagram code={code} resultChar={ch} />
+              <DecompositionDiagramA2 code={code} resultChar={ch} />
             </div>
           ) : (
-            <p className="text-sm text-center" style={{ color: INK.mutedInk }}>
+            <p className="text-center" style={A2_NOTE}>
               （拆解圖已隱藏，自己想想「{ch}」怎樣拆）
             </p>
           )}
           <button
             onClick={() => setShowHint((v) => !v)}
-            className="mt-2 mx-auto block text-sm font-bold"
-            style={{ color: ACCENT.solid }}
+            className="mt-3 w-full"
+            style={{ minHeight: 48, borderRadius: 999, border: 0, background: A2.segTrack, color: A2.accD, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer" }}
           >
             {showHint ? "隱藏拆解圖（挑戰自己）" : "顯示拆解圖"}
           </button>
         </PaperCard>
 
-        <PaperCard accent={ACCENT}>
+        <PaperCard>
           <input
             ref={inputRef}
             type="text"
@@ -901,11 +496,11 @@ window.App = window.App || {};
             autoCorrect="off"
             spellCheck={false}
             placeholder="打字母，按空白鍵確認"
-            className="w-full text-center text-2xl tracking-widest uppercase rounded-xl font-extrabold px-4 py-3 outline-none"
-            style={{ border: "1.5px solid #E9DFC7", backgroundColor: INK.paperCard, color: INK.ink }}
+            aria-label="輸入倉頡碼"
+            style={A2_INPUT}
           />
           {msg && (
-            <p className="mt-2 text-sm font-bold" style={{ color: FEEDBACK.incorrect.solid }}>
+            <p className="mt-2" style={{ fontSize: 15, fontWeight: 900, color: A2.hotInk, margin: "8px 0 0" }}>
               {msg}
             </p>
           )}
@@ -935,7 +530,6 @@ window.App = window.App || {};
     const [correctCount, setCorrectCount] = useState(0);
     const [done, setDone] = useState(false);
 
-    const a2 = useA2();
     const q = questions[qIndex];
     const isLast = qIndex === questions.length - 1;
     const phaseChanged = qIndex > 0 && questions[qIndex - 1].phase !== q.phase;
@@ -958,7 +552,7 @@ window.App = window.App || {};
       }
     }
 
-    if (a2 && done) {
+    if (done) {
       return (
         <div style={{ fontFamily: A2.font }}>
           <PaperCard className="text-center">
@@ -975,133 +569,34 @@ window.App = window.App || {};
       );
     }
 
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <div className="flex items-center justify-between gap-3">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <span style={{ fontSize: 14, fontWeight: 900, color: A2.sub }}>
-              第 {qIndex + 1} / {questions.length} 題
-            </span>
-          </div>
-
-          {(qIndex === 0 || phaseChanged) && (
-            <div style={{ padding: "10px 14px", borderRadius: 16, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
-              <p style={{ fontSize: 15, fontWeight: 900, color: A2.accD, margin: 0, lineHeight: 1.5 }}>
-                {q.phase === 1 ? "第一部分：字母配對 — 根據字根，輸入正確的字母" : "第二部分：砌字練習 — 輸入整個字的倉頡碼"}
-              </p>
-            </div>
-          )}
-
-          <PaperCard>
-            <div className="text-center">
-              <p className="font-serif" style={{ fontSize: 60, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
-                {q.kind === "letter" ? q.root.char : q.example.char}
-              </p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: "4px 0 16px", lineHeight: 1.6 }}>
-                {q.kind === "letter"
-                  ? `（${q.root.meaning}）這個字根用哪一個字母輸入？`
-                  : `輸入「${q.example.char}」的倉頡碼（${q.example.breakdown}）`}
-              </p>
-            </div>
-
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={checked}
-              autoCapitalize="characters"
-              placeholder={q.kind === "letter" ? "打字母" : "打倉頡碼"}
-              aria-label={q.kind === "letter" ? "輸入字母" : "輸入倉頡碼"}
-              style={{ ...A2_INPUT, opacity: checked ? 0.6 : 1 }}
-            />
-
-            {!checked ? (
-              <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheck} disabled={inputValue.trim().length === 0}>
-                核對 ✓
-              </InkButton>
-            ) : (
-              <>
-                <p
-                  className="mt-3"
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: 14,
-                    fontSize: 16,
-                    fontWeight: 900,
-                    margin: "12px 0 0",
-                    background: isCorrect ? A2.rowDone : A2.todayBg,
-                    color: isCorrect ? A2.ok : A2.todayInk,
-                  }}
-                >
-                  {isCorrect ? "✅ 答對了，做得好！" : `💛 答錯了，正確答案是：${q.answer}`}
-                </p>
-                <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
-                  {isLast ? "完成 🎉" : "下一題 →"}
-                </InkButton>
-              </>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <div className="flex items-center justify-between gap-3">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ fontSize: 14, fontWeight: 900, color: A2.sub }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
 
         {(qIndex === 0 || phaseChanged) && (
-          <PaperCard className="!p-3" accent={ACCENT} style={{ backgroundColor: ACCENT.tint }}>
-            <p className="text-sm font-extrabold" style={{ color: ACCENT.dark }}>
+          <div style={{ padding: "10px 14px", borderRadius: 16, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
+            <p style={{ fontSize: 15, fontWeight: 900, color: A2.accD, margin: 0, lineHeight: 1.5 }}>
               {q.phase === 1 ? "第一部分：字母配對 — 根據字根，輸入正確的字母" : "第二部分：砌字練習 — 輸入整個字的倉頡碼"}
             </p>
-          </PaperCard>
+          </div>
         )}
 
-        <PaperCard accent={ACCENT}>
-          {q.kind === "letter" ? (
-            <div className="text-center">
-              <p className="text-6xl font-extrabold mb-1" style={{ color: INK.ink }}>
-                {q.root.char}
-              </p>
-              <p className="text-sm font-bold mb-4" style={{ color: INK.mutedInk }}>
-                （{q.root.meaning}）這個字根用哪一個字母輸入？
-              </p>
-            </div>
-          ) : (
-            <div className="text-center">
-              <p className="text-6xl font-extrabold mb-1" style={{ color: INK.ink }}>
-                {q.example.char}
-              </p>
-              <p className="text-sm font-bold mb-4" style={{ color: INK.mutedInk }}>
-                輸入「{q.example.char}」的倉頡碼（{q.example.breakdown}）
-              </p>
-            </div>
-          )}
+        <PaperCard>
+          <div className="text-center">
+            <p className="font-serif" style={{ fontSize: 60, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
+              {q.kind === "letter" ? q.root.char : q.example.char}
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: "4px 0 16px", lineHeight: 1.6 }}>
+              {q.kind === "letter"
+                ? `（${q.root.meaning}）這個字根用哪一個字母輸入？`
+                : `輸入「${q.example.char}」的倉頡碼（${q.example.breakdown}）`}
+            </p>
+          </div>
 
           <input
             type="text"
@@ -1110,8 +605,8 @@ window.App = window.App || {};
             disabled={checked}
             autoCapitalize="characters"
             placeholder={q.kind === "letter" ? "打字母" : "打倉頡碼"}
-            className={`w-full text-center text-2xl tracking-widest uppercase rounded-xl font-extrabold px-4 py-3 outline-none focus:border-[${ACCENT.solid}] disabled:opacity-60`}
-            style={{ border: "1.5px solid #E9DFC7", backgroundColor: INK.paperCard, color: INK.ink }}
+            aria-label={q.kind === "letter" ? "輸入字母" : "輸入倉頡碼"}
+            style={{ ...A2_INPUT, opacity: checked ? 0.6 : 1 }}
           />
 
           {!checked ? (
@@ -1120,7 +615,18 @@ window.App = window.App || {};
             </InkButton>
           ) : (
             <>
-              <p className="mt-3 font-extrabold" style={{ color: isCorrect ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}>
+              <p
+                className="mt-3"
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 14,
+                  fontSize: 16,
+                  fontWeight: 900,
+                  margin: "12px 0 0",
+                  background: isCorrect ? A2.rowDone : A2.todayBg,
+                  color: isCorrect ? A2.ok : A2.todayInk,
+                }}
+              >
                 {isCorrect ? "✅ 答對了，做得好！" : `💛 答錯了，正確答案是：${q.answer}`}
               </p>
               <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
@@ -1135,7 +641,6 @@ window.App = window.App || {};
 
   function CangjieModule({ onBack, onRecordPractice }) {
     const [view, setView] = useState("reference"); // reference | practice | typing
-    const a2 = useA2();
 
     function finishPractice(correctCount, total) {
       onRecordPractice(correctCount, total);
@@ -1150,8 +655,7 @@ window.App = window.App || {};
       return <TypingPractice onBack={() => setView("reference")} onFinish={finishPractice} />;
     }
 
-    const Reference = a2 ? ReferenceViewA2 : ReferenceView;
-    return <Reference onBack={onBack} onStartPractice={() => setView("practice")} onStartTyping={() => setView("typing")} />;
+    return <ReferenceViewA2 onBack={onBack} onStartPractice={() => setView("practice")} onStartTyping={() => setView("typing")} />;
   }
 
   window.App.CangjieModule = CangjieModule;

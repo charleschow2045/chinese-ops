@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useA2 } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.essay;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -20,11 +20,11 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function buildFillBlankQuestion(pool, item, a2) {
+  function buildFillBlankQuestion(pool, item) {
     const parts = item.sentence.split(item.keyPhrase);
     const distractors = sampleOthers(pool, item, 3, (it) => it.keyPhrase);
     const options = shuffle([item.keyPhrase, ...distractors]);
-    const prompt = a2 ? (
+    const prompt = (
       <div>
         <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
           {ESSAY_THEME_EMOJI[item.theme]} {item.theme} — 哪一個詞語/短句才是正確的？
@@ -32,22 +32,6 @@ window.App = window.App || {};
         <p className="font-serif text-xl leading-relaxed" style={{ fontWeight: 700 }}>
           {parts[0]}
           <span className="inline-block mx-1 px-3 py-0.5 rounded-lg font-black align-middle" style={{ background: A2.segTrack, color: A2.accD }}>
-            ▁▁▁▁
-          </span>
-          {parts[1]}
-        </p>
-      </div>
-    ) : (
-      <div>
-        <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          {ESSAY_THEME_EMOJI[item.theme]} {item.theme} — 哪一個詞語/短句才是正確的？
-        </p>
-        <p className="text-xl leading-relaxed">
-          {parts[0]}
-          <span
-            className="inline-block mx-1 px-3 py-0.5 rounded-lg font-black align-middle"
-            style={{ backgroundColor: ACCENT.tint, color: ACCENT.solid }}
-          >
             ▁▁▁▁
           </span>
           {parts[1]}
@@ -64,19 +48,12 @@ window.App = window.App || {};
     return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.sentence) };
   }
 
-  function buildThemeQuestion(item, a2) {
+  function buildThemeQuestion(item) {
     const options = shuffle(ESSAY_THEMES);
-    const prompt = a2 ? (
+    const prompt = (
       <div>
         <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
         <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句金句屬於哪一個主題？</p>
-      </div>
-    ) : (
-      <div>
-        <p className="text-xl leading-relaxed mb-2">「{item.sentence}」</p>
-        <p className="text-sm" style={{ color: INK.mutedInk }}>
-          這句金句屬於哪一個主題？
-        </p>
       </div>
     );
     return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.theme) };
@@ -85,62 +62,15 @@ window.App = window.App || {};
   // `chooseFrom` restricts which sentences 練習錯題 asks about; `pool`
   // still supplies distractors — same pattern as the other runtime-generated
   // modules (see RhetoricModule for the fullest explanation).
-  function buildQuestions(pool, count, chooseFrom, a2) {
-    const builders = [buildFillBlankQuestion, buildScenarioQuestion, (p, item, flag) => buildThemeQuestion(item, flag)];
+  function buildQuestions(pool, count, chooseFrom) {
+    const builders = [buildFillBlankQuestion, buildScenarioQuestion, (p, item) => buildThemeQuestion(item)];
     const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item, a2));
-  }
-
-  function EssayDetail({ item, onBack, onPractice }) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {ESSAY_LEVEL_LABEL[item.level]} · {item.theme}
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-2xl leading-relaxed ${TYPE.heading}`} style={{ color: INK.ink }}>
-            「{item.sentence}」
-          </p>
-          <p className="text-sm font-bold mt-3" style={{ color: ACCENT.solid }}>
-            {ESSAY_THEME_EMOJI[item.theme]} {item.theme}
-          </p>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            用法
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {item.usage}
-          </p>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            適用情境
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {item.scenario}
-          </p>
-        </PaperCard>
-
-        <InkButton accent={ACCENT} className="w-full" onClick={onPractice}>
-          開始練習 🎯
-        </InkButton>
-      </div>
-    );
+    return chosen.map((item, i) => builders[i % builders.length](pool, item));
   }
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
     const QUESTION_COUNT = 16; // doubled per user feedback ("double up the question")
-    const a2 = useA2();
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom, a2));
+    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -167,7 +97,7 @@ window.App = window.App || {};
       }
     }
 
-    if (done && a2) {
+    if (done) {
       return (
         <PaperCard accent={ACCENT} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
@@ -184,52 +114,11 @@ window.App = window.App || {};
       );
     }
 
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
-              第 {qIndex + 1} / {questions.length} 題
-            </span>
-          </div>
-
-          <PaperCard accent={ACCENT}>
-            <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
-            {answered && (
-              <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
-                {isLast ? "完成 🎉" : "下一題 →"}
-              </InkButton>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
             第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
@@ -246,38 +135,8 @@ window.App = window.App || {};
     );
   }
 
-  function EssayListRow({ item, onOpen }) {
-    return (
-      <button
-        onClick={onOpen}
-        className="w-full flex items-center gap-3 rounded-2xl p-3 text-left active:translate-y-[2px] transition-all"
-        style={{
-          backgroundColor: INK.paperCard,
-          border: `1.5px solid ${ACCENT.tintBorder}`,
-          boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 6px 14px -8px rgba(36,31,27,0.14)",
-        }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-          style={{ backgroundColor: ACCENT.tint }}
-        >
-          {ESSAY_THEME_EMOJI[item.theme]}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={`truncate ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {item.sentence}
-          </p>
-          <p className={`text-xs ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {item.theme} · {ESSAY_LEVEL_LABEL[item.level]}
-          </p>
-        </div>
-      </button>
-    );
-  }
-
   // ---------------------------------------------------------------------
-  // 階段 6c-2: A2 versions of this module's screens, used only while Root's A2 switch is on (useA2()).
-  // The 文房 screens above are untouched. UI text is A2.font; 原文 / 例句 stay serif; text >= 14 px;
+  // A2 screens. UI text is A2.font; 原文 / 例句 stay serif; text >= 14 px;
   // every pressable >= 44 px; back buttons are A2BackButton (>= 96 x 48).
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
@@ -457,7 +316,6 @@ window.App = window.App || {};
   }
 
   function EssayModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
-    const a2 = useA2();
     const [view, setView] = useState("list"); // list | detail | practice
     const [filterTheme, setFilterTheme] = useState("all");
     const [filterLevel, setFilterLevel] = useState(level || "all");
@@ -494,8 +352,7 @@ window.App = window.App || {};
     }
 
     if (view === "detail" && selectedItem) {
-      const Detail = a2 ? EssayDetailA2 : EssayDetail;
-      return <Detail item={selectedItem} onBack={() => setView("list")} onPractice={() => startPractice(filtered)} />;
+      return <EssayDetailA2 item={selectedItem} onBack={() => setView("list")} onPractice={() => startPractice(filtered)} />;
     }
 
     if (view === "practice" && practiceScope) {
@@ -510,94 +367,18 @@ window.App = window.App || {};
       );
     }
 
-    if (a2) {
-      return (
-        <ListViewA2
-          filterTheme={filterTheme}
-          setFilterTheme={setFilterTheme}
-          filterLevel={filterLevel}
-          setFilterLevel={setFilterLevel}
-          filtered={filtered}
-          mistakeItems={mistakeItems}
-          startPractice={startPractice}
-          openItem={openItem}
-          onBack={onBack}
-        />
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回主頁
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            作文金句
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            主題
-          </p>
-          <div className="flex gap-2 mb-3 flex-wrap">
-            {THEME_FILTERS.map((t) => {
-              const active = filterTheme === t.key;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setFilterTheme(t.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-                  style={
-                    active
-                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
-                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
-                  }
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            程度
-          </p>
-          <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => {
-              const active = filterLevel === l.key;
-              return (
-                <button
-                  key={l.key}
-                  onClick={() => setFilterLevel(l.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-                  style={
-                    active
-                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
-                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
-                  }
-                >
-                  {l.label}
-                </button>
-              );
-            })}
-          </div>
-          <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
-            開始隨機練習 🎲
-          </InkButton>
-          {mistakeItems.length > 0 && (
-            <InkButton accent={REVIEW_ACCENT} className="w-full mt-2" onClick={() => startPractice(ESSAY_ITEMS, mistakeItems)}>
-              練習錯題 ({mistakeItems.length}) 📝
-            </InkButton>
-          )}
-        </PaperCard>
-
-        <div className="flex flex-col gap-3">
-          {filtered.map((item) => (
-            <EssayListRow key={item.id} item={item} onOpen={() => openItem(item.id)} />
-          ))}
-        </div>
-      </div>
+      <ListViewA2
+        filterTheme={filterTheme}
+        setFilterTheme={setFilterTheme}
+        filterLevel={filterLevel}
+        setFilterLevel={setFilterLevel}
+        filtered={filtered}
+        mistakeItems={mistakeItems}
+        startPractice={startPractice}
+        openItem={openItem}
+        onBack={onBack}
+      />
     );
   }
 

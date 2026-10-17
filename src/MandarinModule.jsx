@@ -7,12 +7,12 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useEffect } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, FEEDBACK, TYPE, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useA2 } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.mandarin;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { SpeechUtils } = window.App;
-  const { MANDARIN_ITEMS, MANDARIN_LEVEL_LABEL } = window.App.Content;
+  const { MANDARIN_ITEMS } = window.App.Content;
 
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
@@ -29,19 +29,13 @@ window.App = window.App || {};
     { key: "pinyinIME", label: "拼音輸入法", emoji: "⌨️" },
   ];
 
-  const inputClass =
-    "w-full text-center text-xl tracking-wide rounded-xl font-extrabold px-4 py-3 outline-none disabled:opacity-60";
-  const inputStyle = { border: "1.5px solid #E9DFC7", backgroundColor: INK.paperCard, color: INK.ink };
-
   function withFallback(pool, kind, minCount) {
     const filtered = pool.filter((it) => it.kind === kind);
     return filtered.length >= minCount ? filtered : MANDARIN_ITEMS.filter((it) => it.kind === kind);
   }
 
   // ---------------------------------------------------------------------
-  // 階段 6c-4: A2 versions of this module's screens, used only while Root's A2 switch is on (useA2()).
-  // The 文房 screens are untouched; the speech / audio / recognition / pinyin-input logic is shared and unchanged
-  // (only the JSX that is returned differs). UI text is A2.font; hanzi are serif; pinyin (with tone marks) uses a
+  // A2 screens. UI text is A2.font; hanzi are serif; pinyin (with tone marks) uses a
   // CJK-capable sans so ā á ǎ à ǖ… render; text >= 13 px; every pressable >= 44 px; all 6 back buttons are A2BackButton.
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
@@ -154,7 +148,6 @@ window.App = window.App || {};
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
     const [done, setDone] = useState(false);
-    const a2 = useA2();
 
     useEffect(() => {
       SpeechUtils.getVoicesAsync().then((vs) => setVoice(SpeechUtils.pickMandarinVoice(vs)));
@@ -188,75 +181,20 @@ window.App = window.App || {};
       }
     }
 
-    if (a2) {
-      if (done) return <A2Done text={`答對了 ${correctCount} / ${questions.length} 題`} onFinish={() => onFinish(correctCount, questions.length)} />;
-      const a2prompt = (
-        <div>
-          <p style={{ ...A2_NOTE, marginBottom: 8 }}>請聽清楚，選出正確的字</p>
-          <button onClick={playCurrent} style={A2_PILL}>
-            🔊 重播
-          </button>
-        </div>
-      );
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題`} />
-          <PaperCard>
-            <QuestionBlock q={{ ...q, prompt: a2prompt }} selected={selected} onSelect={selectOption} accent={ACCENT} />
-            {answered && (
-              <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
-                {isLast ? "完成 🎉" : "下一題 →"}
-              </InkButton>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    const prompt = (
+    if (done) return <A2Done text={`答對了 ${correctCount} / ${questions.length} 題`} onFinish={() => onFinish(correctCount, questions.length)} />;
+    const a2prompt = (
       <div>
-        <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          請聽清楚，選出正確的字
-        </p>
-        <button
-          onClick={playCurrent}
-          className="rounded-xl font-extrabold px-4 py-2 mb-1"
-          style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}`, color: ACCENT.solid }}
-        >
+        <p style={{ ...A2_NOTE, marginBottom: 8 }}>請聽清楚，選出正確的字</p>
+        <button onClick={playCurrent} style={A2_PILL}>
           🔊 重播
         </button>
       </div>
     );
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            第 {qIndex + 1} / {questions.length} 題
-          </span>
-        </div>
-        <PaperCard accent={ACCENT}>
-          <QuestionBlock q={{ ...q, prompt }} selected={selected} onSelect={selectOption} accent={ACCENT} />
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題`} />
+        <PaperCard>
+          <QuestionBlock q={{ ...q, prompt: a2prompt }} selected={selected} onSelect={selectOption} accent={ACCENT} />
           {answered && (
             <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
@@ -277,7 +215,6 @@ window.App = window.App || {};
     const [isCorrect, setIsCorrect] = useState(false);
     const [correctCount, setCorrectCount] = useState(0);
     const [done, setDone] = useState(false);
-    const a2 = useA2();
 
     const q = questions[qIndex];
     const isLast = qIndex === questions.length - 1;
@@ -299,81 +236,16 @@ window.App = window.App || {};
       }
     }
 
-    if (a2) {
-      if (done) return <A2Done text={`答對了 ${correctCount} / ${questions.length} 題`} onFinish={() => onFinish(correctCount, questions.length)} />;
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題`} />
-          <PaperCard>
-            <div className="text-center">
-              <p className="font-serif" style={{ fontSize: 60, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
-                {q.hanzi}
-              </p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: "4px 0 16px", lineHeight: 1.6 }}>請輸入這個詞語的拼音（不需要輸入聲調）</p>
-            </div>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={checked}
-              placeholder="例如：nihao"
-              aria-label="輸入拼音"
-              style={{ ...A2_INPUT, opacity: checked ? 0.6 : 1 }}
-            />
-            {!checked ? (
-              <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheck} disabled={inputValue.trim().length === 0}>
-                核對 ✓
-              </InkButton>
-            ) : (
-              <>
-                <A2Feedback ok={isCorrect}>
-                  {isCorrect ? "✅ 答對了，做得好！" : <>💛 答錯了，正確拼音是：<span style={{ fontFamily: A2_PINYIN_FONT, fontSize: 18 }}>{q.pinyin}</span></>}
-                </A2Feedback>
-                <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
-                  {isLast ? "完成 🎉" : "下一題 →"}
-                </InkButton>
-              </>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
+    if (done) return <A2Done text={`答對了 ${correctCount} / ${questions.length} 題`} onFinish={() => onFinish(correctCount, questions.length)} />;
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            第 {qIndex + 1} / {questions.length} 題
-          </span>
-        </div>
-        <PaperCard accent={ACCENT}>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題`} />
+        <PaperCard>
           <div className="text-center">
-            <p className="text-6xl font-extrabold mb-1" style={{ color: INK.ink }}>
+            <p className="font-serif" style={{ fontSize: 60, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
               {q.hanzi}
             </p>
-            <p className="text-sm font-bold mb-4" style={{ color: INK.mutedInk }}>
-              請輸入這個詞語的拼音（不需要輸入聲調）
-            </p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: "4px 0 16px", lineHeight: 1.6 }}>請輸入這個詞語的拼音（不需要輸入聲調）</p>
           </div>
           <input
             type="text"
@@ -381,8 +253,8 @@ window.App = window.App || {};
             onChange={(e) => setInputValue(e.target.value)}
             disabled={checked}
             placeholder="例如：nihao"
-            className={inputClass}
-            style={inputStyle}
+            aria-label="輸入拼音"
+            style={{ ...A2_INPUT, opacity: checked ? 0.6 : 1 }}
           />
           {!checked ? (
             <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheck} disabled={inputValue.trim().length === 0}>
@@ -390,9 +262,9 @@ window.App = window.App || {};
             </InkButton>
           ) : (
             <>
-              <p className="mt-3 font-extrabold" style={{ color: isCorrect ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}>
-                {isCorrect ? "✅ 答對了，做得好！" : `💛 答錯了，正確拼音是：${q.pinyin}`}
-              </p>
+              <A2Feedback ok={isCorrect}>
+                {isCorrect ? "✅ 答對了，做得好！" : <>💛 答錯了，正確拼音是：<span style={{ fontFamily: A2_PINYIN_FONT, fontSize: 18 }}>{q.pinyin}</span></>}
+              </A2Feedback>
               <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
                 {isLast ? "完成 🎉" : "下一題 →"}
               </InkButton>
@@ -428,69 +300,26 @@ window.App = window.App || {};
     const { PINYIN_IME_CHARS } = window.App.Content;
     const [selected, setSelected] = useState(null);
     const item = PINYIN_IME_CHARS.find((c) => c.char === selected);
-    const a2 = useA2();
-    if (a2) {
-      return (
-        <A2Section title={`常用字拼音練習（${PINYIN_IME_CHARS.length} 個字）`}>
-          <p style={{ ...A2_NOTE, marginBottom: 12 }}>先自己讀一讀，再點一個字，核對它的拼音和聲調。</p>
-          <div className="mb-3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(48px, 1fr))", gap: 6 }}>
-            {PINYIN_IME_CHARS.map((c) => {
-              const on = c.char === selected;
-              return (
-                <button
-                  key={c.char}
-                  aria-pressed={on}
-                  onClick={() => setSelected(on ? null : c.char)}
-                  className="font-serif"
-                  style={{
-                    minHeight: 48,
-                    borderRadius: 12,
-                    fontSize: 22,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                    ...(on ? { background: A2.segOn, color: "#fff", border: `1.5px solid ${A2.accD}` } : { background: A2.row, color: A2.ink, border: `1.5px solid ${A2.rowBd}` }),
-                  }}
-                >
-                  {c.char}
-                </button>
-              );
-            })}
-          </div>
-          {item && (
-            <div className="text-center" style={{ padding: 12, borderRadius: 14, background: "#fff", border: `1.5px solid ${A2.rowBd}` }}>
-              <p className="font-serif" style={{ fontSize: 56, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
-                {item.char}
-              </p>
-              <p style={{ fontSize: 32, fontWeight: 900, color: A2.accD, margin: "4px 0 0", fontFamily: A2_PINYIN_FONT }}>{item.pinyin}</p>
-              <p style={{ ...A2_NOTE, marginTop: 4 }}>
-                {TONE_NAMES[toneOf(item.pinyin)]}・打字時輸入：<span style={{ fontFamily: A2_PINYIN_FONT }}>{typedForm(item.pinyin)}</span>
-              </p>
-            </div>
-          )}
-        </A2Section>
-      );
-    }
     return (
-      <PaperCard accent={ACCENT}>
-        <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-          常用字拼音練習（{PINYIN_IME_CHARS.length} 個字）
-        </p>
-        <p className={`text-sm mb-3 ${TYPE.body}`} style={{ color: INK.mutedInk }}>
-          先自己讀一讀，再點一個字，核對它的拼音和聲調。
-        </p>
-        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 mb-3">
+      <A2Section title={`常用字拼音練習（${PINYIN_IME_CHARS.length} 個字）`}>
+        <p style={{ ...A2_NOTE, marginBottom: 12 }}>先自己讀一讀，再點一個字，核對它的拼音和聲調。</p>
+        <div className="mb-3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(48px, 1fr))", gap: 6 }}>
           {PINYIN_IME_CHARS.map((c) => {
             const on = c.char === selected;
             return (
               <button
                 key={c.char}
+                aria-pressed={on}
                 onClick={() => setSelected(on ? null : c.char)}
-                className="rounded-lg py-1.5 text-xl font-extrabold transition-all"
-                style={
-                  on
-                    ? { backgroundColor: ACCENT.solid, color: ACCENT.on, border: `1.5px solid ${ACCENT.solid}` }
-                    : { backgroundColor: ACCENT.tint, color: INK.ink, border: `1.5px solid ${ACCENT.tintBorder}` }
-                }
+                className="font-serif"
+                style={{
+                  minHeight: 48,
+                  borderRadius: 12,
+                  fontSize: 22,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  ...(on ? { background: A2.segOn, color: "#fff", border: `1.5px solid ${A2.accD}` } : { background: A2.row, color: A2.ink, border: `1.5px solid ${A2.rowBd}` }),
+                }}
               >
                 {c.char}
               </button>
@@ -498,151 +327,68 @@ window.App = window.App || {};
           })}
         </div>
         {item && (
-          <div className="rounded-xl p-3 text-center" style={{ backgroundColor: INK.paperCard, border: `1.5px solid ${ACCENT.tintBorder}` }}>
-            <p className="text-5xl font-extrabold" style={{ color: INK.ink }}>
+          <div className="text-center" style={{ padding: 12, borderRadius: 14, background: "#fff", border: `1.5px solid ${A2.rowBd}` }}>
+            <p className="font-serif" style={{ fontSize: 56, fontWeight: 900, lineHeight: 1.2, color: A2.ink, margin: 0 }}>
               {item.char}
             </p>
-            <p className="text-3xl font-extrabold mt-1" style={{ color: ACCENT.solid }}>
-              {item.pinyin}
-            </p>
-            <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
-              {TONE_NAMES[toneOf(item.pinyin)]}・打字時輸入：{typedForm(item.pinyin)}
+            <p style={{ fontSize: 32, fontWeight: 900, color: A2.accD, margin: "4px 0 0", fontFamily: A2_PINYIN_FONT }}>{item.pinyin}</p>
+            <p style={{ ...A2_NOTE, marginTop: 4 }}>
+              {TONE_NAMES[toneOf(item.pinyin)]}・打字時輸入：<span style={{ fontFamily: A2_PINYIN_FONT }}>{typedForm(item.pinyin)}</span>
             </p>
           </div>
         )}
-      </PaperCard>
+      </A2Section>
     );
   }
   function PinyinIMEIntro({ onBack, onStart }) {
     const { PINYIN_IME_BASICS, PINYIN_IME_INTRO, PINYIN_IME_EXAMPLE, PINYIN_IME_WHY_CANDIDATES } = window.App.Content;
     const basics = PINYIN_IME_BASICS;
     const ex = PINYIN_IME_EXAMPLE;
-    const a2 = useA2();
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <div className="flex items-center gap-2">
-              <A2ModuleIcon moduleKey="mandarin" size={44} />
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0 }}>拼音輸入法</h1>
-            </div>
-          </div>
-
-          <A2Section title="什麼是拼音？">
-            <p style={{ ...A2_BODY, marginBottom: 12 }}>{basics.whatIsPinyin}</p>
-            <p style={{ ...A2_BODY, marginBottom: 12 }}>{basics.syllableStructure}</p>
-            <div className="flex flex-col gap-2 mb-3">
-              {basics.examples.map((item, i) => (
-                <div key={i} className="text-center" style={{ padding: 12, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
-                  <p style={{ ...A2_BODY, fontWeight: 900 }}>
-                    <span className="font-serif">{item.char}</span>（<span style={{ fontFamily: A2_PINYIN_FONT }}>{item.syllable}</span>） ={" "}
-                    <span style={{ color: A2.accD, fontFamily: A2_PINYIN_FONT }}>{item.initial}</span>（聲母） +{" "}
-                    <span style={{ color: A2.accD, fontFamily: A2_PINYIN_FONT }}>{item.final}</span>（韻母）
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p style={A2_BODY}>{basics.toneNote}</p>
-          </A2Section>
-
-          <PaperCard>
-            <p style={A2_BODY}>{PINYIN_IME_INTRO}</p>
-          </PaperCard>
-
-          <A2Section title="例子">
-            <div style={{ padding: 12, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
-              <p style={{ ...A2_BODY, fontWeight: 900 }}>
-                輸入「<span style={{ fontFamily: A2_PINYIN_FONT }}>{ex.pinyin}</span>」 → 候選：<span className="font-serif">{ex.candidates.join("／")}</span>
-              </p>
-              <p className="mt-1" style={A2_NOTE}>
-                {ex.note}
-              </p>
-            </div>
-          </A2Section>
-
-          <A2Section title="為什麼要選字？">
-            <p style={A2_BODY}>{PINYIN_IME_WHY_CANDIDATES}</p>
-          </A2Section>
-
-          <PinyinCharLookup />
-
-          <InkButton accent={ACCENT} className="w-full" onClick={onStart}>
-            開始練習 🎯
-          </InkButton>
-        </div>
-      );
-    }
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            拼音輸入法
-          </span>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <div className="flex items-center gap-2">
+            <A2ModuleIcon moduleKey="mandarin" size={44} />
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0 }}>拼音輸入法</h1>
+          </div>
         </div>
 
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            什麼是拼音？
-          </p>
-          <p className={`leading-relaxed mb-3 ${TYPE.body}`} style={{ color: INK.ink }}>
-            {basics.whatIsPinyin}
-          </p>
-          <p className={`leading-relaxed mb-3 ${TYPE.body}`} style={{ color: INK.ink }}>
-            {basics.syllableStructure}
-          </p>
+        <A2Section title="什麼是拼音？">
+          <p style={{ ...A2_BODY, marginBottom: 12 }}>{basics.whatIsPinyin}</p>
+          <p style={{ ...A2_BODY, marginBottom: 12 }}>{basics.syllableStructure}</p>
           <div className="flex flex-col gap-2 mb-3">
             {basics.examples.map((item, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-3 text-center"
-                style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}
-              >
-                <p className="font-extrabold" style={{ color: INK.ink }}>
-                  {item.char}（{item.syllable}） ={" "}
-                  <span style={{ color: ACCENT.solid }}>{item.initial}</span>（聲母） +{" "}
-                  <span style={{ color: ACCENT.solid }}>{item.final}</span>（韻母）
+              <div key={i} className="text-center" style={{ padding: 12, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
+                <p style={{ ...A2_BODY, fontWeight: 900 }}>
+                  <span className="font-serif">{item.char}</span>（<span style={{ fontFamily: A2_PINYIN_FONT }}>{item.syllable}</span>） ={" "}
+                  <span style={{ color: A2.accD, fontFamily: A2_PINYIN_FONT }}>{item.initial}</span>（聲母） +{" "}
+                  <span style={{ color: A2.accD, fontFamily: A2_PINYIN_FONT }}>{item.final}</span>（韻母）
                 </p>
               </div>
             ))}
           </div>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {basics.toneNote}
-          </p>
+          <p style={A2_BODY}>{basics.toneNote}</p>
+        </A2Section>
+
+        <PaperCard>
+          <p style={A2_BODY}>{PINYIN_IME_INTRO}</p>
         </PaperCard>
 
-        <PaperCard accent={ACCENT}>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {PINYIN_IME_INTRO}
-          </p>
-        </PaperCard>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            例子
-          </p>
-          <div className="rounded-xl p-3" style={{ backgroundColor: ACCENT.tint, border: `1.5px solid ${ACCENT.tintBorder}` }}>
-            <p className="font-extrabold" style={{ color: INK.ink }}>
-              輸入「{ex.pinyin}」 → 候選：{ex.candidates.join("／")}
+        <A2Section title="例子">
+          <div style={{ padding: 12, borderRadius: 14, background: A2.row, border: `1.5px solid ${A2.rowBd}` }}>
+            <p style={{ ...A2_BODY, fontWeight: 900 }}>
+              輸入「<span style={{ fontFamily: A2_PINYIN_FONT }}>{ex.pinyin}</span>」 → 候選：<span className="font-serif">{ex.candidates.join("／")}</span>
             </p>
-            <p className="text-sm mt-1" style={{ color: INK.mutedInk }}>
+            <p className="mt-1" style={A2_NOTE}>
               {ex.note}
             </p>
           </div>
-        </PaperCard>
+        </A2Section>
 
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-1 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            為什麼要選字？
-          </p>
-          <p className={`leading-relaxed ${TYPE.body}`} style={{ color: INK.ink }}>
-            {PINYIN_IME_WHY_CANDIDATES}
-          </p>
-        </PaperCard>
+        <A2Section title="為什麼要選字？">
+          <p style={A2_BODY}>{PINYIN_IME_WHY_CANDIDATES}</p>
+        </A2Section>
 
         <PinyinCharLookup />
 
@@ -669,7 +415,6 @@ window.App = window.App || {};
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
     const [done, setDone] = useState(false);
-    const a2 = useA2();
 
     const q = questions[qIndex];
     const isLast = qIndex === questions.length - 1;
@@ -706,139 +451,45 @@ window.App = window.App || {};
       }
     }
 
-    if (a2) {
-      if (done) return <A2Done text={`答對了 ${correctCount} / ${totalSteps} 步`} onFinish={() => onFinish(correctCount, totalSteps)} />;
-      const a2SelectQ = {
-        prompt: (
-          <p className="font-serif" style={{ fontSize: 18, lineHeight: 1.8, margin: 0 }}>
-            {q.clue}
-          </p>
-        ),
-        options: candidateOptions,
-        correctIndex: candidateOptions.indexOf(q.correct),
-      };
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題 · ${stage === "pinyin" ? "打拼音" : "選字"}`} />
-          <PaperCard>
-            {stage === "pinyin" ? (
-              <>
-                <p className="font-serif" style={{ fontSize: 18, lineHeight: 1.8, color: A2.ink, margin: "0 0 12px" }}>
-                  {q.clue}
-                </p>
-                <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 12px", lineHeight: 1.6 }}>請輸入空格中那個字的拼音（不需要輸入聲調）</p>
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  disabled={pinyinChecked}
-                  placeholder="例如：ni"
-                  aria-label="輸入拼音"
-                  style={{ ...A2_INPUT, opacity: pinyinChecked ? 0.6 : 1 }}
-                />
-                {!pinyinChecked ? (
-                  <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheckPinyin} disabled={inputValue.trim().length === 0}>
-                    核對 ✓
-                  </InkButton>
-                ) : (
-                  <>
-                    <A2Feedback ok={pinyinCorrect}>
-                      {pinyinCorrect ? "✅ 答對了！" : <>💛 答錯了，正確拼音是：<span style={{ fontFamily: A2_PINYIN_FONT, fontSize: 18 }}>{q.pinyin}</span></>}
-                    </A2Feedback>
-                    <p className="mt-2" style={A2_NOTE}>
-                      現在請從候選字中選出正確的字——這就是拼音輸入法實際運作的方式。
-                    </p>
-                    <InkButton accent={ACCENT} className="w-full mt-3" onClick={goToSelectStage}>
-                      繼續 →
-                    </InkButton>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <QuestionBlock q={a2SelectQ} selected={selected} onSelect={selectCandidate} accent={ACCENT} />
-                {selected !== null && (
-                  <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
-                    {isLast ? "完成 🎉" : "下一題 →"}
-                  </InkButton>
-                )}
-              </>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            答對了 {correctCount} / {totalSteps} 步
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, totalSteps)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    const selectQ = {
-      prompt: <p className="leading-relaxed">{q.clue}</p>,
+    if (done) return <A2Done text={`答對了 ${correctCount} / ${totalSteps} 步`} onFinish={() => onFinish(correctCount, totalSteps)} />;
+    const a2SelectQ = {
+      prompt: (
+        <p className="font-serif" style={{ fontSize: 18, lineHeight: 1.8, margin: 0 }}>
+          {q.clue}
+        </p>
+      ),
       options: candidateOptions,
       correctIndex: candidateOptions.indexOf(q.correct),
     };
-
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            第 {qIndex + 1} / {questions.length} 題 · {stage === "pinyin" ? "打拼音" : "選字"}
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <A2TopBar backLabel="← 返回" onBack={onBack} right={`第 ${qIndex + 1} / ${questions.length} 題 · ${stage === "pinyin" ? "打拼音" : "選字"}`} />
+        <PaperCard>
           {stage === "pinyin" ? (
             <>
-              <p className="leading-relaxed mb-3" style={{ color: INK.ink }}>
+              <p className="font-serif" style={{ fontSize: 18, lineHeight: 1.8, color: A2.ink, margin: "0 0 12px" }}>
                 {q.clue}
               </p>
-              <p className="text-sm font-bold mb-3" style={{ color: INK.mutedInk }}>
-                請輸入空格中那個字的拼音（不需要輸入聲調）
-              </p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 12px", lineHeight: 1.6 }}>請輸入空格中那個字的拼音（不需要輸入聲調）</p>
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={pinyinChecked}
                 placeholder="例如：ni"
-                className={inputClass}
-                style={inputStyle}
+                aria-label="輸入拼音"
+                style={{ ...A2_INPUT, opacity: pinyinChecked ? 0.6 : 1 }}
               />
               {!pinyinChecked ? (
-                <InkButton
-                  accent={ACCENT}
-                  className="w-full mt-3"
-                  onClick={handleCheckPinyin}
-                  disabled={inputValue.trim().length === 0}
-                >
+                <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleCheckPinyin} disabled={inputValue.trim().length === 0}>
                   核對 ✓
                 </InkButton>
               ) : (
                 <>
-                  <p
-                    className="mt-3 font-extrabold"
-                    style={{ color: pinyinCorrect ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}
-                  >
-                    {pinyinCorrect ? "✅ 答對了！" : `💛 答錯了，正確拼音是：${q.pinyin}`}
-                  </p>
-                  <p className="text-sm mt-2" style={{ color: INK.mutedInk }}>
+                  <A2Feedback ok={pinyinCorrect}>
+                    {pinyinCorrect ? "✅ 答對了！" : <>💛 答錯了，正確拼音是：<span style={{ fontFamily: A2_PINYIN_FONT, fontSize: 18 }}>{q.pinyin}</span></>}
+                  </A2Feedback>
+                  <p className="mt-2" style={A2_NOTE}>
                     現在請從候選字中選出正確的字——這就是拼音輸入法實際運作的方式。
                   </p>
                   <InkButton accent={ACCENT} className="w-full mt-3" onClick={goToSelectStage}>
@@ -849,7 +500,7 @@ window.App = window.App || {};
             </>
           ) : (
             <>
-              <QuestionBlock q={selectQ} selected={selected} onSelect={selectCandidate} accent={ACCENT} />
+              <QuestionBlock q={a2SelectQ} selected={selected} onSelect={selectCandidate} accent={ACCENT} />
               {selected !== null && (
                 <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
                   {isLast ? "完成 🎉" : "下一題 →"}
@@ -875,7 +526,6 @@ window.App = window.App || {};
     const [attempted, setAttempted] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [done, setDone] = useState(false);
-    const a2 = useA2();
 
     const recognitionSupported = SpeechUtils.isRecognitionSupported();
 
@@ -961,119 +611,21 @@ window.App = window.App || {};
       }
     }
 
-    if (a2) {
-      if (done) return <A2Done text={`完成了 ${attempted} 個，成功辨識 ${correctCount} 個`} onFinish={() => onFinish(correctCount, attempted)} />;
-      const a2Answered = status !== "idle";
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <A2TopBar backLabel="← 返回" onBack={onBack} right={`${title} ${index + 1} / ${list.length}`} />
-          <PaperCard>
-            <p style={{ ...A2_NOTE, marginBottom: 8 }}>{instructionLabel}</p>
-            <div className="text-center mb-3">
-              <p className="font-serif" style={{ fontSize: 34, fontWeight: 900, lineHeight: 1.45, color: A2.ink, margin: "0 0 4px" }}>
-                {item.hanzi}
-              </p>
-              {showPinyin && (
-                <p style={{ fontSize: 18, fontWeight: 900, color: A2.accD, margin: "0 0 4px", fontFamily: A2_PINYIN_FONT, lineHeight: 1.6 }}>{item.pinyin}</p>
-              )}
-              <button onClick={() => setShowPinyin((v) => !v)} aria-pressed={showPinyin} style={{ ...A2_PILL, marginTop: 4 }}>
-                {showPinyin ? "隱藏拼音" : "顯示拼音"}
-              </button>
-            </div>
-
-            <div className="flex gap-2 mb-3">
-              <InkButton accent={ACCENT} className="flex-1 !px-2 !py-2 !text-base" onClick={playModel}>
-                🔊 播放示範
-              </InkButton>
-              <InkButton accent={ACCENT} className="flex-1 !px-2 !py-2 !text-base" onClick={startListening} disabled={listening || !recognitionSupported}>
-                {listening ? "🎙️ 錄音中..." : "🎙️ 開始錄音"}
-              </InkButton>
-            </div>
-
-            {!recognitionSupported && (
-              <p className="mb-2" style={A2_NOTE}>
-                這部裝置未必支援語音辨識，可以使用下面的按鈕確認你已朗讀。
-              </p>
-            )}
-            {message && (
-              <p className="mb-2" style={{ ...A2_NOTE, color: A2.hotInk, fontWeight: 700 }}>
-                {message}
-              </p>
-            )}
-
-            {!a2Answered && (
-              <button onClick={manualConfirm} className="w-full" style={{ ...A2_PILL, color: A2.sub }}>
-                我已經讀了（不使用錄音）
-              </button>
-            )}
-
-            {a2Answered && (
-              <>
-                <A2Feedback ok={status === "correct" || status === "manual"}>
-                  {status === "correct" && "✅ 讀得好標準！"}
-                  {status === "tryagain" && "💛 與錄音不相符，可以再試一次！"}
-                  {status === "manual" && "👍 好，繼續加油！"}
-                </A2Feedback>
-                <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
-                  {isLast ? "完成 🎉" : "下一個 →"}
-                </InkButton>
-              </>
-            )}
-          </PaperCard>
-        </div>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={ACCENT} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            練習完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: ACCENT.solid }}>
-            完成了 {attempted} 個，成功辨識 {correctCount} 個
-          </p>
-          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, attempted)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    const answered = status !== "idle";
-    const statusColor =
-      status === "correct" ? FEEDBACK.correct.solid : status === "manual" ? ACCENT.solid : FEEDBACK.incorrect.solid;
-
+    if (done) return <A2Done text={`完成了 ${attempted} 個，成功辨識 ${correctCount} 個`} onFinish={() => onFinish(correctCount, attempted)} />;
+    const a2Answered = status !== "idle";
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回
-          </button>
-          <span className={`text-sm ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {title} {index + 1} / {list.length}
-          </span>
-        </div>
-
-        <PaperCard accent={ACCENT}>
-          <p className={`text-xs mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            {instructionLabel}
-          </p>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <A2TopBar backLabel="← 返回" onBack={onBack} right={`${title} ${index + 1} / ${list.length}`} />
+        <PaperCard>
+          <p style={{ ...A2_NOTE, marginBottom: 8 }}>{instructionLabel}</p>
           <div className="text-center mb-3">
-            <p className="text-4xl font-extrabold mb-1" style={{ color: INK.ink }}>
+            <p className="font-serif" style={{ fontSize: 34, fontWeight: 900, lineHeight: 1.45, color: A2.ink, margin: "0 0 4px" }}>
               {item.hanzi}
             </p>
             {showPinyin && (
-              <p className="text-sm font-bold" style={{ color: ACCENT.solid }}>
-                {item.pinyin}
-              </p>
+              <p style={{ fontSize: 18, fontWeight: 900, color: A2.accD, margin: "0 0 4px", fontFamily: A2_PINYIN_FONT, lineHeight: 1.6 }}>{item.pinyin}</p>
             )}
-            <button
-              onClick={() => setShowPinyin((v) => !v)}
-              className="text-xs font-extrabold underline mt-1"
-              style={{ color: ACCENT.solid }}
-            >
+            <button onClick={() => setShowPinyin((v) => !v)} aria-pressed={showPinyin} style={{ ...A2_PILL, marginTop: 4 }}>
               {showPinyin ? "隱藏拼音" : "顯示拼音"}
             </button>
           </div>
@@ -1082,40 +634,35 @@ window.App = window.App || {};
             <InkButton accent={ACCENT} className="flex-1 !px-2 !py-2 !text-base" onClick={playModel}>
               🔊 播放示範
             </InkButton>
-            <InkButton
-              accent={ACCENT}
-              className="flex-1 !px-2 !py-2 !text-base"
-              onClick={startListening}
-              disabled={listening || !recognitionSupported}
-            >
+            <InkButton accent={ACCENT} className="flex-1 !px-2 !py-2 !text-base" onClick={startListening} disabled={listening || !recognitionSupported}>
               {listening ? "🎙️ 錄音中..." : "🎙️ 開始錄音"}
             </InkButton>
           </div>
 
           {!recognitionSupported && (
-            <p className="text-xs mb-2" style={{ color: INK.mutedInk }}>
+            <p className="mb-2" style={A2_NOTE}>
               這部裝置未必支援語音辨識，可以使用下面的按鈕確認你已朗讀。
             </p>
           )}
           {message && (
-            <p className="text-xs mb-2" style={{ color: FEEDBACK.incorrect.solid }}>
+            <p className="mb-2" style={{ ...A2_NOTE, color: A2.hotInk, fontWeight: 700 }}>
               {message}
             </p>
           )}
 
-          {!answered && (
-            <button onClick={manualConfirm} className="text-sm font-extrabold underline" style={{ color: INK.mutedInk }}>
+          {!a2Answered && (
+            <button onClick={manualConfirm} className="w-full" style={{ ...A2_PILL, color: A2.sub }}>
               我已經讀了（不使用錄音）
             </button>
           )}
 
-          {answered && (
+          {a2Answered && (
             <>
-              <p className="font-extrabold" style={{ color: statusColor }}>
+              <A2Feedback ok={status === "correct" || status === "manual"}>
                 {status === "correct" && "✅ 讀得好標準！"}
                 {status === "tryagain" && "💛 與錄音不相符，可以再試一次！"}
                 {status === "manual" && "👍 好，繼續加油！"}
-              </p>
+              </A2Feedback>
               <InkButton accent={ACCENT} className="w-full mt-3" onClick={handleNext}>
                 {isLast ? "完成 🎉" : "下一個 →"}
               </InkButton>
@@ -1128,78 +675,21 @@ window.App = window.App || {};
 
   function MandarinHome({ level, onBack, onOpenActivity }) {
     const [filterLevel, setFilterLevel] = useState(level || "all");
-    const a2 = useA2();
 
-    if (a2) {
-      const m = MODULE_ICONS.mandarin;
-      return (
-        <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <A2BackButton label="← 返回主頁" onClick={onBack} />
-            <div className="flex items-center gap-2">
-              <A2ModuleIcon moduleKey="mandarin" size={44} />
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0 }}>普通話練習</h1>
-            </div>
-          </div>
-
-          <PaperCard>
-            <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
-            <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
-          </PaperCard>
-
-          <div className="grid grid-cols-2 gap-3">
-            {ACTIVITIES.map((a) => (
-              <button
-                key={a.key}
-                onClick={() => onOpenActivity(a.key, filterLevel)}
-                className="flex flex-col items-center justify-center gap-2 text-center active:translate-y-[2px] transition-all"
-                style={{ minHeight: 128, padding: 14, borderRadius: 22, background: A2.glass, border: `1px solid ${A2.glassBd}`, boxShadow: A2.shadow, color: A2.ink, fontFamily: A2.font, cursor: "pointer" }}
-              >
-                <div aria-hidden="true" className="flex items-center justify-center shrink-0" style={{ width: 56, height: 56, borderRadius: 18, background: m.tint, border: `1px solid ${m.tintBorder}`, fontSize: 28 }}>
-                  {a.emoji}
-                </div>
-                <span style={{ fontSize: 16, fontWeight: 900 }}>{a.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
+    const m = MODULE_ICONS.mandarin;
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: ACCENT.solid }}>
-            ← 返回主頁
-          </button>
-          <span className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-            普通話練習
-          </span>
+      <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回主頁" onClick={onBack} />
+          <div className="flex items-center gap-2">
+            <A2ModuleIcon moduleKey="mandarin" size={44} />
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0 }}>普通話練習</h1>
+          </div>
         </div>
 
-        <PaperCard accent={ACCENT}>
-          <p className={`text-sm mb-2 ${TYPE.caption}`} style={{ color: INK.mutedInk }}>
-            程度
-          </p>
-          <div className="flex gap-2">
-            {LEVEL_FILTERS.map((l) => {
-              const active = filterLevel === l.key;
-              return (
-                <button
-                  key={l.key}
-                  onClick={() => setFilterLevel(l.key)}
-                  className={`flex-1 rounded-xl py-2 text-sm transition-all ${TYPE.heading}`}
-                  style={
-                    active
-                      ? { backgroundColor: ACCENT.solid, color: ACCENT.on }
-                      : { backgroundColor: INK.paper, color: INK.mutedInk, border: `1.5px solid ${ACCENT.tintBorder}` }
-                  }
-                >
-                  {l.label}
-                </button>
-              );
-            })}
-          </div>
+        <PaperCard>
+          <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
+          <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
         </PaperCard>
 
         <div className="grid grid-cols-2 gap-3">
@@ -1207,22 +697,13 @@ window.App = window.App || {};
             <button
               key={a.key}
               onClick={() => onOpenActivity(a.key, filterLevel)}
-              className="flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center active:translate-y-[2px] transition-all aspect-square"
-              style={{
-                backgroundColor: INK.paperCard,
-                border: `1.5px solid ${ACCENT.tintBorder}`,
-                boxShadow: "0 1px 2px rgba(36,31,27,0.05), 0 8px 18px -8px rgba(36,31,27,0.16)",
-              }}
+              className="flex flex-col items-center justify-center gap-2 text-center active:translate-y-[2px] transition-all"
+              style={{ minHeight: 128, padding: 14, borderRadius: 22, background: A2.glass, border: `1px solid ${A2.glassBd}`, boxShadow: A2.shadow, color: A2.ink, fontFamily: A2.font, cursor: "pointer" }}
             >
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0"
-                style={{ backgroundColor: ACCENT.tint }}
-              >
+              <div aria-hidden="true" className="flex items-center justify-center shrink-0" style={{ width: 56, height: 56, borderRadius: 18, background: m.tint, border: `1px solid ${m.tintBorder}`, fontSize: 28 }}>
                 {a.emoji}
               </div>
-              <p className={`text-sm ${TYPE.heading}`} style={{ color: INK.ink }}>
-                {a.label}
-              </p>
+              <span style={{ fontSize: 16, fontWeight: 900 }}>{a.label}</span>
             </button>
           ))}
         </div>
