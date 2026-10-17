@@ -6,6 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { Storage } = window.App;
+  const { A2, useA2 } = window.App.UI;
 
   function withToday(date) {
     const url = new URL(window.location.href);
@@ -15,6 +16,7 @@ window.App = window.App || {};
   }
 
   function TestModeBanner() {
+    const a2 = useA2();
     if (!Storage.TEST_MODE) return null;
 
     const date = Storage.todayStr();
@@ -38,6 +40,63 @@ window.App = window.App || {};
         // ignore — reload below still shows whatever is stored
       }
       window.location.reload();
+    }
+
+    // 階段 6d-1: A2 look (when Root's A2 switch is on). Same four actions and texts; the buttons are 44 px high pills
+    // (they were 40 px). Deep indigo bar with a warm 「測試模式」 chip so it still reads as "not the real data".
+    if (a2) {
+      const abtn = {
+        minHeight: 44,
+        padding: "0 16px",
+        borderRadius: 999,
+        border: "1px solid rgba(255,255,255,.45)",
+        background: "rgba(255,255,255,.16)",
+        color: "#fff",
+        fontFamily: A2.font,
+        fontSize: 15,
+        fontWeight: 900,
+        cursor: "pointer",
+      };
+      return (
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 60,
+            background: "#1F1859",
+            color: "#fff",
+            fontFamily: A2.font,
+            boxShadow: "0 6px 16px rgba(21,18,63,.45)",
+            paddingTop: "var(--sat)",
+          }}
+        >
+          <div
+            className="max-w-2xl mx-auto flex flex-col gap-2"
+            style={{ padding: "10px max(1rem, var(--sar)) 12px max(1rem, var(--sal))" }}
+          >
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, lineHeight: 1.5 }}>
+              <span style={{ background: A2.fireBg, color: A2.fireInk, borderRadius: 999, padding: "1px 10px", marginRight: 8 }}>🧪 測試模式</span>
+              測試日期 {date}
+              {!validParam && <span style={{ fontSize: 14, fontWeight: 400 }}>（網址日期無效，已使用今日）</span>}
+            </p>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "rgba(255,255,255,.92)" }}>這裏的進度只存放在測試區，不會影響正式進度。</p>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => goDay(-1)} style={abtn}>
+                ◀ 前一日
+              </button>
+              <button onClick={() => goDay(1)} style={abtn}>
+                後一日 ▶
+              </button>
+              <button onClick={resetTestData} style={abtn}>
+                清除測試資料
+              </button>
+              <button onClick={exitTestMode} style={{ ...abtn, background: "#fff", color: "#1F1859", border: "1px solid #fff" }}>
+                離開測試模式
+              </button>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     const pill = {

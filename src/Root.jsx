@@ -24,8 +24,9 @@ window.App = window.App || {};
 
   // 階段 6c: the screens that use the A2 look (A2 backdrop, no app-title header, and — for module screens —
   // A2 versions of the shared components through A2Context). 6c-1 = home + the 文言文選讀 pilot; 6c-2 adds
-  // 修辭 / 標點 / 作文 / 詩詞; 6c-3 adds 成語 / 閱讀理解 / 歷史; 6c-4 adds 倉頡 / 普通話 (all 10 modules are now A2).
-  const A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"];
+  // 修辭 / 標點 / 作文 / 詩詞; 6c-3 adds 成語 / 閱讀理解 / 歷史; 6c-4 adds 倉頡 / 普通話 (all 10 modules are now A2);
+  // 6d-1 adds the badge screen, so every view is A2 (the 文房 backdrop branch below is kept until 6d-2).
+  const A2_VIEWS = ["home", "badges", "classicalProse", "rhetoric", "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"];
 
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());
@@ -37,6 +38,11 @@ window.App = window.App || {};
     useEffect(() => {
       Storage.saveState(state);
     }, [state]);
+
+    // A new screen always starts at the top (the page used to keep the previous screen's scroll offset).
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [view]);
 
     // The date the home screen shows missions for. Re-read whenever the page
     // is shown again (an iPad home-screen app can sit open overnight).
@@ -133,12 +139,11 @@ window.App = window.App || {};
 
     const isHome = view === "home";
     const isA2 = A2_VIEWS.includes(view);
-    // The home screen is built from A2 pieces directly (Home.jsx) and still embeds BackupSettings, which stays
-    // in the 文房 look until 6d, so the shared components are switched to A2 only on module screens.
-    const a2Components = isA2 && view !== "home";
 
+    // One provider for the whole page, so the test banner, the notices and the backup panel on the home screen
+    // switch to their A2 look together with the module screens.
     return (
-      <>
+      <A2Context.Provider value={isA2}>
       <TestModeBanner />
       <div
         className="min-h-screen relative overflow-hidden"
@@ -177,7 +182,6 @@ window.App = window.App || {};
           </header>
           )}
 
-          <A2Context.Provider value={a2Components}>
           <main>
             {view === "home" && <Home
                 state={state}
@@ -272,11 +276,10 @@ window.App = window.App || {};
               />
             )}
           </main>
-          </A2Context.Provider>
         </div>
       </div>
       <NoticeStack notices={notices} onDismiss={dismissNotice} onDismissAll={() => setNotices([])} onOpenBadges={openBadgesFromNotice} onHeight={setNoticeHeight} />
-      </>
+      </A2Context.Provider>
     );
   }
 

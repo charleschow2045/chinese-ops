@@ -7,7 +7,7 @@ window.App = window.App || {};
 (function () {
   const { useState } = React;
   const { Storage } = window.App;
-  const { PaperCard, InkButton, INK, TYPE } = window.App.UI;
+  const { PaperCard, InkButton, INK, TYPE, A2, A2Card, A2Button, useA2 } = window.App.UI;
 
   // Neutral indigo family so the panel reads as "settings", not a module.
   const ACCENT = { solid: INK.indigo, dark: "#243241", tint: "#E4E8EC", tintBorder: "#C3CDD6", on: INK.paper };
@@ -44,6 +44,7 @@ window.App = window.App || {};
     const [pending, setPending] = useState(null); // { state, exportedAt } awaiting confirmation
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const a2 = useA2();
 
     function toggle() {
       setOpen((v) => !v);
@@ -99,6 +100,94 @@ window.App = window.App || {};
 
     const sum = pending ? summarize(pending.state) : null;
     const textStyle = { color: INK.subInk };
+
+    // 階段 6d-1: A2 look (shown whenever Root's A2 switch is on, i.e. on every screen now). Same texts, same flow
+    // (export, choose a file, confirm screen, overwrite); buttons >= 48 px, text >= 14 px. The 文房 render below is kept.
+    if (a2) {
+      const note = { fontSize: 14, lineHeight: 1.7, color: A2.sub, margin: 0 };
+      const pill = { minHeight: 48, borderRadius: 999, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer", padding: "0 24px" };
+      const secondary = { ...pill, border: 0, background: A2.segTrack, color: A2.accD, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" };
+      return (
+        <div className="mt-2" style={{ fontFamily: A2.font, color: A2.ink }}>
+          <button
+            onClick={toggle}
+            aria-expanded={open}
+            className="mx-auto block"
+            style={{ ...pill, border: 0, background: A2.glass, color: A2.accD, boxShadow: A2.shadow, minWidth: 96 }}
+          >
+            {open ? "收起" : "💾 備份與還原進度"}
+          </button>
+
+          {open && (
+            <A2Card className="mt-3" style={{ padding: 18 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 10px" }}>備份與還原</h2>
+
+              {pending ? (
+                <div className="flex flex-col gap-3">
+                  <p style={{ fontSize: 16, fontWeight: 900, color: A2.hotInk, margin: 0, lineHeight: 1.6 }}>
+                    確認還原？目前裝置上的進度將被覆蓋，無法復原。
+                  </p>
+                  <div style={{ borderRadius: 16, padding: 14, background: A2.row, border: `1px solid ${A2.rowBd}`, fontSize: 15, lineHeight: 1.8, color: A2.ink }}>
+                    <p style={{ margin: 0 }}>備份日期：{pending.exportedAt ? dateLabel(pending.exportedAt) : "（檔案沒有記錄日期）"}</p>
+                    <p style={{ margin: 0 }}>程度：{sum.levelLabel}</p>
+                    <p style={{ margin: 0 }}>
+                      累計練習：{sum.correct} / {sum.attempts} 題答對
+                    </p>
+                    <p style={{ margin: 0 }}>練習錯題：{sum.mistakes} 題</p>
+                    <p style={{ margin: 0 }}>
+                      連續日數：{sum.streak} 日（最長 {sum.bestStreak} 日）
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      徽章：{sum.badges} / {Storage.BADGES.length}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <A2Button className="flex-1" style={{ padding: "0 16px" }} onClick={confirmRestore}>
+                      確認還原
+                    </A2Button>
+                    <button onClick={() => setPending(null)} className="flex-1" style={secondary}>
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {Storage.TEST_MODE && (
+                    <p style={{ fontSize: 14, fontWeight: 900, color: A2.hotInk, margin: 0, lineHeight: 1.6 }}>
+                      目前是測試模式：匯出和還原只影響測試資料，不會動到正式進度。
+                    </p>
+                  )}
+                  <p style={{ ...note, color: A2.ink }}>
+                    學習進度和練習錯題只儲存在這部裝置的瀏覽器內。清除瀏覽器資料或更換裝置，進度便會消失。
+                    <b>建議每星期備份一次。</b>
+                  </p>
+                  <p style={note}>
+                    iPad 用家：請在 Safari 按「分享」圖示，選擇「加入主畫面」，以便隨時開啟。請留意，主畫面版本的資料可能與
+                    Safari 分頁分開儲存，因此更需要定期備份。
+                  </p>
+
+                  <A2Button className="w-full" onClick={handleExport}>
+                    匯出備份檔
+                  </A2Button>
+
+                  <label className="cursor-pointer" style={secondary}>
+                    從備份檔還原
+                    <input type="file" accept="application/json,.json" onChange={handleFileSelect} className="hidden" />
+                  </label>
+
+                  {error && (
+                    <p style={{ fontSize: 14, fontWeight: 900, color: A2.hotInk, margin: 0, lineHeight: 1.6 }}>{error}</p>
+                  )}
+                  {success && (
+                    <p style={{ fontSize: 14, fontWeight: 900, color: A2.ok, margin: 0, lineHeight: 1.6 }}>已成功還原進度。</p>
+                  )}
+                </div>
+              )}
+            </A2Card>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div className="mt-2">

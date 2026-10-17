@@ -2,6 +2,8 @@
 // backdrop), following design-preview/style-a2.html. Colours come from the A2 tokens in theme.jsx;
 // the few decorative values the sample has but A2 does not define are the LV_* / BAND_* constants below.
 // All behaviour (daily missions, streak, 保護符, level chips, badges entry, backup panel) is unchanged.
+// 階段 6d-1: the 徽章 entry labels its seals 「已獲得」; a module card shows 「未開始」 or 「第 N 節」 (never 「第 0 節」)
+// plus a 「下一里程 N 節」 line under the progress bar; the backup panel is A2 too (BackupSettings.jsx).
 // Layout is tuned for an iPad held upright (~820px wide) and a phone (~390px): no text under 13px,
 // every pressable at least 44px high. The 稱號 and each module's 節數 are computed from
 // `stats.sessions` only (Storage.getTitleView / getModuleMilestoneView) — nothing new is stored.
@@ -450,6 +452,7 @@ window.App = window.App || {};
         </span>
         {preview.length > 0 && (
           <span aria-hidden="true" style={{ display: "flex", gap: 8, alignItems: "center", minHeight: 36 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: A2.sub, whiteSpace: "nowrap" }}>已獲得</span>
             {preview.map((b) => (
               <span key={b.key} style={seal}>
                 {b.seal}
@@ -534,18 +537,22 @@ window.App = window.App || {};
               <span style={{ display: "block", width: `${pct}%`, height: "100%", borderRadius: 99, background: icon.bar }} />
             </span>
           )}
+          {mod.implemented && !ms.isMastered && (
+            <span style={{ fontSize: 13, color: A2.sub, lineHeight: 1.3 }}>下一里程 {ms.nextAt} 節</span>
+          )}
         </span>
         {mod.implemented && (
-          <span style={{ alignSelf: "flex-start", fontFamily: A2.numFont, fontWeight: 800, lineHeight: 1.2, color: A2.accD, whiteSpace: "nowrap" }}>
+          // The slot keeps its width even when empty (a module with no session yet), so every card's progress bar is equally long.
+          <span style={{ alignSelf: "flex-start", minWidth: 60, textAlign: "right", fontFamily: A2.numFont, fontWeight: 800, lineHeight: 1.2, color: A2.accD, whiteSpace: "nowrap" }}>
             {ms.isMastered ? (
               <span style={{ fontFamily: A2.font, fontSize: 15, fontWeight: 900 }}>已精通</span>
-            ) : (
+            ) : ms.sessions > 0 ? (
               <>
                 <span style={{ fontFamily: A2.font, fontSize: 13 }}>第 </span>
                 <span style={{ fontSize: 20 }}>{ms.sessions}</span>
                 <span style={{ fontFamily: A2.font, fontSize: 13 }}> 節</span>
               </>
-            )}
+            ) : null}
           </span>
         )}
       </button>
@@ -578,7 +585,7 @@ window.App = window.App || {};
             ))}
           </div>
 
-          {/* The backup panel itself is unchanged (still the 文房 look until 6d); only its buttons are enlarged here. */}
+          {/* 階段 6d-1: BackupSettings has its own A2 version (shown because Root switches the shared components to A2 on the home screen too). */}
           <div className="a2h-backup">
             <BackupSettings state={state} onRestore={onRestore} />
           </div>

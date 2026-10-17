@@ -1385,7 +1385,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c-1 pilot (文言文選讀) → 6c-2 (修辭、標點、作文、詩詞) done; the other 5 modules still 文房.** Step 1 = three standalone
+- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c (all 10 modules) → 6d-1 done (see below); 6d-2 (cleanup) not started.** Step 1 = three standalone
   mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
   淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
   `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
@@ -1456,8 +1456,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         「今日任務」 tag, 「答對 N 題 · 錯題 N」 / 未開始 / 即將推出) → backup. A small `<style>` block in `Home.jsx` holds the
         media queries (cloud + 🐲 hidden below 480 px, one-column pair below 620 px), press feedback and focus ring.
         Decorative values the sample has but `A2` lacks are local `BAND_*` / `LV_*` / `STAMP_SHADOW` constants at the top.
-      - **Backup panel (`BackupSettings.jsx`) was NOT restyled** (the 6b brief forbids touching that file): it still
-        shows the 文房 look inside the A2 page, until 6d. Home only wraps it in `.a2h-backup`, whose CSS makes its
+      - **Backup panel (`BackupSettings.jsx`) was NOT restyled in 6b** (the 6b brief forbade touching that file; restyled in 6d-1). Home only wraps it in `.a2h-backup`, whose CSS makes its
         toggle button ≥ 48 px high and ≥ 96 px wide.
       - 稱號 and 里程 are **read-only views of `stats.sessions`** — no new stored field, no `normalizeGamification`,
         `BACKUP_VERSION` (still 2) or backup-format change (verified: export JSON identical before/after; top-level
@@ -1501,9 +1500,9 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         gets the `A2Background` + `A2.bg` / `A2.ink` backdrop and no 「🏮 中文學習」 header (a spacer keeps the safe-area
         top padding on module screens); every other view keeps the 文房 backdrop and header exactly. The `A2Context`
         provider wraps only `<main>` (so `TestModeBanner` / `NoticeStack` are never affected) and its value is
-        `A2_VIEWS.includes(view) && view !== "home"`: **on the home screen the context stays `false`** because Home is
-        built from A2 pieces directly and still embeds `BackupSettings` (文房 look until 6d). To turn the backup panel
-        A2 early, drop the `&& view !== "home"` in `Root.jsx`.
+        `A2_VIEWS.includes(view) && view !== "home"`: **on the home screen the context stayed `false`** in 6c because Home is
+        built from A2 pieces directly and still embedded `BackupSettings` (文房 look). *Superseded in 6d-1: one provider wraps the whole
+        page and its value is `A2_VIEWS.includes(view)`, so the home screen, banner and notices are A2 too.*
       - `ClassicalProseModule.jsx` keeps its original 文房 screens untouched and adds A2 versions
         (`ListViewA2`, `PassageDetailA2`, `PassageListRowA2`, `A2SegControl`) chosen with `useA2()`: back buttons are
         `A2BackButton` (122×48 / 96×48), title row with `A2ModuleIcon` (🏺), 程度 as the same A2 segmented control as
@@ -1593,11 +1592,36 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
         Mandarin hub + level, every one of the 5 activities incl. wrong / correct / pinyin shown / mic-denied message / manual / result) no
         overflow, no text < 13 px, no pressable < 44 px, no overlap; one real session per activity recorded (`stats.sessions.cangjie` +2,
         `mandarin` +5), backup `version` 2 with unchanged keys; 0 console errors; mic permission denied path shows 「無法取得麥克風權限…」.
-    - **6d (NOT started)** is what remains of Phase 6 (see below). The 10 modules are all A2 now, but each module file still holds both the
-      文房 and A2 versions and its own copy of the small A2 helper set (`A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton`).
-    - **6d (NOT started): 刪除各模組舊文房分支（`useA2()` 切換同文房 helper）、備份面板（`BackupSettings`）同回饋橫幅（`NoticeStack`）同
-      導航列套 A2、徽章頁（`BadgesScreen`）套 A2、全站掃描細字（< 13 px）同返回掣（< 96×48）、刪除 `design-preview/`（連 `design-preview/theme-check.html`）。**
-      Open suggestion (not done): move the per-module copies of the A2 helper set into one shared file when the 文房 branches are deleted.
+    - **6d-1 主頁決定項目 + 徽章頁 / 備份面板 / 橫幅 / 測試橫條 A2 (done, Oct 2026).** `A2_VIEWS` = home + `badges` + all 10 modules, i.e. every
+      view; the 文房 backdrop / header branch in `Root.jsx` and every 文房 branch in the other files are still in the code (deleted in 6d-2).
+      Files changed: `Home.jsx`, `Root.jsx`, `BadgesScreen.jsx`, `BackupSettings.jsx`, `NoticeStack.jsx`, `TestModeBanner.jsx`. NOT touched:
+      `Storage.jsx`, `tests/`, module files, `theme.jsx`, `QuizQuestion.jsx`, `AudioButtons.jsx`, `index.html`; no new stored field.
+      - **Decisions applied (from the 6b open items):** (1) 稱號 stays derived from `stats.sessions` (no credit for old `practiceStats`);
+        (2) BackupSettings is A2 (`A2Card` / `A2Button`, buttons ≥ 48 px, same texts and export / import / confirm flow); (3) the app title stays hidden
+        on home; (4) `Root` calls `window.scrollTo(0, 0)` in a `useEffect` on `view` (module-internal screens still do not reset — only ReadingModule
+        handles its own scroll, see 6c-3); (5) the 徽章 entry labels its three seals 「已獲得」 (they are the first three earned badges, in `BADGES`
+        order, not the latest — there was no 「最近」 label in the code); (6) a module card shows 「第 N 節」 only when `stats.sessions[module] > 0`
+        (never 「第 0 節」), and 「已精通」 from 100; (7) a 13 px line 「下一里程 N 節」 under the progress bar (not shown when mastered; shown for
+        modules with 0 sessions too); (9) container stays `max-w-2xl`. The right-hand slot of a module card keeps a 60 px minimum width even when
+        empty so all progress bars are equally long.
+      - Left line of a module card is still decided by `practiceStats.attempts`: 「未開始」 only when `attempts === 0`; a legacy save with attempts but
+        no sessions shows 「答對 N 題」 with no 「第 N 節」 (the two counters are independent; see the 6b note about no retroactive credit).
+      - `Root.jsx`: one `A2Context.Provider value={A2_VIEWS.includes(view)}` now wraps the test banner, the page and `NoticeStack`, so those use their
+        A2 branch (`useA2()`); the provider has no DOM, so module screens render exactly as before.
+      - `BadgesScreen.jsx` A2: summary card (已獲得 n / 23 + bar + 下一個目標), 6 group sections with counts, earned = white tile + red seal + 「✓ 已獲得」,
+        locked = lilac tile, dashed border, dashed 「？」 seal, progress bar + 「進度 cur / target」; text ≥ 14 px; `A2BackButton` 「← 返回主頁」.
+        Earned seals are all the same red (the 文房 version coloured them per module / group; `badgeAccent` is still exported).
+      - `NoticeStack.jsx` A2: white card with a coloured edge per kind (task = green, day = red, 保護符 = blue, badge = indigo + red seal),
+        44 px round 「×」, 44 px 「查看徽章 ›」 (was 32 px), 44 px 「全部關閉 ×」; same notices, wording, 25 s auto-dismiss, bottom padding.
+      - `TestModeBanner.jsx` A2: deep-indigo sticky bar with a warm 「🧪 測試模式」 chip, the four buttons are 44 px high (were 40 px), 15 px text; same actions.
+      - Verification: tests 67/67; SHA-256 of `<main>` (not `#root`: the test banner is inside `#root` and is one of the changed items) for 64 screens (home,
+        badges, and list + detail + first question unanswered / answered of all 10 modules, incl. 倉頡 / 普通話 drills) identical to `5779e9c` except home and
+        badges (the targets); A2 screens at 820 / 390 (home, backup panel open / confirm / restored / error, badges top and bottom, notices) with the banner tap
+        filter REMOVED from the audit: no overflow, no text < 13 px, no pressable < 44 px, no overlap; one real session per module recorded; export → import
+        gives an identical stored state, backup `version` 2, top-level keys `app, data, exportedAt, testMode, version`; scroll returns to 0 on every Root view change.
+      - Audit note: the sticky test banner legitimately covers scrolled content, so its own texts (and the date) are excluded from the overlap check.
+    - **6d-2 (NOT started):** 刪除各模組舊文房分支同舊 helper（`useA2()` 切換、各模組內重複嘅 A2 helper 可抽成共用檔，先講出嚟等決定）、移除不再用嘅舊 theme 元件
+      （`COLORS` / `Button` / `Card`，以及文房版 `PaperCard` / `InkButton` / `Seal` 分支）、刪除 `design-preview/`（連 `design-preview/theme-check.html`）、全站掃描細字（< 13 px）同返回掣（< 96×48）。
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
