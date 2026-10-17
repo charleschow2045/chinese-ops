@@ -20,13 +20,7 @@ window.App = window.App || {};
     BadgesScreen,
     NoticeStack,
   } = window.App;
-  const { A2, A2Background, A2Context } = window.App.UI;
-
-  // 階段 6c: the screens that use the A2 look (A2 backdrop, no app-title header, and — for module screens —
-  // A2 versions of the shared components through A2Context). 6c-1 = home + the 文言文選讀 pilot; 6c-2 adds
-  // 修辭 / 標點 / 作文 / 詩詞; 6c-3 adds 成語 / 閱讀理解 / 歷史; 6c-4 adds 倉頡 / 普通話 (all 10 modules are now A2);
-  // 6d-1 adds the badge screen, so every view is A2 (the 文房 backdrop branch below is kept until 6d-2).
-  const A2_VIEWS = ["home", "badges", "classicalProse", "rhetoric", "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"];
+  const { A2, A2Background } = window.App.UI;
 
   function Root() {
     const [state, setState] = useState(() => Storage.loadState());
@@ -138,30 +132,12 @@ window.App = window.App || {};
     }
 
     const isHome = view === "home";
-    const isA2 = A2_VIEWS.includes(view);
 
-    // One provider for the whole page, so the test banner, the notices and the backup panel on the home screen
-    // switch to their A2 look together with the module screens.
     return (
-      <A2Context.Provider value={isA2}>
+      <>
       <TestModeBanner />
-      <div
-        className="min-h-screen relative overflow-hidden"
-        style={isA2 ? { background: A2.bg, color: A2.ink } : { backgroundColor: "#F7F0E3", color: "#241F1B" }}
-      >
-        {/* Screens in A2_VIEWS use the A2 backdrop; every other view keeps the 文房 one below. */}
-        {isA2 && <A2Background />}
-        {!isA2 && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#B0342A" }} />
-          <div className="absolute top-24 -right-20 w-80 h-80 rounded-full opacity-[0.14] blur-3xl" style={{ backgroundColor: "#A9812F" }} />
-          <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full opacity-[0.12] blur-3xl" style={{ backgroundColor: "#37485B" }} />
-          <span className="absolute top-16 right-8 text-4xl opacity-[0.14]">🏮</span>
-          <span className="absolute top-48 left-6 text-3xl opacity-[0.14]">📜</span>
-          <span className="absolute bottom-24 right-12 text-4xl opacity-[0.14]">🖌️</span>
-          <span className="absolute bottom-64 left-10 text-3xl opacity-[0.14]">🐉</span>
-        </div>
-        )}
+      <div className="min-h-screen relative overflow-hidden" style={{ background: A2.bg, color: A2.ink }}>
+        <A2Background />
 
         <div
           className="relative max-w-2xl mx-auto"
@@ -171,15 +147,9 @@ window.App = window.App || {};
             paddingBottom: `calc(2.5rem + var(--sab) + ${notices.length ? noticeHeight : 0}px)`,
           }}
         >
-          {/* In test mode the banner already covers the status bar, so no extra top inset here. */}
-          {/* A2 screens have their own top area (home: greeting band; modules: back button + title), so the app title header is not shown there. */}
-          {isA2 && !isHome && (
-          <div aria-hidden="true" style={{ height: Storage.TEST_MODE ? "1.5rem" : "calc(1.5rem + var(--sat))" }} />
-          )}
-          {!isA2 && (
-          <header className="pb-4" style={{ paddingTop: Storage.TEST_MODE ? "1.5rem" : "calc(1.5rem + var(--sat))" }}>
-            <h1 className="text-3xl font-serif font-black tracking-tight" style={{ color: "#B0342A" }}>🏮 中文學習</h1>
-          </header>
+          {/* Home has its own top area (greeting band); module screens start with a spacer that keeps the safe-area top inset. */}
+          {!isHome && (
+            <div aria-hidden="true" style={{ height: Storage.TEST_MODE ? "1.5rem" : "calc(1.5rem + var(--sat))" }} />
           )}
 
           <main>
@@ -279,7 +249,7 @@ window.App = window.App || {};
         </div>
       </div>
       <NoticeStack notices={notices} onDismiss={dismissNotice} onDismissAll={() => setNotices([])} onOpenBadges={openBadgesFromNotice} onHeight={setNoticeHeight} />
-      </A2Context.Provider>
+      </>
     );
   }
 

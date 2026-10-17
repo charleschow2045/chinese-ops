@@ -7,70 +7,9 @@ window.App = window.App || {};
 
 (function () {
   const { useEffect, useRef } = React;
-  const { INK, MODULE_ACCENTS, FEEDBACK, TYPE, Seal, A2, useA2 } = window.App.UI;
-  const SUB = INK.subInk;
+  const { A2 } = window.App.UI;
 
-  const KIND_ACCENT = {
-    day: MODULE_ACCENTS.essay, // vermillion
-    mission: FEEDBACK.correct, // bamboo
-    freeze: MODULE_ACCENTS.poetry, // indigo
-  };
-
-  function NoticeCard({ notice, onDismiss, onOpenBadges }) {
-    const { Storage, badgeAccent } = window.App;
-    const badge = notice.kind === "badge" ? Storage.BADGES.find((b) => b.key === notice.badgeKey) : null;
-    const a = badge ? badgeAccent(badge) : KIND_ACCENT[notice.kind] || MODULE_ACCENTS.essay;
-    return (
-      <div
-        className="flex items-center gap-3 rounded-2xl p-3"
-        style={{
-          pointerEvents: "auto",
-          backgroundColor: INK.paperCard,
-          border: `2px solid ${a.solid}`,
-          boxShadow: "0 2px 4px rgba(36,31,27,0.10), 0 14px 28px -10px rgba(36,31,27,0.45)",
-        }}
-      >
-        {badge ? (
-          <Seal label={badge.seal} accent={a} className="!w-14 !h-14 !text-2xl shrink-0" />
-        ) : (
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-            style={{ backgroundColor: a.tint, border: `1.5px solid ${a.tintBorder}` }}
-          >
-            {notice.icon}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className={`text-base leading-tight ${TYPE.heading}`} style={{ color: INK.ink }}>
-            {notice.title}
-          </p>
-          <p className="text-sm leading-snug mt-0.5" style={{ color: SUB }}>
-            {notice.text}
-          </p>
-          {badge && (
-            <button
-              onClick={() => onOpenBadges(notice.id)}
-              className="text-sm font-bold mt-1 underline underline-offset-4"
-              style={{ color: a.dark, minHeight: 32 }}
-            >
-              查看徽章 ›
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => onDismiss(notice.id)}
-          aria-label="關閉"
-          className="shrink-0 rounded-xl text-xl font-bold flex items-center justify-center"
-          style={{ width: 44, height: 44, color: SUB, backgroundColor: "#EFE8D6", border: "1.5px solid #D9CDB0" }}
-        >
-          ×
-        </button>
-      </div>
-    );
-  }
-
-  // 階段 6d-1: A2 look (when Root's A2 switch is on). Same notices, same texts, same timing and dismiss behaviour;
-  // near-white card with a coloured edge per kind, 44 px round close button, 44 px 「查看徽章」 link. The 文房 card is kept below.
+  // A2 look. Near-white card with a coloured edge per kind, 44 px round close button, 44 px 「查看徽章」 link.
   const KIND_A2 = {
     day: { edge: A2.hot, tile: A2.todayBg },
     mission: { edge: A2.ok, tile: A2.rowDone },
@@ -135,7 +74,6 @@ window.App = window.App || {};
   const AUTO_DISMISS_MS = 25000;
 
   function NoticeStack({ notices, onDismiss, onDismissAll, onOpenBadges, onHeight }) {
-    const a2 = useA2();
     const boxRef = useRef(null);
     const timers = useRef({});
 
@@ -184,31 +122,17 @@ window.App = window.App || {};
       >
         <div className="max-w-2xl mx-auto flex flex-col gap-2">
           {notices.length > 1 && (
-            a2 ? (
-              <button
-                onClick={onDismissAll}
-                className="self-end"
-                style={{ pointerEvents: "auto", minHeight: 44, padding: "0 18px", borderRadius: 999, border: 0, background: A2.glassSolid, color: A2.accD, fontFamily: A2.font, fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 16px -8px rgba(30,20,90,0.5)" }}
-              >
-                全部關閉 ×
-              </button>
-            ) : (
             <button
               onClick={onDismissAll}
-              className={`self-end rounded-xl px-4 text-sm ${TYPE.heading}`}
-              style={{ pointerEvents: "auto", minHeight: 44, color: INK.ink, backgroundColor: INK.paperCard, border: "1.5px solid #D9CDB0", boxShadow: "0 6px 14px -6px rgba(36,31,27,0.35)" }}
+              className="self-end"
+              style={{ pointerEvents: "auto", minHeight: 44, padding: "0 18px", borderRadius: 999, border: 0, background: A2.glassSolid, color: A2.accD, fontFamily: A2.font, fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 16px -8px rgba(30,20,90,0.5)" }}
             >
               全部關閉 ×
             </button>
-            )
           )}
-          {notices.map((n) =>
-            a2 ? (
-              <NoticeCardA2 key={n.id} notice={n} onDismiss={onDismiss} onOpenBadges={onOpenBadges} />
-            ) : (
-              <NoticeCard key={n.id} notice={n} onDismiss={onDismiss} onOpenBadges={onOpenBadges} />
-            )
-          )}
+          {notices.map((n) => (
+            <NoticeCardA2 key={n.id} notice={n} onDismiss={onDismiss} onOpenBadges={onOpenBadges} />
+          ))}
         </div>
       </div>
     );

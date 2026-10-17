@@ -1,71 +1,17 @@
-// Shared UI primitives.
-//
-// This file carries TWO systems (see CLAUDE.md "UI redesign" notes):
-//   - LEGACY: `COLORS`, `Button`, `Card` — the original bright Tailwind-
-//     palette look (flat saturated bg + thick border + hard offset shadow).
-//     Kept only for reference/rollback; as of the full rollout, no module
-//     or shared component (AudioButtons, QuizQuestion) uses it any more.
-//   - "文房" (scholar's-study system): `INK`, `MODULE_ACCENTS`, `FEEDBACK`,
-//     `TYPE`, `PaperCard`, `InkButton`, `Seal` — a warmer, more layered look
-//     built around 5 ink/seal-inspired core colors instead of arbitrary
-//     Tailwind hues. Used by all 10 modules and both shared quiz/audio
-//     components after the full-rollout pass.
+// Shared UI primitives: the A2 style system.
+//   - Colour tokens: `A2` (the A2 palette / gradients / shadows / fonts), `INK` (the few core ink colours still used
+//     by Cangjie's 五色 chart and History's 出處 tags), `MODULE_ACCENTS` (per-module colour entries — only passed as an
+//     `accent` prop today, see below), `MODULE_ICONS` (home-screen tile colours + emoji per module).
+//   - Components: `PaperCard`, `InkButton`, `Seal` (A2 look; the `accent` prop is accepted but ignored), `A2Card`,
+//     `A2Button`, `A2BackButton`, `A2ModuleIcon`, `A2Background`.
+// `A2_MIN_FONT_PX` / `A2_MIN_TAP_PX` are the size floors the components enforce on themselves.
 window.App = window.App || {};
 
 (function () {
-  // ---------------------------------------------------------------------
-  // LEGACY system — unchanged, still used by Poetry/Essay/Cangjie/Mandarin/
-  // History/Reading/Rhetoric/Punctuation and by AudioButtons everywhere.
-  // ---------------------------------------------------------------------
-  const COLORS = {
-    sky: { bg: "bg-sky-400", border: "border-sky-600", shadow: "shadow-[0_6px_0_#075985]", text: "text-sky-950" },
-    rose: { bg: "bg-rose-400", border: "border-rose-600", shadow: "shadow-[0_6px_0_#881337]", text: "text-rose-950" },
-    violet: { bg: "bg-violet-400", border: "border-violet-600", shadow: "shadow-[0_6px_0_#4c1d95]", text: "text-violet-950" },
-    emerald: { bg: "bg-emerald-400", border: "border-emerald-600", shadow: "shadow-[0_6px_0_#065f46]", text: "text-emerald-950" },
-    orange: { bg: "bg-orange-400", border: "border-orange-600", shadow: "shadow-[0_6px_0_#7c2d12]", text: "text-orange-950" },
-    amber: { bg: "bg-amber-400", border: "border-amber-600", shadow: "shadow-[0_6px_0_#92400e]", text: "text-amber-950" },
-    teal: { bg: "bg-teal-400", border: "border-teal-600", shadow: "shadow-[0_6px_0_#115e59]", text: "text-teal-950" },
-    indigo: { bg: "bg-indigo-400", border: "border-indigo-600", shadow: "shadow-[0_6px_0_#312e81]", text: "text-indigo-950" },
-    fuchsia: { bg: "bg-fuchsia-400", border: "border-fuchsia-600", shadow: "shadow-[0_6px_0_#701a75]", text: "text-fuchsia-950" },
-    lime: { bg: "bg-lime-400", border: "border-lime-600", shadow: "shadow-[0_6px_0_#3f6212]", text: "text-lime-950" },
-  };
-
-  function Button({ children, onClick, color = "rose", className = "", disabled = false, type = "button" }) {
-    const c = COLORS[color] || COLORS.rose;
-    return (
-      <button
-        type={type}
-        onClick={onClick}
-        disabled={disabled}
-        className={`${c.bg} ${c.text} border-4 ${c.border} ${c.shadow} rounded-2xl font-extrabold px-5 py-3 text-lg
-          active:translate-y-[6px] active:shadow-none transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none ${className}`}
-      >
-        {children}
-      </button>
-    );
-  }
-
-  function Card({ children, className = "" }) {
-    return (
-      <div className={`bg-white border-4 border-red-100 rounded-3xl shadow-[0_6px_0_rgba(225,29,72,0.10)] p-4 ${className}`}>
-        {children}
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------
-  // NEW "文房" system
-  // ---------------------------------------------------------------------
-
-  // Five core colors from the user's spec, plus one derived muted-ink tone
-  // for auxiliary/caption text (a warm gray-brown, not a flat gray, so it
-  // still feels part of the ink family rather than a generic UI gray).
+  // Core ink colours (宣紙白 / 墨黑 / 印泥紅 / 竹青 / 赭金 / 靛青).
   const INK = {
     paper: "#F7F0E3", // 宣紙白 — page background
-    paperCard: "#FBF7EC", // slightly lighter paper tone for cards sitting on the page
     ink: "#241F1B", // 墨黑 — primary text
-    mutedInk: "#8A7F6D", // derived — captions/meta text, still warm not gray
-    subInk: "#5C5344", // darker warm brown for small text that must stay readable (7:1 on paperCard) — used by the home screen
     vermillion: "#B0342A", // 印泥紅 — primary accent
     bamboo: "#48603E", // 竹青 — secondary accent (idiom/history family)
     ochre: "#A9812F", // 赭金 — badges/achievement/score accent
@@ -99,75 +45,19 @@ window.App = window.App || {};
     rhetoric: { solid: "#BE9648", dark: "#8C6D30", tint: "#F4EBD6", tintBorder: "#E6D4A8", on: INK.ink, family: "ochre" },
   };
 
-  // Canonical correct/incorrect feedback tones for quiz UI (QuestionBlock/
-  // FixedQuizFlow), reusing the same 5-core-color vocabulary rather than
-  // inventing new Tailwind-style greens/ambers: bamboo (green) reads as
-  // "growth/correct", vermillion (red) reads as "correction ink/wrong" —
-  // a fitting callback to marking mistakes in red pen. Shape matches
-  // MODULE_ACCENTS entries so both can be passed to the same components.
-  const FEEDBACK = {
-    correct: { solid: INK.bamboo, dark: "#2F4028", tint: "#E4E9DE", tintBorder: "#9DB48C", on: INK.paper },
-    incorrect: { solid: INK.vermillion, dark: "#7A211A", tint: "#F6E4E1", tintBorder: "#D89C93", on: INK.paper },
-  };
-
-  // Shared "review mistakes" (練習錯題) accent — the same cross-cutting
-  // ochre/achievement tone as a mastery badge, reused by every module's
-  // 練習錯題 button so "review mode" reads as one consistent affordance
-  // app-wide, distinct from each module's own accent color rather than a
-  // different ad hoc color per module.
-  const REVIEW_ACCENT = { solid: INK.ochre, dark: "#7A5D20", tint: "#F1E7CF", tintBorder: "#E2CE9E", on: INK.ink };
-
-  // A minimal, deliberately-named type scale (4 levels, per spec): pair the
-  // font family + weight here, let each call site pick its own text-size
-  // utility for context (an app title and a card's item title are both
-  // `heading`-ish but at different sizes).
-  //   display  — 大標題: app title, big module/page headers
-  //   heading  — 小標題: card section titles, item titles, idiom headwords
-  //   body     — 內文: main content text
-  //   caption  — 輔助文字: meta labels, level tags, source citations
-  const TYPE = {
-    display: "font-serif font-black tracking-tight",
-    heading: "font-serif font-bold",
-    body: "font-sans",
-    caption: "font-sans font-bold uppercase tracking-wide",
-  };
-
-  // Content card: warm paper tint (not stark white), thin tinted border,
-  // soft multi-layer shadow (a tight contact shadow + a diffuse ambient
-  // one + a faint inner top highlight to suggest slight paper convexity)
-  // instead of the old single flat hard-offset shadow. `accent` (an entry
-  // from MODULE_ACCENTS) tints the border toward that module's color when
-  // given; otherwise a neutral warm border is used.
+  // Content card: the near-white A2 card. `accent` (a MODULE_ACCENTS entry) is accepted because every caller passes
+  // it, but it is not used.
   function PaperCard({ children, className = "", accent, style = {} }) {
-    const a2 = useA2();
-    // 階段 6c: inside an A2 screen the card becomes the near-white A2 card (`accent` is accepted but not used).
-    if (a2) {
-      return (
-        <div
-          className={`relative p-5 ${className}`}
-          style={{
-            background: A2.glass,
-            border: `1px solid ${A2.glassBd}`,
-            borderRadius: 26,
-            boxShadow: A2.shadow,
-            color: A2.ink,
-            fontFamily: A2.font,
-            ...style,
-          }}
-        >
-          {children}
-        </div>
-      );
-    }
-    const borderColor = accent ? accent.tintBorder : "#E9DFC7";
     return (
       <div
-        className={`relative rounded-3xl p-5 ${className}`}
+        className={`relative p-5 ${className}`}
         style={{
-          backgroundColor: INK.paperCard,
-          border: `1.5px solid ${borderColor}`,
-          boxShadow:
-            "0 1px 2px rgba(36,31,27,0.05), 0 10px 24px -10px rgba(36,31,27,0.16), inset 0 1px 0 rgba(255,255,255,0.6)",
+          background: A2.glass,
+          border: `1px solid ${A2.glassBd}`,
+          borderRadius: 26,
+          boxShadow: A2.shadow,
+          color: A2.ink,
+          fontFamily: A2.font,
           ...style,
         }}
       >
@@ -176,73 +66,26 @@ window.App = window.App || {};
     );
   }
 
-  // Primary-action button: keeps the chunky "press-down" affordance the
-  // app already uses for main CTAs, but the resting shadow is now layered
-  // (inner top highlight + a solid offset "thickness" layer in the
-  // module's own dark shade + a soft diffuse drop shadow) rather than one
-  // flat color block, so it reads as a raised lacquered/stamped object
-  // instead of a flat hard-edged rectangle. `accent` is a MODULE_ACCENTS
-  // entry; defaults to the essay (vermillion) tone if omitted.
+  // Primary-action button: the A2 primary button (A2.acc, white 16 px text, >= 48 px high, sinks 2 px). `accent` is
+  // ignored. Callers' `!important` size overrides (e.g. `!text-sm`, `!py-2`) are dropped so they cannot push the
+  // button below the A2 size floors.
   function InkButton({ children, onClick, accent, className = "", disabled = false, type = "button" }) {
-    const a2 = useA2();
-    // 階段 6c: inside an A2 screen every InkButton is the A2 primary button (A2.acc, white 16 px text,
-    // >= 48 px high, sinks 2 px). `accent` is ignored. Callers' `!important` size overrides (e.g. `!text-sm`,
-    // `!py-2`) are dropped so they cannot push the button below the A2 size floors.
-    if (a2) {
-      const kept = String(className).split(/\s+/).filter((c) => c && !c.startsWith("!")).join(" ");
-      return (
-        <A2Button type={type} onClick={onClick} disabled={disabled} className={kept}>
-          {children}
-        </A2Button>
-      );
-    }
-    const a = accent || MODULE_ACCENTS.essay;
+    const kept = String(className).split(/\s+/).filter((c) => c && !c.startsWith("!")).join(" ");
     return (
-      <button
-        type={type}
-        onClick={onClick}
-        disabled={disabled}
-        className={`rounded-2xl font-extrabold px-5 py-3 text-lg font-sans transition-all duration-100
-          active:translate-y-[3px] disabled:opacity-50 disabled:pointer-events-none ${className}`}
-        style={{
-          backgroundColor: a.solid,
-          color: a.on,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 0 ${a.dark}, 0 12px 20px -8px rgba(36,31,27,0.38)`,
-        }}
-      >
+      <A2Button type={type} onClick={onClick} disabled={disabled} className={kept}>
         {children}
-      </button>
+      </A2Button>
     );
   }
 
-  // Small rotated square "chop" badge — used as a corner citation stamp
-  // (e.g. a 2-character source-book abbreviation on a classical-text card)
-  // per the optional visual-identity request. Absolutely positioned by the
-  // caller's own `className` (the parent must be `relative`; `PaperCard`
-  // already is).
+  // Small rotated square "chop" badge in the A2 seal red (serif face) — used as a corner citation stamp (e.g. a
+  // 2-character source-book abbreviation on a classical-text card). Absolutely positioned by the caller's own
+  // `className` (the parent must be `relative`; `PaperCard` already is). `accent` is ignored.
   function Seal({ label, accent, className = "" }) {
-    const a2 = useA2();
-    // 階段 6c: inside an A2 screen the chop uses the A2 seal red (`accent` ignored); the serif face stays.
-    if (a2) {
-      return (
-        <div
-          className={`w-12 h-12 rounded-lg flex items-center justify-center font-serif font-black text-base leading-none select-none ${className}`}
-          style={{ background: A2.sealBg, color: A2.sealInk, transform: "rotate(6deg)", boxShadow: "0 3px 8px rgba(150,36,28,.4)" }}
-        >
-          {label}
-        </div>
-      );
-    }
-    const a = accent || MODULE_ACCENTS.classicalProse;
     return (
       <div
         className={`w-12 h-12 rounded-lg flex items-center justify-center font-serif font-black text-base leading-none select-none ${className}`}
-        style={{
-          backgroundColor: a.solid,
-          color: a.on,
-          transform: "rotate(6deg)",
-          boxShadow: "0 3px 8px rgba(36,31,27,0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
-        }}
+        style={{ background: A2.sealBg, color: A2.sealInk, transform: "rotate(6deg)", boxShadow: "0 3px 8px rgba(150,36,28,.4)" }}
       >
         {label}
       </div>
@@ -250,19 +93,9 @@ window.App = window.App || {};
   }
 
   // ---------------------------------------------------------------------
-  // A2 system (階段 6a) — ADDITIVE ONLY. Nothing above is changed and no screen
-  // uses this yet (6b applies it to Home / Root). Every value below is copied
-  // from design-preview/style-a2.html (its :root variables and A2 overrides);
-  // do not tweak colours here without changing the sample first.
-  // Names are prefixed `A2` / `MODULE_ICONS` so they cannot clash with the
-  // "文房" (`INK`, `PaperCard`, …) or legacy names.
+  // A2 system. The tokens below were copied from the A2 design sample (design-preview/style-a2.html, since deleted); the
+  // names are prefixed `A2` / `MODULE_ICONS`.
   // ---------------------------------------------------------------------
-  // 階段 6c: "A2 switch". Root provides `true` while an A2 screen is showing; the shared components
-  // (PaperCard, InkButton, Seal, QuestionBlock, FixedQuizFlow, and AudioButtons through InkButton) then
-  // render their A2 look. The default is `false`, in which case they output exactly what they did before.
-  const A2Context = React.createContext(false);
-  const useA2 = () => React.useContext(A2Context);
-
   const A2_MIN_FONT_PX = 13; // no text inside an A2 component may be smaller than this
   const A2_MIN_TAP_PX = 44; // pressable elements: at least 44 px (back / primary buttons: 48 px)
 
@@ -460,9 +293,8 @@ window.App = window.App || {};
     );
   }
 
-  // Fixed full-screen backdrop: A2 gradient plus three blurred colour blobs (style-a2 `.bg`,
-  // `.b1`–`.b3`). Not mounted anywhere yet. NOTE: style-a2.html itself hides the blobs
-  // (`.bg{display:none}`), so pass `blobs={false}` to match the sample exactly.
+  // Fixed full-screen backdrop: A2 gradient plus three blurred colour blobs. Root mounts it behind every screen.
+  // (The design sample hid the blobs; `blobs={false}` reproduces that.)
   function A2Background({ blobs = true }) {
     const blob = { position: "absolute", borderRadius: "50%", filter: "blur(60px)", opacity: 0.55 };
     return (
@@ -483,23 +315,11 @@ window.App = window.App || {};
   }
 
   window.App.UI = {
-    // legacy
-    COLORS,
-    Button,
-    Card,
-    // new "文房" system
     INK,
     MODULE_ACCENTS,
-    FEEDBACK,
-    REVIEW_ACCENT,
-    TYPE,
     PaperCard,
     InkButton,
     Seal,
-  };
-
-  // 階段 6a: A2 additions, attached separately so the export above stays untouched.
-  Object.assign(window.App.UI, {
     A2,
     A2_MIN_FONT_PX,
     A2_MIN_TAP_PX,
@@ -509,7 +329,5 @@ window.App = window.App || {};
     A2BackButton,
     A2ModuleIcon,
     A2Background,
-    A2Context,
-    useA2,
-  });
+  };
 })();

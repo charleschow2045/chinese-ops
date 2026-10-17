@@ -1,5 +1,5 @@
 // Home screen — 階段 6b: "A2" style (deep-indigo band + 科舉稱號 card + near-white cards on a lilac
-// backdrop), following design-preview/style-a2.html. Colours come from the A2 tokens in theme.jsx;
+// backdrop), following the A2 design sample (design-preview/style-a2.html, since deleted). Colours come from the A2 tokens in theme.jsx;
 // the few decorative values the sample has but A2 does not define are the LV_* / BAND_* constants below.
 // All behaviour (daily missions, streak, 保護符, level chips, badges entry, backup panel) is unchanged.
 // 階段 6d-1: the 徽章 entry labels its seals 「已獲得」; a module card shows 「未開始」 or 「第 N 節」 (never 「第 0 節」)
@@ -585,7 +585,7 @@ window.App = window.App || {};
             ))}
           </div>
 
-          {/* 階段 6d-1: BackupSettings has its own A2 version (shown because Root switches the shared components to A2 on the home screen too). */}
+          {/* The backup panel (A2). */}
           <div className="a2h-backup">
             <BackupSettings state={state} onRestore={onRestore} />
           </div>

@@ -10,56 +10,14 @@ window.App = window.App || {};
     return selected !== null && selected === q.correctIndex;
   }
 
-  // `accent` is a MODULE_ACCENTS entry (see theme.jsx) — the calling
-  // module's own color family, used for the default (unanswered) option
-  // style; correct/wrong feedback always uses the shared FEEDBACK tones
-  // (bamboo/vermillion) regardless of module, so "right vs wrong" reads
-  // consistently everywhere.
-  function QuestionBlock({ q, selected, onSelect, accent }) {
-    const { INK, TYPE, FEEDBACK, MODULE_ACCENTS, A2, useA2 } = window.App.UI;
-    const a2 = useA2();
-    const a = accent || MODULE_ACCENTS.essay;
+  // A2 look: row-coloured options (>= 48 px high), A2.ok / A2.hot feedback. `accent` (a MODULE_ACCENTS entry)
+  // is still accepted because every caller passes it, but the A2 look does not use it.
+  function QuestionBlock({ q, selected, onSelect }) {
+    const { A2 } = window.App.UI;
     const correct = isCorrectAnswer(q, selected);
-    // 階段 6c: A2 look — row-coloured options (>= 48 px high), A2.ok / A2.hot feedback; logic unchanged.
-    if (a2) {
-      return (
-        <div style={{ fontFamily: A2.font }}>
-          <div className="text-xl" style={{ color: A2.ink, fontWeight: 900, lineHeight: 1.5 }}>
-            {q.prompt}
-          </div>
-          <div className="mt-3 flex flex-col gap-2">
-            {q.options.map((opt, i) => {
-              const isSelected = selected === i;
-              const showCorrect = isSelected && correct;
-              const showWrong = isSelected && !correct;
-              const style = showCorrect
-                ? { background: A2.rowDone, border: `2px solid ${A2.ok}`, color: A2.ink }
-                : showWrong
-                ? { background: A2.todayBg, border: `2px solid ${A2.hot}`, color: A2.ink }
-                : { background: A2.row, border: `1.5px solid ${A2.rowBd}`, color: A2.ink };
-              return (
-                <button
-                  key={i}
-                  onClick={() => onSelect(i)}
-                  className="text-left rounded-2xl font-bold text-lg px-4 py-3 transition-all"
-                  style={{ minHeight: 48, fontFamily: A2.font, cursor: "pointer", ...style }}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-          {selected !== null && (
-            <p className="mt-3 font-extrabold text-lg" style={{ color: correct ? A2.ok : A2.hotInk }}>
-              {correct ? "✅ 答對了，做得好！" : `💛 答錯了，正確答案是：${q.options[q.correctIndex]}`}
-            </p>
-          )}
-        </div>
-      );
-    }
     return (
-      <div>
-        <div className={`text-xl ${TYPE.heading}`} style={{ color: INK.ink }}>
+      <div style={{ fontFamily: A2.font }}>
+        <div className="text-xl" style={{ color: A2.ink, fontWeight: 900, lineHeight: 1.5 }}>
           {q.prompt}
         </div>
         <div className="mt-3 flex flex-col gap-2">
@@ -68,16 +26,16 @@ window.App = window.App || {};
             const showCorrect = isSelected && correct;
             const showWrong = isSelected && !correct;
             const style = showCorrect
-              ? { backgroundColor: FEEDBACK.correct.tint, border: `2px solid ${FEEDBACK.correct.solid}`, color: INK.ink }
+              ? { background: A2.rowDone, border: `2px solid ${A2.ok}`, color: A2.ink }
               : showWrong
-              ? { backgroundColor: FEEDBACK.incorrect.tint, border: `2px solid ${FEEDBACK.incorrect.solid}`, color: INK.ink }
-              : { backgroundColor: INK.paperCard, border: `1.5px solid ${a.tintBorder}`, color: INK.ink };
+              ? { background: A2.todayBg, border: `2px solid ${A2.hot}`, color: A2.ink }
+              : { background: A2.row, border: `1.5px solid ${A2.rowBd}`, color: A2.ink };
             return (
               <button
                 key={i}
                 onClick={() => onSelect(i)}
-                className="text-left rounded-xl font-bold text-lg px-4 py-3 transition-all"
-                style={style}
+                className="text-left rounded-2xl font-bold text-lg px-4 py-3 transition-all"
+                style={{ minHeight: 48, fontFamily: A2.font, cursor: "pointer", ...style }}
               >
                 {opt}
               </button>
@@ -85,10 +43,7 @@ window.App = window.App || {};
           })}
         </div>
         {selected !== null && (
-          <p
-            className="mt-3 font-extrabold text-lg"
-            style={{ color: correct ? FEEDBACK.correct.solid : FEEDBACK.incorrect.solid }}
-          >
+          <p className="mt-3 font-extrabold text-lg" style={{ color: correct ? A2.ok : A2.hotInk }}>
             {correct ? "✅ 答對了，做得好！" : `💛 答錯了，正確答案是：${q.options[q.correctIndex]}`}
           </p>
         )}
@@ -115,9 +70,7 @@ window.App = window.App || {};
 
   function FixedQuizFlow({ questions: rawQuestions, accent, onBack, onFinish, headerLabel }) {
     const questions = useMemo(() => rawQuestions.map(shuffledCopy), [rawQuestions]);
-    const { PaperCard, InkButton, INK, TYPE, MODULE_ACCENTS, A2, A2BackButton, useA2 } = window.App.UI;
-    const a2 = useA2();
-    const a = accent || MODULE_ACCENTS.essay;
+    const { PaperCard, InkButton, A2, A2BackButton } = window.App.UI;
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -141,9 +94,9 @@ window.App = window.App || {};
       }
     }
 
-    if (done && a2) {
+    if (done) {
       return (
-        <PaperCard accent={a} className="text-center">
+        <PaperCard accent={accent} className="text-center">
           <p className="text-5xl mb-2">🎉</p>
           <h2 className="text-xl mb-1" style={{ color: A2.ink, fontWeight: 900 }}>
             問答完成！
@@ -151,67 +104,26 @@ window.App = window.App || {};
           <p className="text-lg font-bold mb-4" style={{ color: A2.accD }}>
             答對了 {correctCount} / {questions.length} 題
           </p>
-          <InkButton accent={a} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+          <InkButton accent={accent} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
             完成
           </InkButton>
         </PaperCard>
-      );
-    }
-
-    if (done) {
-      return (
-        <PaperCard accent={a} className="text-center">
-          <p className="text-5xl mb-2">🎉</p>
-          <h2 className={`text-xl mb-1 ${TYPE.heading}`} style={{ color: INK.ink }}>
-            問答完成！
-          </h2>
-          <p className="text-lg font-bold mb-4" style={{ color: a.solid }}>
-            答對了 {correctCount} / {questions.length} 題
-          </p>
-          <InkButton accent={a} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
-            完成
-          </InkButton>
-        </PaperCard>
-      );
-    }
-
-    if (a2) {
-      return (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <A2BackButton label="← 返回" onClick={onBack} />
-            <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
-              {headerLabel} · 第 {qIndex + 1} / {questions.length} 題
-            </span>
-          </div>
-
-          <PaperCard accent={a}>
-            <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={a} />
-            {answered && (
-              <InkButton accent={a} className="w-full mt-4" onClick={handleNext}>
-                {isLast ? "完成 🎉" : "下一題 →"}
-              </InkButton>
-            )}
-          </PaperCard>
-        </div>
       );
     }
 
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className={`text-sm ${TYPE.heading}`} style={{ color: a.solid }}>
-            ← 返回
-          </button>
-          <span className="text-sm font-bold" style={{ color: INK.mutedInk }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
             {headerLabel} · 第 {qIndex + 1} / {questions.length} 題
           </span>
         </div>
 
-        <PaperCard accent={a}>
-          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={a} />
+        <PaperCard accent={accent}>
+          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={accent} />
           {answered && (
-            <InkButton accent={a} className="w-full mt-4" onClick={handleNext}>
+            <InkButton accent={accent} className="w-full mt-4" onClick={handleNext}>
               {isLast ? "完成 🎉" : "下一題 →"}
             </InkButton>
           )}
