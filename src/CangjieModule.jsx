@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo, useRef, useEffect } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
   const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL, CANGJIE_TYPING_TEXTS } =
@@ -641,6 +641,7 @@ window.App = window.App || {};
 
   function CangjieModule({ onBack, onRecordPractice }) {
     const [view, setView] = useState("reference"); // reference | practice | typing
+    useScrollToTop(view);
 
     function finishPractice(correctCount, total) {
       onRecordPractice(correctCount, total);

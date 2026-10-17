@@ -3,7 +3,7 @@
 //     by Cangjie's 五色 chart and History's 出處 tags), `MODULE_ACCENTS` (per-module colour entries — only passed as an
 //     `accent` prop today, see below), `MODULE_ICONS` (home-screen tile colours + emoji per module).
 //   - Components: `PaperCard`, `InkButton`, `Seal` (A2 look; the `accent` prop is accepted but ignored), `A2Card`,
-//     `A2Button`, `A2BackButton`, `A2ModuleIcon`, `A2Background`.
+//     `A2Button`, `A2BackButton`, `A2ModuleIcon`, `A2Background`; hook `useScrollToTop`.
 // `A2_MIN_FONT_PX` / `A2_MIN_TAP_PX` are the size floors the components enforce on themselves.
 window.App = window.App || {};
 
@@ -96,6 +96,14 @@ window.App = window.App || {};
   // A2 system. The tokens below were copied from the A2 design sample (design-preview/style-a2.html, since deleted); the
   // names are prefixed `A2` / `MODULE_ICONS`.
   // ---------------------------------------------------------------------
+  // Scrolls the page to the top whenever `dep` changes (and once on mount). Modules call it with their internal `view`
+  // so that every screen change inside a module starts at the top, like Root does for module changes.
+  function useScrollToTop(dep) {
+    React.useLayoutEffect(() => {
+      window.scrollTo(0, 0);
+    }, [dep]);
+  }
+
   const A2_MIN_FONT_PX = 13; // no text inside an A2 component may be smaller than this
   const A2_MIN_TAP_PX = 44; // pressable elements: at least 44 px (back / primary buttons: 48 px)
 
@@ -329,5 +337,6 @@ window.App = window.App || {};
     A2BackButton,
     A2ModuleIcon,
     A2Background,
+    useScrollToTop,
   };
 })();

@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.essay;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -317,6 +317,7 @@ window.App = window.App || {};
 
   function EssayModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
     const [view, setView] = useState("list"); // list | detail | practice
+    useScrollToTop(view);
     const [filterTheme, setFilterTheme] = useState("all");
     const [filterLevel, setFilterLevel] = useState(level || "all");
     const [selectedId, setSelectedId] = useState(null);

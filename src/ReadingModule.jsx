@@ -558,9 +558,10 @@ window.App = window.App || {};
       setView("questions");
     }
 
+    // Every screen starts at the top, except that coming back from the questions to the passage restores where the
+    // child was reading (passageScroll).
     useLayoutEffect(() => {
-      if (view === "questions") window.scrollTo(0, 0);
-      else if (view === "passage") window.scrollTo(0, passageScroll.current);
+      window.scrollTo(0, view === "passage" ? passageScroll.current : 0);
     }, [view]);
 
     // Fixed-per-item modules track mistakes at passage granularity (not

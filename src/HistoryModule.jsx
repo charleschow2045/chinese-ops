@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.history;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { HISTORY_ITEMS, HISTORY_CATEGORIES, HISTORY_WAR_POEM_IDS, HISTORY_POEM_STORY_LINKS, POETRY_ITEMS } = window.App.Content;
@@ -318,6 +318,7 @@ window.App = window.App || {};
   function HistoryModule({ mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
     const navStory = nav && STORIES_BY_ID[nav.storyId] ? nav.storyId : null;
     const [view, setView] = useState(navStory ? "story" : "list"); // list | story | questions
+    useScrollToTop(view);
     // A tab per category that has stories; 戰爭詩詞 holds poems (by id), not stories.
     const categories = HISTORY_CATEGORIES.filter((c) =>
       c === WAR_POEM_CATEGORY ? HISTORY_WAR_POEM_IDS.length > 0 : HISTORY_ITEMS.some((it) => it.category === c)

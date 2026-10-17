@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useEffect } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.mandarin;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -713,6 +713,7 @@ window.App = window.App || {};
 
   function MandarinModule({ level, onBack, onRecordPractice }) {
     const [view, setView] = useState("home"); // home | listening | reading | pinyin | speaking | pinyinIMEIntro | pinyinIME
+    useScrollToTop(view);
     const [filterLevel, setFilterLevel] = useState("all");
 
     function openActivity(key, chosenLevel) {

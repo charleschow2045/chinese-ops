@@ -11,7 +11,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon } = window.App.UI;
+  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
@@ -226,6 +226,7 @@ window.App = window.App || {};
 
   function ClassicalProseModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem }) {
     const [view, setView] = useState("list"); // list | passage | questions
+    useScrollToTop(view);
     const [filterLevel, setFilterLevel] = useState(level || "all");
     const [onlyMistakes, setOnlyMistakes] = useState(false);
     const [selectedId, setSelectedId] = useState(null);

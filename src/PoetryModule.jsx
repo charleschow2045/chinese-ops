@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.poetry;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { POETRY_ITEMS, POETRY_LEVEL_LABEL } = window.App.Content;
@@ -463,6 +463,7 @@ window.App = window.App || {};
   function PoetryModule({ level, mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
     const startPoem = nav && POETRY_ITEMS.some((it) => it.id === nav.poemId) ? nav.poemId : null;
     const [view, setView] = useState(startPoem ? "detail" : "list"); // list | detail | practice
+    useScrollToTop(view);
     const [filterLevel, setFilterLevel] = useState(level || "all");
     const [selectedId, setSelectedId] = useState(startPoem);
     const [practiceScope, setPracticeScope] = useState(null); // pool used for a practice session

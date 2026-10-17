@@ -76,177 +76,113 @@ Full spec for each module (practice mechanics, content requirements) is in
 the original project brief — see "Module details" below for what's already
 decided for Module 1; ask before assuming details for unbuilt modules.
 
-## UI redesign — "文房" (scholar's-study) style, FULLY ROLLED OUT
-Started per explicit user request to move away from "Tailwind template
-blocks" (flat saturated `sky`/`rose`/`violet`/etc. colors, plain white cards
-with a thick red border and a hard flat offset shadow) toward a warmer,
-more layered look themed around Chinese ink/paper/seal materials.
-
-This shipped in two stages:
-1. **Sample stage** — Home, IdiomModule (list + detail only), and
-   ClassicalProseModule (list + passage detail only), with the shared
-   `QuizQuestion.jsx`/`AudioButtons.jsx` deliberately left on the legacy
-   system so the redesign didn't leak into all 10 modules' quiz screens
-   before the direction was approved.
-2. **Full rollout** (after user approval) — every remaining module
-   (Poetry, Essay, Cangjie, Mandarin, History, Reading, Rhetoric,
-   Punctuation) migrated to the same system, and — since this stage
-   explicitly *needed* to touch every quiz screen at once — both shared
-   components (`QuizQuestion.jsx`'s `QuestionBlock`/`FixedQuizFlow` and
-   `AudioButtons.jsx`) were rewritten too, so practice/quiz flows and 🔊
-   read-aloud buttons now use each module's own accent everywhere,
-   including inside Idiom/ClassicalProse's practice sessions (updated in
-   the same pass to keep them consistent with their own list/detail views).
-
-- **`src/theme.jsx` still keeps the legacy `COLORS`/`Button`/`Card` exports**
-  for reference/rollback, but as of the full rollout **no module or shared
-  component uses them any more** — every module file now imports
-  `PaperCard`/`InkButton`/`INK`/`MODULE_ACCENTS`/`TYPE` (and `REVIEW_ACCENT`/
-  `FEEDBACK` where relevant) instead of `Card`/`Button`/`COLORS`.
-- **Color system** — 5 core colors from the user's spec, in `INK`:
-  `paper` #F7F0E3 (宣紙白, page bg), `paperCard` #FBF7EC (derived — slightly
-  lighter tone for cards sitting on the page), `ink` #241F1B (墨黑, primary
-  text), `subInk` #5C5344 (added with 每日任務: darker warm brown for small text
-  that must stay readable, 7:1 on `paperCard`; the home screen, BadgesScreen,
-  NoticeStack and BackupSettings use it instead of `mutedInk` (only 3.7:1)),
-  `mutedInk` #8A7F6D (derived — warm gray-brown for captions/meta,
-  not a flat UI gray), `vermillion` #B0342A (印泥紅), `bamboo` #48603E
-  (竹青), `ochre` #A9812F (赭金 — reserved mainly for badges/achievement UI,
-  see IdiomModule's `MasteryBadge`/`BADGE_ACCENT`), `indigo` #37485B (靛青).
-  - `MODULE_ACCENTS` keeps **all 10 modules individually distinct** (the
-    user explicitly said not to collapse them into one look) but groups
-    each into a tonal variant of one of 4 families rather than an arbitrary
-    Tailwind hue: indigo family (poetry, classicalProse — cool/literary
-    contrast per spec), bamboo family (idiom, history — tradition/story),
-    vermillion family (essay, mandarin, punctuation — active/expressive),
-    ochre family (cangjie, reading, rhetoric — craft/mastery). Each entry
-    has `solid`/`dark`/`tint`/`tintBorder`/`on` (text-on-solid color)/
-    `family`. Keyed by **module key** (`idiom`, `classicalProse`, …), not by
-    the legacy color name — don't confuse the two lookup tables.
-  - Colors are applied via inline `style` (not Tailwind arbitrary-value
-    classes) throughout the new components, specifically to avoid
-    depending on the Tailwind Play CDN's bracket-syntax parsing for
-    anything beyond what the legacy `Button`'s single-layer
-    `shadow-[0_6px_0_#hex]` already proved works — safer given this is a
-    no-build-step app with no way to typecheck a broken class string
-    before shipping. Cangjie's `CangjieModule.jsx` is the one exception: its
-    5-category root chart (哲理科/筆劃科/人身科/字形科/難字鍵) needs 5
-    genuinely distinct tones for the "五色學倉頡" mnemonic to keep working,
-    so it defines its own local `CATEGORY_TONES` map (keyed by the same
-    `rose`/`orange`/`amber`/`emerald`/`violet` strings already stored in
-    `cangjieContent.jsx`, so that content file didn't need to change) drawing
-    one tone from each of the 4 accent families plus indigo again, rather
-    than reusing a single `MODULE_ACCENTS` entry for the whole chart.
-  - `FEEDBACK` (correct/incorrect tones for quiz answers) reuses the same
-    5-core-color vocabulary instead of inventing new Tailwind-style
-    greens/ambers: `correct` is bamboo (green = growth), `incorrect` is
-    vermillion (red = correction-ink, callback to marking mistakes in red
-    pen). Used by `QuestionBlock`'s per-option feedback style and by every
-    module's typing-drill correct/wrong message (Cangjie, Mandarin).
-  - `REVIEW_ACCENT` is the shared 練習錯題 (mistake-review) accent — the
-    same ochre tone as a mastery badge, reused by every module's own
-    "練習錯題"/"只看錯題" button so review-mode reads as one consistent
-    affordance app-wide, distinct from whichever module you're actually in
-    rather than a different ad hoc color per module (the old behavior used
-    `amber` almost everywhere but `orange` in one place — now unified).
-    before shipping.
-- **Typography** — added Google Font "Noto Serif TC" alongside the existing
-  "Noto Sans TC" (`index.html`'s font `<link>` and `tailwind.config`'s
-  `fontFamily.serif`). A 4-level type scale lives in `theme.jsx`'s `TYPE`
-  (font family + weight only; each call site still picks its own text-size
-  utility for context): `display` (大標題 — app title, big page headers,
-  serif black), `heading` (小標題 — card section titles, item titles,
-  serif bold), `body` (內文 — sans), `caption` (輔助文字 — meta labels/tags,
-  sans bold uppercase). Serif is used for the app title (`Root.jsx`),
-  module/item headings, and — per the spec's "文言文" case specifically —
-  the classical original-text lines themselves in `ClassicalProseModule.jsx`
-  (`font-serif` on that one block), not just titles.
-- **`PaperCard`** (replaces flat-white+thick-red-border+hard-shadow `Card`
-  for the migrated screens): warm paper-tinted background (`paperCard`,
-  slightly lighter than the page's `paper`), a thin 1.5px border (tinted
-  toward the module's accent via an optional `accent` prop), and a
-  3-layer soft shadow (tight contact shadow + diffuse ambient shadow + a
-  faint inset top highlight suggesting slight paper convexity) instead of
-  one flat hard offset shadow.
-- **`InkButton`** (replaces flat-color+thick-border+hard-shadow `Button` on
-  the migrated screens' primary actions): keeps the existing chunky
-  "press-down" affordance (`active:translate-y-[3px]`) but the resting
-  shadow is now layered — an inner top highlight, a solid "thickness" layer
-  in the module's own `dark` shade, and a soft diffuse drop shadow — so it
-  reads as a raised lacquered/stamped object rather than a flat block.
-  Takes an `accent` prop (a `MODULE_ACCENTS` entry); defaults to essay's
-  vermillion tone if omitted.
-- **`Seal`** — small rotated square "chop" badge, used for the optional
-  bonus visual-identity items (see below).
-- **Per-module bonus visuals** (2 of the 3 suggested were done, per the
-  user's "揀最容易見效果嘅 2-3 個先" framing):
-  - 文言文選讀: `Seal` renders a 2-character source-book abbreviation (e.g.
-    "《韓非子．五蠹》" → "韓非", via `sourceAbbrev()`) as a corner-stamp
-    badge on the passage detail card, and the original-text block sits in
-    an inset accent-tinted panel with `border-top/bottom: 3px double` rules
-    standing in for a scroll's rollers — no actual vertical-text layout,
-    per the user's "唔一定要真係做紋理圖" allowance. The same `sourceAbbrev`
-    stamp (smaller, unrotated corner-less version) also appears on each
-    list row in place of the old plain emoji-circle icon.
-  - 成語學習: list rows use a small rotated square stamp showing the
-    idiom's first character in serif, instead of a plain rounded emoji
-    circle — same "seal imprint" idea as above, applied to idiom rather
-    than a source citation.
-- **Global/shared changes** (unavoidable — these sit in the app shell used
-  by every screen, restyled or not, since request #1 explicitly asked for
-  the base palette to change everywhere): `index.html`'s `<body>` background
-  and `Root.jsx`'s outer gradient wrapper + decorative blur blobs use the
-  new `INK.paper`/vermillion/ochre/indigo tones instead of
-  `bg-amber-50`/rose/sky; the app's `<h1>` title is `font-serif font-black`
-  in vermillion instead of `text-red-600`.
-- **`Home.jsx`'s module grid** was `grid-cols-2` (5 rows × 2, not `grid-cols-3`,
-  so no lonely card on the last row) with square cards; the 每日任務 work later
-  replaced the square cards with short horizontal ones in an
-  `auto-fill, minmax(260px, 1fr)` CSS grid — see "每日任務 · 連續日數 · 徽章 →
-  主頁版面". On an iPad held upright that is still 2 columns × 5 rows.
-- Every module file follows the same conversion shape: `const { PaperCard,
-  InkButton, INK, MODULE_ACCENTS, REVIEW_ACCENT, TYPE } = window.App.UI;
-  const ACCENT = MODULE_ACCENTS.<moduleKey>;` at the top, then `Card`→
-  `PaperCard accent={ACCENT}`, `Button color="..."`→`InkButton
-  accent={ACCENT}` (or `accent={REVIEW_ACCENT}` for a 練習錯題/只看錯題
-  button), level-filter chips restyled with the same active/inactive
-  inline-style pattern as Home's `LevelSelector`, and `text-stone-*`/
-  hardcoded Tailwind color text classes replaced with `INK.ink`/
-  `INK.mutedInk` + `TYPE.heading`/`TYPE.caption`. `AudioButtons` calls
-  changed from `color="xxx"` to `accent={ACCENT}` everywhere (Poetry,
-  History, Idiom, ClassicalProse). `FixedQuizFlow`/`QuestionBlock` calls
-  changed from `color="xxx"` to `accent={ACCENT}` everywhere.
-- Verified in-browser across every module and both quiz mechanics: Home
-  (5×2 grid, family-grouped accents, colored bottom-edge strip per card),
-  Poetry (list/detail/practice, fill-blank + author + meaning questions),
-  Cangjie (5-color category chart, typing drill with correct/wrong
-  feedback), Mandarin (all 5 activities incl. the 2-stage pinyin-IME drill:
-  type pinyin → pick candidate), History (`FixedQuizFlow` incl. a
-  deliberate wrong answer to confirm the vermillion incorrect-tint),
-  Reading (`FixedQuizFlow`), Idiom and ClassicalProse (re-verified after
-  the shared-component rewrite — their practice/quiz sessions now use
-  `ACCENT` instead of the old legacy `violet`/`lime`), Essay/Rhetoric/
-  Punctuation (list + practice quiz, fill-blank and MC question types) —
-  zero console errors anywhere. (One false-positive along the way: the dev
-  server's documented single-threaded overload on first load produced
-  stale connection-reset errors in one browser tab; confirmed via a fresh
-  tab each time that the actual app has zero errors.)
-- Per the user's request, this full-rollout pass stopped for review with 3
-  screenshots (Home, IdiomModule list, a Punctuation quiz-in-progress
-  showing the InkButton + correct-answer tint + fill-blank marker together)
-  before being considered complete — see chat history for the actual
-  images; not reproduced here since screenshots don't belong in this file.
+## UI system — "A2" (深靛型格 + 磨砂玻璃), FULLY ROLLED OUT (Phase 6 complete, Oct 2026)
+The app went through two looks: the first "文房" (scholar's-study: paper / ink / seal colours,
+`PaperCard` with a warm border, layered `InkButton`) and then, after the user compared three
+mock-ups, **A2** (a pale-lilac gradient page, frosted-glass near-white cards, a deep-indigo header
+band, deep-indigo buttons). **A2 is the only look in the code now** — every 文房 branch, the legacy
+Tailwind-colour `COLORS`/`Button`/`Card`, `FEEDBACK`/`REVIEW_ACCENT`/`TYPE`, the `A2Context`/`useA2()`
+switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a second look or a context switch.
+- **Where it lives:** `src/theme.jsx` → `window.App.UI`. Exports:
+  - `A2` — colour / gradient / shadow / font tokens (`bg`, `ink`, `sub`, `acc`, `accD`, `glass`, `glassSolid`,
+    `row`, `rowBd`, `rowDone`, `ok`, `hot`, `hotInk`, `todayBg`, `fireBg`, `fireInk`, `segTrack`, `barTrack`,
+    `sealBg`, `sealInk`, `shieldBg`, `shieldInk`, `shadow`, `font`, …). Font stack: Zen Maru Gothic → Noto Sans TC →
+    PingFang HK → PingFang TC → Hiragino Maru Gothic ProN → system-ui; numerals Baloo 2; Noto Serif TC
+    (`font-serif`) is kept for quoted classical text, poem lines, example sentences, glossary terms and seals.
+  - `A2Card`, `A2Button` (≥ 48 px high, ≥ 16 px text), `A2BackButton` (≥ 48 px high, ≥ 96 px wide, ≥ 16 px bold,
+    `label` default 「← 返回」, `onClick`), `A2ModuleIcon` (`moduleKey`, `size`), `A2Background` (fixed gradient +
+    3 blurred blobs, mounted once in `Root.jsx`), `MODULE_ICONS` (10 keys = `Storage.MODULES`; `{emoji, tint,
+    tintBorder, bar}`), `A2_MIN_FONT_PX = 13`, `A2_MIN_TAP_PX = 44`.
+  - `PaperCard`, `InkButton`, `Seal` — the names the module files already used, now **A2-only** (they keep their
+    old names on purpose; renaming them would have made the diff huge — a rename is a separate decision).
+    `PaperCard` = a near-white `A2.glass` card; `InkButton` = `A2Button` (drops any `!`-prefixed class such as
+    `!py-2 !text-sm`, so a caller cannot go below the size floors); `Seal` = the red rotated stamp.
+    **`accent` is still passed by every caller but ignored by these A2 components** (kept because
+    `AudioButtons.jsx` — which falls back to `MODULE_ACCENTS.essay` — and ~all call sites still pass it).
+  - `INK` (the six 文房 colours: `paper`, `ink`, `vermillion`, `bamboo`, `ochre`, `indigo`) and
+    `MODULE_ACCENTS` (per-module `solid/dark/tint/tintBorder/on/family`) are kept: Cangjie's 五色 chart,
+    History's 出處 tags and every `ACCENT = MODULE_ACCENTS.<moduleKey>` constant still read them.
+  - `useScrollToTop(dep)` — a `useLayoutEffect` that calls `window.scrollTo(0, 0)` whenever `dep` changes.
+- **Floors the A2 components enforce (and every new screen must respect):** text ≥ 13 px (body ≥ 14 px),
+  pressables ≥ 44 px high, back buttons ≥ 96 × 48, primary buttons ≥ 48 px high. Pinyin with tone marks in
+  Mandarin screens uses `A2_PINYIN_FONT` (Noto Sans TC first) because the rounded fonts may lack tone-mark glyphs.
+- **Page shell (`Root.jsx`):** one `A2Background` + `A2.bg`/`A2.ink` wrapper for every view; the home screen draws its own
+  deep-indigo band (the app-title header is not rendered); other views get a spacer that keeps the safe-area top padding.
+  `TestModeBanner` (sticky, above the page) and `NoticeStack` (fixed, bottom) are siblings of the page and use A2 directly.
+  `Root` calls `window.scrollTo(0, 0)` on every `view` change.
+- **Scroll to top inside a module (Phase 6d-2, commit 3):** each module that has an internal `view` state calls
+  `useScrollToTop(view)` right after `const [view, setView] = useState(...)`, so every internal switch — list → detail,
+  detail → list (back), teaching → practice, hub → sub-activity — starts at the top. `ReadingModule` uses its own
+  `useLayoutEffect` instead: every screen starts at 0 **except** going back from the questions to the passage, which
+  restores the saved reading position (`passageScroll`). Steps inside one quiz (next question) are not module views and
+  do not reset the scroll, apart from Reading, which also resets per question.
+- **Standard module-file shape (copy this for a new module):**
+  1. `const { PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;`
+     (only what the file uses) and `const ACCENT = MODULE_ACCENTS.<moduleKey>;`.
+  2. Each module file carries its **own small copy** of the helpers `A2SegControl` (44 px segmented filter), `A2Section`,
+     `A2Header` (back button + title + `A2ModuleIcon`), `A2ListRow` and `A2ReviewButton` (練習錯題 / 只看錯題 as a
+     secondary 48 px chip using `A2.fireBg`/`A2.fireInk`). They are duplicated rather than shared — extracting them into
+     one file is an open, undecided clean-up.
+  3. Text is `fontFamily: A2.font` (inline style); quoted classical text / poems / example sentences use `font-serif`.
+     Colours are applied through inline `style` (not Tailwind arbitrary-value classes) so nothing depends on the Play
+     CDN's bracket parsing.
+  4. Quiz screens go through `QuestionBlock` / `FixedQuizFlow` (`QuizQuestion.jsx`, A2-only, options on `A2.row`,
+     ≥ 48 px, correct = `A2.rowDone`/`A2.ok`, wrong = `A2.todayBg`/`A2.hot`). Read-aloud buttons use `AudioButtons`.
+  5. Call `onRecordPractice(correct, total)` exactly once when a session finishes (the mission / streak / badge logic
+     hooks in there; the module never touches it) and, if the module tracks mistakes, `onAnswerItem`.
+  6. To add a module: add its key to `Storage.MODULES` (and, for 每日任務, to the right group in `pickMissions`), an entry in
+     `MODULE_ACCENTS` and `MODULE_ICONS` (`theme.jsx`), the content + module `<script>` tags in `index.html` (before
+     `Home.jsx`/`Root.jsx`), a `view === "<key>"` branch and a record handler in `Root.jsx`, and — if it has internal views —
+     `useScrollToTop(view)`. Home and the backup / badge code pick the module up from `Storage.MODULES`.
+- **Cangjie's 五色:** the root chart needs five genuinely distinct tones for the "五色學倉頡" mnemonic, so
+  `CangjieModule.jsx` has its own local `CATEGORY_TONES` (keyed by the `rose/orange/amber/emerald/violet` strings in
+  `cangjieContent.jsx`) and `TONE_TEXT` (darker text shade of the same hue, because the plain tone text on its tint was ≈ 3 : 1).
+- **Per-module notes that still matter:** 文言文選讀 shows a `Seal` with the source book's 2-character abbreviation
+  (`sourceAbbrev()`, e.g. "《韓非子．五蠹》" → "韓非"); 成語 shows `MasteryBadgeA2` (a warm panel labelled
+  「成語稱號（只計算成語學習的練習）」, deliberately different from the home 科舉稱號 card) and `CharacterPinyinCardA2`;
+  歷史 uses category tabs (2-column 48 px pills with counts), `SourceTagA2` (神話與民間傳說 uses the darker ochre `#7A5D20`
+  for contrast) and its own local `FormPillA2`; `PoetryModule.jsx` still exports `FormPill` (`window.App.PoetryParts`) but
+  nothing uses it any more (kept deliberately, see Phase 6d-2); Mandarin's `SpeechDrill` buttons pass `!px-2 !py-2 !text-base`,
+  which the A2 `InkButton` drops (each button 295 × 48 at 820 px, 154 × 48 at 390 px).
+- **Home (`Home.jsx`), top to bottom:** full-bleed deep-indigo band (`100vw` + `marginLeft: calc(50% - 50vw)`, safe-area top
+  padding except in 測試模式) with greeting (早安 5–11 時 / 午安 12–17 時 / 晚安 otherwise, 「，同學」) and the date from
+  `today` → 科舉稱號 card (stamp, 「科舉稱號：秀才」, 「累計練習 37 / 45 節」, progress bar, next-step text, seven-step ladder on one
+  row; 狀元 shows 「已登狀元」; no 「Lv.」 number) → 今日任務 card → 程度 segmented control + 徽章 entry (up to three earned seals
+  labelled 「已獲得」 — the first three in `BADGES` order, not the latest — plus the closest-to-earned badge) → 10 module cards
+  (`A2ModuleIcon`, 「第 N 節」 only when `stats.sessions[module] > 0`, 「已精通」 from 100, milestone bar in `MODULE_ICONS[key].bar`,
+  「下一里程 N 節」, 「今日任務」 tag, 「答對 N 題 · 錯題 N」 / 未開始) → backup panel. A small `<style>` block (`HOME_CSS`) holds the
+  media queries (cloud + 🐲 hidden below 480 px, one-column pair below 620 px), press feedback and the focus ring. Container is
+  `max-w-2xl` (640 px on iPad).
+- **稱號 and 模組里程 are read-only views of `stats.sessions`** (no stored field, no backup change). **`stats.sessions` only
+  counts sessions finished since 每日任務 shipped, so a child with older practice history starts at 童生 / 第 0 節 even if
+  `practiceStats` is large (no retroactive credit — the user accepted this).**
+  `Storage.jsx` (pure, never writes, never throws; bad values count as 0): `TITLE_TIERS`, `getTitleView(state)` →
+  `{ index, key, name, seal, total, currentAt, nextName, nextAt, remaining, ratio, isMax }` (`ratio = total ÷ nextAt`, capped at 1),
+  `MODULE_MILESTONES`, `getModuleMilestoneView(state, key)` → `{ sessions, nextAt, ratio, isMastered }`.
+  | 稱號 | 童生 | 秀才 | 舉人 | 進士 | 探花 | 榜眼 | 狀元 |
+  |---|---|---|---|---|---|---|---|
+  | 印章字 | 童 | 秀 | 舉 | 進 | 探 | 榜 | 狀 |
+  | 累計節數 ≥ | 0 | 10 | 45 | 100 | 180 | 300 | 600 |
+  模組里程 (sessions per module): **5 → 15 → 30 → 60 → 100** (≥ 100 = 已精通). Covered by `tests/titles.test.js` (12 tests).
+- **Other A2 screens:** `BadgesScreen.jsx` (exports `BadgesScreenA2` as `window.App.BadgesScreen`; summary card, 6 group sections, earned =
+  white tile + red seal + 「✓ 已獲得」, locked = lilac dashed tile with 「？」 and progress; every earned seal is the same red);
+  `BackupSettings.jsx` (`A2Card`/`A2Button`, buttons ≥ 48 px); `NoticeStack.jsx` (white card with a coloured edge per kind, 44 px
+  「×」 / 「查看徽章 ›」 / 「全部關閉 ×」); `TestModeBanner.jsx` (deep-indigo sticky bar, 44 px buttons).
+- **Verification method used for the whole restyle (scripts live in the session scratchpad, NOT in the repo):** Playwright +
+  Chromium with React / Babel from npm and a Tailwind-CLI stylesheet in place of the CDN scripts, seeded `Math.random`, frozen
+  `Date`, 測試模式 (`?today=2026-10-12`), and a SHA-256 of `#root.innerHTML` per screen compared with the previous commit
+  (232 screens across home, backup panel, badges, notices, test banner and every module's list / first question / correct / wrong /
+  result). Not verified on a real iPad or with the real CDN / Google Fonts.
+- **Phase 6d-2 (final clean-up, 3 commits):** `f5323cd` removed the 文房 branches, `useA2()` switches and helpers only they used from
+  the 10 module files; `4bfb402` removed the legacy theme components, the 文房 backdrop, `A2Context` and `design-preview/`;
+  the third commit adds `useScrollToTop` and rewrites this file. All three were verified render-neutral against `a8af8f2`
+  (232 screens, identical hashes).
 
 ## Design notes
 - Bright, encouraging, age-appropriate tone (Primary 5 to Secondary 1 student)
-- **Base background/accent colors superseded by the "文房" redesign above**
-  (`bg-amber-50` → `INK.paper` #F7F0E3, red/gold → the 5-core-color system)
-  — this bullet describes the original pre-redesign look; kept for history,
-  not current behavior.
-- Font: "Noto Sans TC" / "Noto Sans HK" (Traditional Chinese, Google Fonts),
-  falling back to "Baloo 2" for latin characters/numerals — **"Noto Serif
-  TC" was added alongside this for headings/titles/classical text, see the
-  UI redesign section above**
+- Page colours / cards / buttons follow the A2 system (see "UI system — A2" above); the pre-A2 palettes are gone from the code.
+- Font: Zen Maru Gothic first, then "Noto Sans TC" / PingFang HK (Traditional Chinese), "Baloo 2" for numerals, and "Noto Serif TC" for classical
+  text and seals — see "UI system — A2" above
 - Since the child cannot type Chinese fluently yet, prefer selection-based
   input (multiple choice, drag, tap-to-build) over free typing in modules
   1, 2, 5, 7, 8, 9 — free typing is only appropriate within module 3 (Cangjie
@@ -257,8 +193,8 @@ This shipped in two stages:
   as `english-ops`)
 - `src/AudioButtons.jsx` — shared 🔊 普通話 / 🔊 粵語 read-aloud buttons
   (`window.App.AudioButtons`, a `{ text, accent, className }` component —
-  `accent` takes a `MODULE_ACCENTS` entry, not a legacy color string, since
-  the UI redesign rollout; see that section for why). Loads
+  `accent` takes a `MODULE_ACCENTS` entry; the A2 `InkButton` ignores it.
+  Both buttons are 48 px high A2 buttons). Loads
   `speechUtils.jsx`'s voices once via `getVoicesAsync()` in a `useEffect`,
   picks a voice with `pickMandarinVoice`/`pickCantoneseVoice`, and calls
   `speak(text, voice, fallbackLang)` on click. Originally built inline for
@@ -270,16 +206,13 @@ This shipped in two stages:
   just import `window.App.AudioButtons` and pass `text` + `accent={ACCENT}`
   (that module's own `MODULE_ACCENTS` entry) — no per-module voice-loading
   needed.
-- Shared UI primitives live in `src/theme.jsx` (`PaperCard`, `InkButton`,
-  `INK`, `MODULE_ACCENTS`, `FEEDBACK`, `REVIEW_ACCENT`, `TYPE` — see UI
-  redesign notes; legacy `Card`/`Button`/`COLORS` still exported but unused
-  by any module as of the full rollout) and `src/QuizQuestion.jsx`:
+- Shared UI primitives live in `src/theme.jsx` (`A2`, `A2Card`, `A2Button`, `A2BackButton`, `A2ModuleIcon`, `PaperCard`, `InkButton`, `Seal`,
+  `INK`, `MODULE_ACCENTS`, `MODULE_ICONS`, `useScrollToTop` — see "UI system — A2") and `src/QuizQuestion.jsx`:
   - `QuestionBlock` — generic multiple-choice renderer with immediate
     feedback; `q.prompt` can be a plain string or a JSX element, so modules
     can render rich prompts (e.g. a whole poem with one line blanked out)
-    through the same component. Takes an `accent` prop (a `MODULE_ACCENTS`
-    entry) for the default option style; correct/wrong feedback always uses
-    `FEEDBACK.correct`/`FEEDBACK.incorrect` regardless of module. Prompt
+    through the same component. Options are A2 rows (≥ 48 px); correct = `A2.rowDone`/`A2.ok`,
+    wrong = `A2.todayBg`/`A2.hot`. Prompt
     text is `text-xl` and option-button text is `text-lg` (bumped up from
     the unstyled ~16px default after user feedback asking for bigger
     exercise text) — since every module renders its practice questions
@@ -298,9 +231,8 @@ This shipped in two stages:
     score screen), for modules whose questions are hand-authored per content
     item rather than generated at runtime (History, Reading, ClassicalProse
     — see their module details below). Takes `{questions, accent,
-    headerLabel, onBack, onFinish}` — `accent` (a `MODULE_ACCENTS` entry)
-    replaced the old `color` string + internal `LINK_TEXT_CLASS` lookup
-    when this was migrated off the legacy system.
+    headerLabel, onBack, onFinish}` — `accent` is passed through but the A2 look
+    ignores it. Options are shuffled once per attempt.
 - `src/quizUtils.jsx` holds `shuffle`/`sampleOthers`/`sampleWithRepeats`,
   shared by every module that auto-generates MC questions at runtime (see
   Module 1/2/5 details below) — reuse these rather than re-implementing
@@ -1179,9 +1111,7 @@ correctly since, and lets them specifically re-practice just those.
   view (`rounded-xl bg-{color}-50` blocks), not copied from it. No changes
   were needed to this component for batch 2 — it was already fully
   data-driven off `CLASSICAL_PROSE_ITEMS`.
-- New color: `theme.jsx`'s `COLORS` had exactly 9 entries (one per existing
-  module, all already in use) — added a 10th, `lime`, for this module
-  specifically so it doesn't share a color with any existing module card.
+- Module colour: `MODULE_ACCENTS.classicalProse` / `MODULE_ICONS.classicalProse` (🏺) distinguish it from the other nine.
 - Wiring: `src/content/classicalProseContent.jsx` and
   `src/ClassicalProseModule.jsx` script tags added to `index.html` (content
   file alongside the other `src/content/*.jsx` tags, module file alongside
@@ -1295,7 +1225,7 @@ missing features):
   file name, `testMode: true`, refused by normal mode with reason `testFile`).
 - If a second localStorage key is ever added, add it to `buildBackup`/`parseBackup`.
 
-## 每日任務 · 連續日數 · 徽章 (built Oct 2026, 5 phases, all deployed; phase 6 = A2 restyle, 6a + 6b done)
+## 每日任務 · 連續日數 · 徽章 (built Oct 2026, 5 phases, all deployed; Phase 6 = A2 restyle, complete)
 Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` /
 `storage.jsx`, read-only reference — never edit it) but deliberately different:
 1. english-ops needs *every* module done each day; here **3 missions/day** (10 modules is too
@@ -1354,13 +1284,8 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   *before* the session). Fixed to the bottom of ANY screen, 44px × buttons + 全部關閉, auto-dismiss
   after 25 s, adds bottom padding to the page while visible (it covered the 備份 link before that),
   max 4. **In memory only** — never saved, never in a backup.
-- **主頁版面 (`Home.jsx`) — original 文房 layout, superseded by Phase 6b (A2) below; the content/logic is the same**: 今日任務 card (3 mission rows, 🔥 N 日, 🛡️ 保護符 ×k, status line) →
-  程度 chips + 🏅 徽章 n / 23 button on one row → module tiles (horizontal, `auto-fill minmax(260px,1fr)`
-  grid; each shows 「答對 N 題 · 錯題 M」 from `practiceStats`/`mistakes`, or 「未開始」) → 備份連結.
-  The missions card plus all 10 module tiles fit one iPad-portrait screen (820 px wide; the 備份 link
-  sits near y≈1050, so Safari may need a small scroll); 1 column on a phone. No text under 13 px;
-  secondary text uses `INK.subInk`. `BadgesScreen.jsx`: seal tiles, locked ones dashed 「？」 + progress bar,
-  成語意思 on every tile, 「下一個目標」, and a back button ≥ 48 px high.
+- **主頁版面:** see "UI system — A2 → Home". Content / logic: 今日任務 card (3 mission rows, 🔥 N 日, 🛡️ 保護符 ×k, status line), 程度 control, 🏅 徽章 n / 23, 10 module cards, 備份連結.
+  `BadgesScreen.jsx`: a seal tile per badge, locked ones dashed 「？」 + progress bar, 成語意思 on every tile, 「下一個目標」.
 - **測試模式**: open the site with `?today=YYYY-MM-DD` (any `today` parameter, even empty/invalid,
   selects it; an invalid value uses the real date). Then the app uses localStorage key
   **`chineseOps:test`** and pretends it is that date, and **never reads or writes `chineseOps:v1`**.
@@ -1385,243 +1310,11 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   博學多才 earned. The node unit tests are now in `tests/` (see 單元測試); the Playwright browser
   scripts lived in the session scratchpad and are **not in the repo**.
 - **Deploy:** GitHub Pages serves `master`; each phase was merged (fast-forward) into `master` and pushed.
-- **Phase 6 — visual restyle to A2 (Oct 2026): samples → 6a foundation → 6b home → 6c (all 10 modules) → 6d-1 done (see below); 6d-2 (cleanup) not started.** Step 1 = three standalone
-  mock home screens in `design-preview/` (`index.html` lists them with live scaled previews; `style-a.html`
-  淡紫磨砂玻璃 · `style-b.html` 中國傳統色 · `style-c.html` 文房升級版), served by GitHub Pages at
-  `/design-preview/`. Fake data only, plain HTML/CSS + a few lines of JS (no React/Tailwind/CDN apart from
-  Google Fonts), `noindex`, designed for iPad portrait (820 px) and checked at 390 px: text ≥ 13 px, taps
-  ≥ 44 px, contrast ≥ 4.5:1 measured against the real pixels behind the text, no transitions under
-  `prefers-reduced-motion`. **Nothing in `src/` or the root `index.html` was touched.** The user picks a
-  direction first; then the real screens are restyled. The page layout was written from the user's text
-  description of two reference images (the images themselves were not visible to Claude).
-  - **Direction chosen: A (淡紫漸層 + 磨砂玻璃).** Step 2 = two variants of A in `design-preview/`:
-    `style-a1.html` 清新通透 (paler background, more transparent cards, softer shadows, light-glass
-    level card) and `style-a2.html` 深靛型格 (deep indigo band on top holding the greeting + a dark level
-    card using the 科舉 title ladder 童生→秀才→舉人→進士→探花→榜眼→狀元, light near-opaque content cards,
-    deep-indigo buttons and nav). B and C are kept only for comparison. Both variants keep the seal-style
-    badges / cloud ornament (cloud hidden on phones) and dropped 「我的」 from the bottom nav.
-  - **Bottom nav = 主頁 / 學習 / 任務 / 徽章.** The real app only has Home, 徽章 and the 10 module screens
-    (backup is an inline panel on Home), so 學習 (module grid) and 任務 (missions card) are *sections of
-    Home*: in the mock they scroll to the section and the highlight follows the page (a tap locks the
-    highlight until the user scrolls themselves; instant jump under `prefers-reduced-motion`); only 徽章
-    would be a real screen switch. If a variant is chosen, implement 學習/任務 as in-page jumps first;
-    separate screens would be new work.
-  - If a sample is chosen, these mock-only elements need a real definition first (the app has no such
-    data today): a global 等級/Lv + 稱號 (the mock reuses the idiom 科舉 ladder 童生→狀元 driven by total
-    finished sessions), a per-module 進度 % (the mock shows an invented mastery %; the app only has 答對/
-    錯題 counts), a greeting/avatar, and bottom-nav destinations 學習 / 任務 / 我的 (today there is only
-    Home + one screen per module + 徽章 + 備份, so nav items would need real screens or a reduced set).
-  - Fonts in A/B: Zen Maru Gothic (rounded, Japanese font with Traditional coverage gaps — falls back per
-    glyph to Noto Sans TC) + Baloo 2 for numerals; C: Noto Serif TC + Noto Sans TC. Not verified on a real
-    iPad (the sandbox cannot load Google Fonts), so check glyph consistency there.
-  - Remaining Phase 6 scope after a style is chosen: module list rows that don't all share one icon
-    (e.g. the title's first character as a seal, or a dynasty tag) and show done/not done; a larger easier
-    「返回主頁」 button; text in module screens no smaller than 13 px. Module-internal screens are unchanged
-    until then (`BadgesScreen` already uses the larger back button). Delete `design-preview/` once the
-    decision is made and applied.
-  - **Final choice: A2 (深靛型格).** Phase 6 is now split into sub-phases:
-    - **6a 地基 (done): only ADDS the A2 style foundation to `src/theme.jsx`; it is applied to NO screen.**
-      Nothing existing was modified — `INK`, `MODULE_ACCENTS`, `PaperCard`, `InkButton`, `Seal`, `FEEDBACK`,
-      `REVIEW_ACCENT`, `TYPE` and the legacy `COLORS`/`Button`/`Card` are untouched (`git diff` of theme.jsx is
-      +240 / −0; the new exports are attached with a separate `Object.assign(window.App.UI, …)` after the
-      original `window.App.UI = {…}`). `Root.jsx`, `Home.jsx`, every module, `Storage.jsx` and `tests/` were not
-      touched; the only change to `index.html` is that the Google Fonts link also loads Zen Maru Gothic
-      (wght 500;700;900). Verified: `node tests/run-all.js` 55/55; real app (Home, poetry list/detail/Q1,
-      history list, test mode, seeded `Math.random`) screenshotted before vs after — byte-identical PNGs.
-    - New in `window.App.UI`: `A2` (colour / gradient / shadow / font tokens copied verbatim from
-      `design-preview/style-a2.html`; font stack Zen Maru Gothic → Noto Sans TC → PingFang HK → PingFang TC →
-      Hiragino Maru Gothic ProN → system-ui; numerals Baloo 2), `MODULE_ICONS` (10 keys = `Storage.MODULES`;
-      `{emoji, tint, tintBorder, bar}`, 10 distinct tints), `A2Card`, `A2Button` (≥ 48 px high, ≥ 16 px text),
-      `A2BackButton` (≥ 48 px high, ≥ 96 px wide, ≥ 16 px bold, `label` default 「← 返回」, `onClick`),
-      `A2ModuleIcon` (`moduleKey`, `size`), `A2Background` (fixed, `pointer-events-none`, gradient + 3 blurred
-      blobs; `blobs` prop, default true; **not mounted anywhere yet**), `A2_MIN_FONT_PX = 13`,
-      `A2_MIN_TAP_PX = 44`. The components enforce the floors themselves (a caller cannot go below them).
-    - `design-preview/theme-check.html` renders the real `theme.jsx` components (cards, buttons, back button,
-      10 icons, background toggle, token swatches) for comparison with `style-a2.html`. It is a dev page like
-      the other previews; delete it together with `design-preview/` when Phase 6 is finished.
-    - **6b 主頁 (done, Oct 2026): the A2 style is applied to the HOME SCREEN ONLY** (`Home.jsx`, plus the home
-      backdrop in `Root.jsx`). Every other screen (badges page, 10 modules, banners) is unchanged — verified
-      pixel-identical before/after (badges + each module's list and first-question screen, 21 screenshots, only
-      noise: a 6×2 px flicker in the 測試模式 banner that also differs between two runs of the OLD build).
-      - `Root.jsx`: `view === "home"` renders `A2Background` (gradient + 3 blobs) with `A2.bg` / `A2.ink`; every other
-        view keeps the 文房 backdrop (blobs + 4 watermark emoji) exactly as before. On home the app-title
-        `<h1>🏮 中文學習` header is not rendered (the band's greeting replaces it). Container is still `max-w-2xl`.
-      - `Home.jsx` (top to bottom): full-bleed deep-indigo band (`100vw` + `marginLeft: calc(50% - 50vw)`; safe-area
-        top padding except in 測試模式, where the banner already covers the status bar) with greeting (早安 5–11 時 /
-        午安 12–17 時 / 晚安 otherwise, 「，同學」) + date from `today` (so `?today=` is honoured) → 科舉稱號 card
-        (stamp, 「科舉稱號：秀才」, 「累計練習 37 / 45 節」, progress bar, 「再完成 8 節練習，晉升「舉人」」; 狀元 shows
-        「已登狀元」; seven-step ladder on ONE row at 820 and 390; **no 「Lv.」 number**) → 今日任務 card (logic unchanged)
-        → 程度 segmented control + 徽章 entry (up to 3 earned seals, closest-to-earned badge) → 10 module cards
-        (`A2ModuleIcon`, 「第 N 節」 top right, 「已精通」 from 100, milestone bar in `MODULE_ICONS[key].bar`,
-        「今日任務」 tag, 「答對 N 題 · 錯題 N」 / 未開始 / 即將推出) → backup. A small `<style>` block in `Home.jsx` holds the
-        media queries (cloud + 🐲 hidden below 480 px, one-column pair below 620 px), press feedback and focus ring.
-        Decorative values the sample has but `A2` lacks are local `BAND_*` / `LV_*` / `STAMP_SHADOW` constants at the top.
-      - **Backup panel (`BackupSettings.jsx`) was NOT restyled in 6b** (the 6b brief forbade touching that file; restyled in 6d-1). Home only wraps it in `.a2h-backup`, whose CSS makes its
-        toggle button ≥ 48 px high and ≥ 96 px wide.
-      - 稱號 and 里程 are **read-only views of `stats.sessions`** — no new stored field, no `normalizeGamification`,
-        `BACKUP_VERSION` (still 2) or backup-format change (verified: export JSON identical before/after; top-level
-        keys `app, data, exportedAt, testMode, version`; state keys `daily, level, moduleProgress, stats, streak,
-        streakFreezes`). **Consequence: `stats.sessions` only counts sessions finished since 每日任務 shipped, so a child
-        with older practice history starts at 童生 / 第 0 節 even if `practiceStats` is large (no retroactive credit).**
-      - `Storage.jsx` additions (pure, never write, never throw; bad values — NaN, negative, strings — count as 0, only
-        the 10 real module keys are summed): `TITLE_TIERS`, `getTitleView(state)` →
-        `{ index, key, name, seal, total, currentAt, nextName, nextAt, remaining, ratio, isMax }` (`ratio = total ÷ nextAt`,
-        capped at 1 — NOT progress inside the current band — so it matches the printed 「37 / 45」), `MODULE_MILESTONES`,
-        `getModuleMilestoneView(state, key)` → `{ sessions, nextAt, ratio, isMastered }`.
-        | 稱號 | 童生 | 秀才 | 舉人 | 進士 | 探花 | 榜眼 | 狀元 |
-        |---|---|---|---|---|---|---|---|
-        | 印章字 | 童 | 秀 | 舉 | 進 | 探 | 榜 | 狀 |
-        | 累計節數 ≥ | 0 | 10 | 45 | 100 | 180 | 300 | 600 |
-        模組里程 (per module, sessions): **5 → 15 → 30 → 60 → 100** (≥ 100 = 已精通, bar full).
-        `tests/titles.test.js` (12 tests): every boundary, 狀元, 37 → 秀才 / 舉人 / 8 / 0.822, junk input, milestone
-        boundaries, unknown module key, state JSON identical before/after the calls, saved shape unchanged.
-      - Known, pre-existing and NOT fixed in 6b: `Root` does not scroll to the top when the view changes. The phone
-        home already left the next screen scrolled (≈160 px); the A2 home is taller on iPad (≈1660 px vs ≈1290 px), so
-        opening a module from the lower half now also lands part-way down on iPad. A one-line `window.scrollTo(0, 0)`
-        on view change in `Root.jsx` would fix it — decision left to the user.
-      - Differences from `style-a2.html` (on purpose): no 「Lv.」 number; 「第 N 節」 instead of 「N%」; no bottom
-        dock; no 快捷圖示列; no 練習錯題 badge on the shortcuts; app-title header hidden; sample's blobs are
-        hidden (`.bg{display:none}`) but the app shows them (6b decision); mission-row icons are `A2ModuleIcon` tinted
-        tiles (sample: white tiles); sample's 「早晨」 → 早安/午安/晚安 and 「今日也一起學中文吧」 → 「今天也一起學習中文吧」
-        (書面語); 標點符號 icon is 「❝」 on the home (`MODULE_ICONS`), while the module screen itself still uses 「。」;
-        the level card keeps the sample's 24–26 px title but is 640 px wide on iPad (container `max-w-2xl`) instead of 720 px.
-    - **6c-1 共用機制 + 文言文選讀試點 (done, Oct 2026).** Modules are switched to A2 one batch at a time through a
-      React Context, so the 文房 look keeps working for every module not yet migrated.
-      - `theme.jsx` adds `A2Context` (default `false`) and `useA2()`. `PaperCard`, `InkButton` and `Seal` call `useA2()`:
-        with `false` they return exactly the old element tree; with `true` they render the A2 look — `PaperCard` =
-        near-white `A2.glass` card (`accent` accepted, not used), `InkButton` = `A2Button` (A2.acc, white, full round,
-        ≥ 48 px, ≥ 16 px; `accent` ignored; any `!important` size class such as `!text-sm` / `!py-2` in `className` is
-        dropped so callers cannot go below the floors), `Seal` = `A2.sealBg` / `A2.sealInk` (serif kept).
-      - `QuizQuestion.jsx`: `QuestionBlock` and `FixedQuizFlow` have an A2 branch (options on `A2.row`, ≥ 48 px;
-        correct = `A2.rowDone` + `A2.ok`, wrong = `A2.todayBg` + `A2.hot` / `A2.hotInk`; result card; the back button is
-        `A2BackButton`). Logic, shuffling and scoring are unchanged. `AudioButtons.jsx` was NOT edited: it is built from
-        `InkButton`, so it becomes two A2 buttons automatically.
-      - `Root.jsx`: `A2_VIEWS = ["home", "classicalProse"]` (add a module key here to migrate it). A view in `A2_VIEWS`
-        gets the `A2Background` + `A2.bg` / `A2.ink` backdrop and no 「🏮 中文學習」 header (a spacer keeps the safe-area
-        top padding on module screens); every other view keeps the 文房 backdrop and header exactly. The `A2Context`
-        provider wraps only `<main>` (so `TestModeBanner` / `NoticeStack` are never affected) and its value is
-        `A2_VIEWS.includes(view) && view !== "home"`: **on the home screen the context stayed `false`** in 6c because Home is
-        built from A2 pieces directly and still embedded `BackupSettings` (文房 look). *Superseded in 6d-1: one provider wraps the whole
-        page and its value is `A2_VIEWS.includes(view)`, so the home screen, banner and notices are A2 too.*
-      - `ClassicalProseModule.jsx` keeps its original 文房 screens untouched and adds A2 versions
-        (`ListViewA2`, `PassageDetailA2`, `PassageListRowA2`, `A2SegControl`) chosen with `useA2()`: back buttons are
-        `A2BackButton` (122×48 / 96×48), title row with `A2ModuleIcon` (🏺), 程度 as the same A2 segmented control as
-        home (44 px, 全部/小五/小六/中一), 只看錯題 as a 48 px chip, rows with a seal-red source stamp. UI text is
-        `A2.font`; the 原文 lines and the glossary terms stay `font-serif`. No text below 14 px. All behaviour (filters,
-        mistakes, `FixedQuizFlow`, `onRecordPractice`, `onAnswerItem`) is unchanged. The old 文房 branches are meant to be
-        deleted in 6d once every screen is A2.
-      - Verification: tests 67/67; SHA-256 of `#root.innerHTML` for 30 non-A2 screens (home, badges, the 9 other
-        modules' lists, detail screens of poetry / idiom / history, a first-question screen and an answered-question
-        screen of poetry / essay / idiom / history / rhetoric / punctuation, cangjie and mandarin drills, reading
-        passage + questions) identical between commit `1a0cc9e` and the new build (seeded `Math.random`, test mode);
-        pilot screens at 820 / 390 (list, 只看錯題 filter, detail, question, correct, wrong, result): no horizontal
-        overflow, no text < 13 px, no pressable < 44 px, no overlap, back buttons ≥ 96×48; a full session recorded
-        (`stats.sessions.classicalProse` 0 → 1, home 累計練習 37 → 38), backup JSON unchanged (version 2, same keys).
-    - **6c-2 修辭、標點、作文、詩詞 (done, Oct 2026).** `A2_VIEWS = ["home", "classicalProse", "rhetoric", "punctuation",
-      "essay", "poetry"]` (the list at the end of 6c-2; see 6c-4 for the final one). Same mechanism as 6c-1; the shared files (`theme.jsx`,
-      `QuizQuestion.jsx`, `AudioButtons.jsx`) were NOT touched.
-      - Each module file keeps its 文房 screens untouched and adds A2 versions chosen with `useA2()`: a copy of the small
-        helper set (`A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton`) + `ListViewA2` +
-        `…DetailA2` (`DeviceDetailA2`, `MarkDetailA2`, `EssayDetailA2`, `PoemDetailA2`). `PracticeSession` has A2 branches
-        for the header (`A2BackButton` + 「第 n / N 題」) and the result card. Back buttons are `A2BackButton`
-        (122×48 on the list, 96×48 elsewhere), titles carry `A2ModuleIcon`, 程度 / 主題 are the same A2 segmented
-        control as home (44 px), the practice button is `InkButton`, **練習錯題 is a secondary 48 px chip**
-        (`A2.fireBg` / `A2.fireInk`), not a second primary button.
-      - Question prompts: the `build…Question` functions take an `a2` flag (`PracticeSession` passes `useA2()`), so the A2
-        prompts are built at generation time. Instruction lines are 15–16 px `A2.font`; the quoted sentences / poem
-        lines / 例句 / 原文 stay `font-serif`; the blank marker uses `A2.segTrack` / `A2.accD`. Question generation,
-        `Math.random` use, scoring, `onAnswerItem` and `onRecordPractice` are unchanged.
-      - Poetry: pinyin toggle is a 44 px pill; `FormPillA2` (13 px, same tone table; the original `FormPill` is still the one
-        exported to HistoryModule); related-story links are 44 px tall and open the 歷史故事 module, which is not A2 yet — the
-        view switch A2 → 文房 → A2 (via the story's back link) was checked: backdrop and header swap cleanly, no A2 leftovers.
-      - `!important` classes dropped by the A2 `InkButton`: only `AudioButtons.jsx` lines 33 and 36 (`!py-2 !text-sm` on both
-        buttons). Result in A2 (poetry detail): each button 295×48 at 820 px and 154×48 at 390 px, 16 px text (文房: 36 px high,
-        14 px). None of the four modules passes a `!` class.
-      - Verification: tests 67/67; SHA-256 of `#root.innerHTML` for 19 non-A2 screens (home, badges; idiom list / detail /
-        first question unanswered + answered; cangjie list + drill; mandarin list + pinyin drill; history list / story /
-        first question unanswered + answered; reading list / passage / questions; classicalProse list + detail) identical
-        between commit `9c356d8` and the new build; A2 screens of the four modules at 820 / 390 (list, filters, detail,
-        question, correct, wrong, result, 練習錯題 chip): no overflow, no text < 13 px, no pressable < 44 px, no overlap; one full
-        session per module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, wrong answers added to the mistake
-        list); backup export `version` 2 with unchanged top-level keys.
-      - The audit script ignores text clipped by `text-overflow: ellipsis` (a range rect covers the hidden part and looked like an overlap).
-    - **6c-3 成語、閱讀理解、歷史 (done, Oct 2026).** `A2_VIEWS` = `["home", "classicalProse", "rhetoric", "punctuation",
-      "essay", "poetry", "idiom", "reading", "history"]`. Same mechanism and helper set as 6c-2 (each file carries its own copy of
-      `A2SegControl`/`A2Section`/`A2Header`/`A2ListRow`/`A2ReviewButton` — candidate for extraction into a shared file in 6d);
-      `theme.jsx`, `QuizQuestion.jsx`, `AudioButtons.jsx` untouched. 文房 branches kept.
-      - 成語: `MasteryBadgeA2` is deliberately different from the home 科舉稱號 card (warm `A2.fireBg` panel, label 「成語稱號（只計算成語
-        學習的練習）」, next step 「再完成 N 次成語練習…」, level-up text 「你的成語稱號晉升為「X」」); `MASTERY_TIERS` / stage maths
-        unchanged. `CharacterPinyinCardA2` (pinyin ≥ 13 px over serif hanzi), 填字題 blank is serif 36 px via the `a2` flag of the builders.
-      - 閱讀理解: A2 only — passage text serif 17 px, line-height 2, paragraph gap 16 px with ①②③; passage and 題目 are separate cards;
-        entering the questions scrolls to top (and on each new question), and returning to the passage restores the saved
-        `window.scrollY` (`passageScroll` ref + `useLayoutEffect` in `ReadingModule`, both guarded by `useA2()`; the 文房 path is unchanged).
-        Option buttons ≥ 48 px, open-question textarea ≥ 112 px, self-mark buttons 48 px.
-      - 歷史: category tabs = 2-column 48 px pills with counts; `SourceTagA2` 13 px — 神話與民間傳說 uses a darker ochre (`#7A5D20`) for
-        contrast, all four 出處 labels and 出處說明 text unchanged; `FormPillA2` is a local copy (Poetry's exported `FormPill` untouched).
-        Poem ↔ story links (both directions, war-poem tab) verified: A2 backdrop node persists, no 文房 blobs/title appear, back returns to the right screen.
-      - `!` classes dropped by the A2 `InkButton`: still only `AudioButtons.jsx` lines 33 / 36 (`!py-2 !text-sm`). Measured in A2: idiom and
-        history detail each button 295×48 at 820 px / 154×48 at 390 px, 16 px text. No 6c-3 module passes a `!` class.
-      - Verification: tests 67/67; `#root.innerHTML` SHA-256 of 21 non-A2 screens identical to `e4b0f4d`; 13 screens (home, badges, idiom /
-        history / reading 文房 branches with A2 switched off) identical to `e4b0f4d`; A2 screens at 820 / 390 (list, 只看錯題, detail / passage,
-        question, correct, wrong, result, open-question reveal) no overflow / text < 13 px / pressable < 44 px / overlap; one full session per
-        module recorded (`stats.sessions[module]` +1, home 累計練習 37 → 38, backup version 2 with unchanged keys). Reading has per-passage
-        mistakes, so a wrong answer on an already-flagged passage leaves the mistake count unchanged.
-    - **6c-4 倉頡、普通話 (done, Oct 2026).** `A2_VIEWS` is now **home + all 10 modules**: `["home", "classicalProse", "rhetoric",
-      "punctuation", "essay", "poetry", "idiom", "reading", "history", "cangjie", "mandarin"]`. `theme.jsx`, `QuizQuestion.jsx`,
-      `AudioButtons.jsx`, `Storage.jsx`, `Home.jsx`, `tests/` untouched; 文房 branches kept. No behaviour change: the speech / audio /
-      recognition / pinyin-input code is shared and unchanged — only the JSX returned under `useA2()` differs.
-      - 倉頡: the module has **no on-screen keyboard** — the child types on the device keyboard into a text field — so there are no
-        keyboard keys to size; the pressables are the 拆字練習 character grid (`auto-fill minmax(48px)`, 48 px high), buttons and the
-        input (56 px high, 24 px). A2 copies: `RootChartA2`, `AuxiliaryShapesA2`, `DecompositionDiagramA2` (letters 13 px, root chars
-        serif 22 px), `CompoundExamplesA2`, `CharBreakdownA2`, `QuickExplainerA2`, `ReferenceViewA2`, plus A2 branches in
-        `TypingPractice` / `PracticeSession`. **五色 category colours are kept** (`CATEGORY_TONES` tints / borders / dots identify the
-        category); text on a tint uses a darker shade of the same hue (`TONE_TEXT`) because the original ochre text on its tint was ≈ 3 : 1.
-      - 普通話: `A2TopBar` + A2 branches in all 6 places that had a back button (hub 「← 返回主頁」, 聆聽, 拼音默寫, 朗讀/說話 (shared
-        `SpeechDrill`), 拼音輸入法 intro 「← 返回」, IME drill 「← 返回」) — all `A2BackButton` with their original labels and targets.
-        Pinyin with tone marks (ā á ǎ à ǖ…) is set in `A2_PINYIN_FONT` (Noto Sans TC first) because Zen Maru Gothic / Baloo 2 may lack
-        some tone-mark glyphs; pinyin ≥ 14 px. 🔊 重播 / 顯示拼音 / 我已經讀了 are 48 px pills (the last was an underlined text link).
-      - `!` classes dropped by the A2 `InkButton`: `AudioButtons.jsx` 33 / 36 (not used by these two modules) and, new here,
-        `MandarinModule.jsx` `SpeechDrill` 🔊 播放示範 / 🎙️ 開始錄音 (`!px-2 !py-2 !text-base`, only in the A2 branch, so the 文房 render is
-        unchanged). Result in A2: each 295×48 at 820 px / 154×48 at 390 px, 16 px text.
-      - Cangjie and Mandarin do not track mistakes (by design, see 錯題重溫), so there is no 練習錯題 UI here; each finished session still
-        calls `onRecordPractice` once (跟打練習 also counts as one 倉頡 session; each Mandarin activity counts as one).
-      - Verification: tests 67/67; `#root.innerHTML` SHA-256 of 37 screens (home, badges, poetry / essay / rhetoric / punctuation /
-        classicalProse / idiom / reading / history list + detail + first question unanswered / answered) identical to `9ee90bc`; 27 screens of
-        the 文房 branches of 倉頡 / 普通話 (A2 switched off in a copy: drill, 跟打, listening, 朗讀 + 顯示拼音, 說話 + manual, IME intro + drill)
-        identical to `9ee90bc`; A2 screens at 820 / 390 (reference, 拆字 selected, both 倉頡 drills incl. wrong / correct / hidden hint / result;
-        Mandarin hub + level, every one of the 5 activities incl. wrong / correct / pinyin shown / mic-denied message / manual / result) no
-        overflow, no text < 13 px, no pressable < 44 px, no overlap; one real session per activity recorded (`stats.sessions.cangjie` +2,
-        `mandarin` +5), backup `version` 2 with unchanged keys; 0 console errors; mic permission denied path shows 「無法取得麥克風權限…」.
-    - **6d-1 主頁決定項目 + 徽章頁 / 備份面板 / 橫幅 / 測試橫條 A2 (done, Oct 2026).** `A2_VIEWS` = home + `badges` + all 10 modules, i.e. every
-      view; the 文房 backdrop / header branch in `Root.jsx` and every 文房 branch in the other files are still in the code (deleted in 6d-2).
-      Files changed: `Home.jsx`, `Root.jsx`, `BadgesScreen.jsx`, `BackupSettings.jsx`, `NoticeStack.jsx`, `TestModeBanner.jsx`. NOT touched:
-      `Storage.jsx`, `tests/`, module files, `theme.jsx`, `QuizQuestion.jsx`, `AudioButtons.jsx`, `index.html`; no new stored field.
-      - **Decisions applied (from the 6b open items):** (1) 稱號 stays derived from `stats.sessions` (no credit for old `practiceStats`);
-        (2) BackupSettings is A2 (`A2Card` / `A2Button`, buttons ≥ 48 px, same texts and export / import / confirm flow); (3) the app title stays hidden
-        on home; (4) `Root` calls `window.scrollTo(0, 0)` in a `useEffect` on `view` (module-internal screens still do not reset — only ReadingModule
-        handles its own scroll, see 6c-3); (5) the 徽章 entry labels its three seals 「已獲得」 (they are the first three earned badges, in `BADGES`
-        order, not the latest — there was no 「最近」 label in the code); (6) a module card shows 「第 N 節」 only when `stats.sessions[module] > 0`
-        (never 「第 0 節」), and 「已精通」 from 100; (7) a 13 px line 「下一里程 N 節」 under the progress bar (not shown when mastered; shown for
-        modules with 0 sessions too); (9) container stays `max-w-2xl`. The right-hand slot of a module card keeps a 60 px minimum width even when
-        empty so all progress bars are equally long.
-      - Left line of a module card is still decided by `practiceStats.attempts`: 「未開始」 only when `attempts === 0`; a legacy save with attempts but
-        no sessions shows 「答對 N 題」 with no 「第 N 節」 (the two counters are independent; see the 6b note about no retroactive credit).
-      - `Root.jsx`: one `A2Context.Provider value={A2_VIEWS.includes(view)}` now wraps the test banner, the page and `NoticeStack`, so those use their
-        A2 branch (`useA2()`); the provider has no DOM, so module screens render exactly as before.
-      - `BadgesScreen.jsx` A2: summary card (已獲得 n / 23 + bar + 下一個目標), 6 group sections with counts, earned = white tile + red seal + 「✓ 已獲得」,
-        locked = lilac tile, dashed border, dashed 「？」 seal, progress bar + 「進度 cur / target」; text ≥ 14 px; `A2BackButton` 「← 返回主頁」.
-        Earned seals are all the same red (the 文房 version coloured them per module / group; `badgeAccent` is still exported).
-      - `NoticeStack.jsx` A2: white card with a coloured edge per kind (task = green, day = red, 保護符 = blue, badge = indigo + red seal),
-        44 px round 「×」, 44 px 「查看徽章 ›」 (was 32 px), 44 px 「全部關閉 ×」; same notices, wording, 25 s auto-dismiss, bottom padding.
-      - `TestModeBanner.jsx` A2: deep-indigo sticky bar with a warm 「🧪 測試模式」 chip, the four buttons are 44 px high (were 40 px), 15 px text; same actions.
-      - Verification: tests 67/67; SHA-256 of `<main>` (not `#root`: the test banner is inside `#root` and is one of the changed items) for 64 screens (home,
-        badges, and list + detail + first question unanswered / answered of all 10 modules, incl. 倉頡 / 普通話 drills) identical to `5779e9c` except home and
-        badges (the targets); A2 screens at 820 / 390 (home, backup panel open / confirm / restored / error, badges top and bottom, notices) with the banner tap
-        filter REMOVED from the audit: no overflow, no text < 13 px, no pressable < 44 px, no overlap; one real session per module recorded; export → import
-        gives an identical stored state, backup `version` 2, top-level keys `app, data, exportedAt, testMode, version`; scroll returns to 0 on every Root view change.
-      - Audit note: the sticky test banner legitimately covers scrolled content, so its own texts (and the date) are excluded from the overlap check.
-    - **6d-2 (NOT started):** 刪除各模組舊文房分支同舊 helper（`useA2()` 切換、各模組內重複嘅 A2 helper 可抽成共用檔，先講出嚟等決定）、移除不再用嘅舊 theme 元件
-      （`COLORS` / `Button` / `Card`，以及文房版 `PaperCard` / `InkButton` / `Seal` 分支）、刪除 `design-preview/`（連 `design-preview/theme-check.html`）、全站掃描細字（< 13 px）同返回掣（< 96×48）。
+- **Phase 6 — visual restyle to A2: COMPLETE.** Details of the finished system, the standard module-file shape and the steps for
+  adding a module are in "UI system — A2" near the top of this file. History in one line each: three mock-ups → the user chose A2 →
+  6a added the tokens/components → 6b restyled Home → 6c-1…6c-4 switched the modules batch by batch → 6d-1 did the badges page, backup
+  panel, notices and test banner → 6d-2 deleted the old look and made module-internal switches scroll to the top. The old step-by-step
+  plans, per-batch verification logs and the `design-preview/` mock-ups were removed from this file and from the repo.
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
@@ -1639,7 +1332,7 @@ notices, 測試模式). **Optional dev tooling — the app itself still needs no
   thresholds, retroactive 累計答對, module badges, backup round trip) · `notices.test.js` (13 —
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
-  `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see Phase 6b).
+  `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2").
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
