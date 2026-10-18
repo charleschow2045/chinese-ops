@@ -25,21 +25,6 @@ window.App = window.App || {};
     { match: (f) => f === "文言短文", bg: "#EAE5DB", text: "#6B6355" },
   ];
 
-  function FormPill({ item, className = "mb-3" }) {
-    if (!item.form) return null;
-    const tone = FORM_PILL_TONES.find((t) => t.match(item.form));
-    if (!tone) return null;
-    const label = item.form === "詞" && item.ciTune ? `詞．${item.ciTune}` : item.form;
-    return (
-      <span
-        className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${className}`}
-        style={{ backgroundColor: tone.bg, color: tone.text }}
-      >
-        {label}
-      </span>
-    );
-  }
-
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
     { key: "p5", label: "小五" },
@@ -291,7 +276,7 @@ window.App = window.App || {};
     );
   }
 
-  // 體裁 pill for A2: same tones as FormPill, but 13 px text.
+  // 體裁 pill: 13 px text, tone from FORM_PILL_TONES.
   function FormPillA2({ item }) {
     if (!item.form) return null;
     const tone = FORM_PILL_TONES.find((t) => t.match(item.form));
@@ -552,6 +537,4 @@ window.App = window.App || {};
   }
 
   window.App.PoetryModule = PoetryModule;
-  // Reused by HistoryModule's 戰爭詩詞 tab so poems look the same everywhere.
-  window.App.PoetryParts = { FormPill };
 })();

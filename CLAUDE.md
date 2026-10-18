@@ -141,8 +141,8 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   (`sourceAbbrev()`, e.g. "《韓非子．五蠹》" → "韓非"); 成語 shows `MasteryBadgeA2` (a warm panel labelled
   「成語稱號（只計算成語學習的練習）」, deliberately different from the home 科舉稱號 card) and `CharacterPinyinCardA2`;
   歷史 uses category tabs (2-column 48 px pills with counts), `SourceTagA2` (神話與民間傳說 uses the darker ochre `#7A5D20`
-  for contrast) and its own local `FormPillA2`; `PoetryModule.jsx` still exports `FormPill` (`window.App.PoetryParts`) but
-  nothing uses it any more (kept deliberately, see Phase 6d-2); Mandarin's `SpeechDrill` buttons pass `!px-2 !py-2 !text-base`,
+  for contrast) and its own local `FormPillA2` (Poetry has the same pill; the old exported `FormPill` / `window.App.PoetryParts` was
+  removed); Mandarin's `SpeechDrill` buttons pass `!px-2 !py-2 !text-base`,
   which the A2 `InkButton` drops (each button 295 × 48 at 820 px, 154 × 48 at 390 px).
 - **Home (`Home.jsx`), top to bottom:** full-bleed deep-indigo band (`100vw` + `marginLeft: calc(50% - 50vw)`, safe-area top
   padding except in 測試模式) with greeting (早安 5–11 時 / 午安 12–17 時 / 晚安 otherwise, 「，同學」) and the date from

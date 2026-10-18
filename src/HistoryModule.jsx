@@ -81,7 +81,7 @@ window.App = window.App || {};
     );
   }
 
-  // Same tone table as PoetryModule's FormPill (FormPill stays exported as window.App.PoetryParts.FormPill, unused here since the 文房 screens were removed).
+  // Same tone table as PoetryModule's FORM_PILL_TONES (kept as a separate copy so neither module depends on the other).
   const FORM_PILL_TONES_A2 = [
     { match: (f) => f.includes("絕句"), bg: "#E4E9DE", text: "#2F4028" },
     { match: (f) => f.includes("律詩"), bg: "#E4E8EC", text: "#23303D" },
