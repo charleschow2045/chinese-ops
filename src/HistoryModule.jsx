@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, MODULE_ICONS, useScrollToTop, A2Section, A2Header } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.history;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { HISTORY_ITEMS, HISTORY_CATEGORIES, HISTORY_WAR_POEM_IDS, HISTORY_POEM_STORY_LINKS, POETRY_ITEMS } = window.App.Content;
@@ -27,27 +27,6 @@ window.App = window.App || {};
   // every pressable >= 44 px; back buttons are A2BackButton (>= 96 x 48).
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
-
-  function A2Section({ title, children }) {
-    return (
-      <PaperCard>
-        <h3 style={{ ...A2_LABEL, marginBottom: 8 }}>{title}</h3>
-        {children}
-      </PaperCard>
-    );
-  }
-
-  function A2Header({ moduleKey, title, onBack }) {
-    return (
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <A2BackButton label="← 返回主頁" onClick={onBack} />
-        <div className="flex items-center gap-2">
-          <A2ModuleIcon moduleKey={moduleKey} size={44} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0, fontFamily: A2.font }}>{title}</h1>
-        </div>
-      </div>
-    );
-  }
 
   // 出處 tag. 史書記載 is a quiet outlined chip; the three non-正史 sources are solid-filled with an icon so a child can tell
   // at a glance it isn't recorded history. 13 px. 神話與民間傳說 uses a darker ochre (#7A5D20) so the white text reaches

@@ -11,7 +11,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;
+  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop, A2SegControl } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
@@ -36,36 +36,6 @@ window.App = window.App || {};
   // every pressable >= 44 px, back buttons are A2BackButton.
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
-
-  function A2SegControl({ options, value, onChange, label }) {
-    return (
-      <div role="group" aria-label={label} style={{ display: "flex", gap: 6, background: A2.segTrack, padding: 5, borderRadius: 999 }}>
-        {options.map((o) => {
-          const active = value === o.key;
-          return (
-            <button
-              key={o.key}
-              aria-pressed={active}
-              onClick={() => onChange(o.key)}
-              style={{
-                flex: 1,
-                minHeight: 44,
-                borderRadius: 999,
-                border: 0,
-                fontFamily: A2.font,
-                fontSize: 16,
-                fontWeight: 900,
-                cursor: "pointer",
-                ...(active ? { background: A2.segOn, color: "#fff", boxShadow: A2.segOnShadow } : { background: "transparent", color: A2.sub }),
-              }}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
 
   function PassageDetailA2({ item, onBack, onStartQuestions }) {
     return (

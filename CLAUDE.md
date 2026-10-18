@@ -103,6 +103,7 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
     `MODULE_ACCENTS` (per-module `solid/dark/tint/tintBorder/on/family`) are kept: Cangjie's 五色 chart,
     History's 出處 tags and every `ACCENT = MODULE_ACCENTS.<moduleKey>` constant still read them.
   - `useScrollToTop(dep)` — a `useLayoutEffect` that calls `window.scrollTo(0, 0)` whenever `dep` changes.
+  - `A2SegControl`, `A2Section`, `A2Header`, `A2ListRow`, `A2ReviewButton` — the shared screen pieces listed under "Standard module-file shape".
 - **Floors the A2 components enforce (and every new screen must respect):** text ≥ 13 px (body ≥ 14 px),
   pressables ≥ 44 px high, back buttons ≥ 96 × 48, primary buttons ≥ 48 px high. Pinyin with tone marks in
   Mandarin screens uses `A2_PINYIN_FONT` (Noto Sans TC first) because the rounded fonts may lack tone-mark glyphs.
@@ -119,10 +120,12 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
 - **Standard module-file shape (copy this for a new module):**
   1. `const { PaperCard, InkButton, Seal, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;`
      (only what the file uses) and `const ACCENT = MODULE_ACCENTS.<moduleKey>;`.
-  2. Each module file carries its **own small copy** of the helpers `A2SegControl` (44 px segmented filter), `A2Section`,
-     `A2Header` (back button + title + `A2ModuleIcon`), `A2ListRow` and `A2ReviewButton` (練習錯題 / 只看錯題 as a
-     secondary 48 px chip using `A2.fireBg`/`A2.fireInk`). They are duplicated rather than shared — extracting them into
-     one file is an open, undecided clean-up.
+  2. Shared screen pieces come from `theme.jsx` (destructure them from `window.App.UI`): `A2SegControl` (44 px segmented
+     filter), `A2Section` (card with an `<h3>` title), `A2Header` (back button + title + `A2ModuleIcon`), `A2ListRow`
+     (72 px list row with a tinted tile) and `A2ReviewButton` (練習錯題 / 只看錯題 as a secondary 48 px chip using
+     `A2.fireBg`/`A2.fireInk`). Exception: `CangjieModule.jsx` and `MandarinModule.jsx` keep their own local `A2Section`, which only
+     renders the `<h3>` when `title` is truthy (the shared one always renders it) — they were not merged because the code differs.
+     Each module file still defines its own `A2_LABEL` / `A2_BODY` style objects (`theme.jsx` has a private copy of `A2_LABEL`).
   3. Text is `fontFamily: A2.font` (inline style); quoted classical text / poems / example sentences use `font-serif`.
      Colours are applied through inline `style` (not Tailwind arbitrary-value classes) so nothing depends on the Play
      CDN's bracket parsing.

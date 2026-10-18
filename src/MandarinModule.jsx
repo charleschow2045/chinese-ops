@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useEffect } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop, A2SegControl } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.mandarin;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -97,36 +97,6 @@ window.App = window.App || {};
       <p style={{ padding: "10px 14px", borderRadius: 14, fontSize: 16, fontWeight: 900, margin: "12px 0 0", lineHeight: 1.6, background: ok ? A2.rowDone : A2.todayBg, color: ok ? A2.ok : A2.todayInk }}>
         {children}
       </p>
-    );
-  }
-
-  function A2SegControl({ options, value, onChange, label }) {
-    return (
-      <div role="group" aria-label={label} style={{ display: "flex", gap: 6, background: A2.segTrack, padding: 5, borderRadius: 999 }}>
-        {options.map((o) => {
-          const active = value === o.key;
-          return (
-            <button
-              key={o.key}
-              aria-pressed={active}
-              onClick={() => onChange(o.key)}
-              style={{
-                flex: 1,
-                minHeight: 44,
-                borderRadius: 999,
-                border: 0,
-                fontFamily: A2.font,
-                fontSize: 16,
-                fontWeight: 900,
-                cursor: "pointer",
-                ...(active ? { background: A2.segOn, color: "#fff", boxShadow: A2.segOnShadow } : { background: "transparent", color: A2.sub }),
-              }}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
     );
   }
 

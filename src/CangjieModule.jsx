@@ -7,7 +7,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo, useRef, useEffect } = React;
-  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop } = window.App.UI;
+  const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2Header } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.cangjie;
   const { shuffle } = window.App.QuizUtils;
   const { CANGJIE_CATEGORIES, CANGJIE_ROOTS, CANGJIE_COMPOUND_EXAMPLES, CANGJIE_AUXILIARY_SHAPES, CANGJIE_QUICK_EXAMPLE, CANGJIE_CHAR_BREAKDOWN, CANGJIE_NO_AUX_OFFICIAL, CANGJIE_TYPING_TEXTS } =
@@ -71,18 +71,6 @@ window.App = window.App || {};
         {title && <h3 style={{ ...A2_LABEL, marginBottom: 8 }}>{title}</h3>}
         {children}
       </PaperCard>
-    );
-  }
-
-  function A2Header({ moduleKey, title, onBack }) {
-    return (
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <A2BackButton label="← 返回主頁" onClick={onBack} />
-        <div className="flex items-center gap-2">
-          <A2ModuleIcon moduleKey={moduleKey} size={44} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0, fontFamily: A2.font }}>{title}</h1>
-        </div>
-      </div>
     );
   }
 

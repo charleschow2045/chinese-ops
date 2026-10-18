@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.rhetoric;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
@@ -133,112 +133,6 @@ window.App = window.App || {};
   // ---------------------------------------------------------------------
   const A2_LABEL = { fontSize: 16, fontWeight: 900, color: A2.ink, fontFamily: A2.font, margin: 0 };
   const A2_BODY = { fontSize: 16, color: A2.ink, margin: 0, lineHeight: 1.7 };
-
-  function A2SegControl({ options, value, onChange, label }) {
-    return (
-      <div role="group" aria-label={label} style={{ display: "flex", gap: 6, background: A2.segTrack, padding: 5, borderRadius: 999 }}>
-        {options.map((o) => {
-          const active = value === o.key;
-          return (
-            <button
-              key={o.key}
-              aria-pressed={active}
-              onClick={() => onChange(o.key)}
-              style={{
-                flex: 1,
-                minHeight: 44,
-                borderRadius: 999,
-                border: 0,
-                fontFamily: A2.font,
-                fontSize: 16,
-                fontWeight: 900,
-                cursor: "pointer",
-                ...(active ? { background: A2.segOn, color: "#fff", boxShadow: A2.segOnShadow } : { background: "transparent", color: A2.sub }),
-              }}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  function A2Section({ title, children }) {
-    return (
-      <PaperCard>
-        <h3 style={{ ...A2_LABEL, marginBottom: 8 }}>{title}</h3>
-        {children}
-      </PaperCard>
-    );
-  }
-
-  function A2Header({ moduleKey, title, onBack }) {
-    return (
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <A2BackButton label="← 返回主頁" onClick={onBack} />
-        <div className="flex items-center gap-2">
-          <A2ModuleIcon moduleKey={moduleKey} size={44} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: A2.ink, margin: 0, fontFamily: A2.font }}>{title}</h1>
-        </div>
-      </div>
-    );
-  }
-
-  function A2ListRow({ moduleKey, tile, title, serifTitle, sub, onOpen }) {
-    const m = MODULE_ICONS[moduleKey];
-    return (
-      <button
-        onClick={onOpen}
-        className="w-full flex items-center gap-3 text-left active:translate-y-[2px] transition-all"
-        style={{
-          minHeight: 72,
-          padding: "10px 14px 10px 12px",
-          borderRadius: 22,
-          background: A2.glass,
-          border: `1px solid ${A2.glassBd}`,
-          boxShadow: A2.shadow,
-          color: A2.ink,
-          fontFamily: A2.font,
-          cursor: "pointer",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          className="shrink-0 flex items-center justify-center"
-          style={{ width: 48, height: 48, borderRadius: 17, background: m.tint, border: `1px solid ${m.tintBorder}`, fontSize: 24, lineHeight: 1 }}
-        >
-          {tile}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={`truncate${serifTitle ? " font-serif" : ""}`} style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>
-            {title}
-          </p>
-          {sub && (
-            <p className="truncate" style={{ fontSize: 14, color: A2.sub, margin: 0 }}>
-              {sub}
-            </p>
-          )}
-        </div>
-        <span aria-hidden="true" style={{ fontSize: 22, fontWeight: 900, color: A2.accD }}>
-          ›
-        </span>
-      </button>
-    );
-  }
-
-  // 練習錯題 is a secondary action (filter-style chip), not a second primary button.
-  function A2ReviewButton({ count, onClick }) {
-    return (
-      <button
-        onClick={onClick}
-        className="w-full mt-2 transition-all"
-        style={{ minHeight: 48, borderRadius: 999, border: 0, background: A2.fireBg, color: A2.fireInk, fontFamily: A2.font, fontSize: 16, fontWeight: 900, cursor: "pointer" }}
-      >
-        練習錯題 ({count}) 📝
-      </button>
-    );
-  }
 
   function DeviceDetailA2({ item, onBack, onPractice }) {
     return (
