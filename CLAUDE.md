@@ -357,9 +357,9 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   the new `annotations`/`translation` fields for depth).
 
 ## Module 2 details — 作文金句 (built, expanded after user feedback)
-- Content: `src/content/essayContent.jsx` — **60 curated golden sentences**
-  (expanded from an initial 18 — user feedback called the original set "too
-  easy, too little"), 20 per theme (描寫/抒情/論說), each tagged
+- Content: `src/content/essayContent.jsx` — **150 curated golden sentences**
+  (18 → 60 → 75 → 150 across four rounds; user feedback called the original set "too
+  easy, too little"), 50 per theme (描寫/抒情/論說), each tagged
   `level: "p5"|"p6"|"s1"` with a `keyPhrase` (exact substring of `sentence`,
   used for the fill-in-the-blank question — **must be verified as an exact
   substring**, e.g. programmatically via `sentence.includes(keyPhrase)`,
@@ -890,13 +890,13 @@ Not yet committed/pushed until the user says so.
   sentence" is naturally multiple-choice, so there's no typing-vs-spec
   tension like Module 7 had, and no need for hand-authored questions.
 - Content: `src/content/rhetoricContent.jsx` — two separate arrays:
-  `RHETORIC_DEVICES` (7 devices — 比喻, 擬人, 誇張, 對偶, 排比, 反問, 設問 —
-  each with `name`, `definition`, `tip`, `examples`, and (added in the
+  `RHETORIC_DEVICES` (10 devices — 比喻, 擬人, 誇張, 對偶, 排比, 反問, 設問, 反覆, 引用, 對比 —
+  each with `id`, `name`, `definition`, `tip`, `examples`, and (added in the
   second expansion) `effect` — a one-sentence explanation of *why* a writer
   would use this device, used by the new effect-question type below; this
   is the reference material, studied via list → detail) and
-  `RHETORIC_PRACTICE_SENTENCES` (**63 sentences, 9 per device** — expanded
-  from 21 → 42 → 63 across two rounds of "too easy" feedback, tagged
+  `RHETORIC_PRACTICE_SENTENCES` (**200 sentences, 20 per device** — expanded
+  from 21 → 42 → 63 → 105 → 200 across rounds of "too easy" feedback, tagged
   `device` + `level`, **deliberately distinct from `DEVICES`' own example
   sentences** so practice isn't just rote memorization of what was just
   read). The newest 3-per-device batch deliberately avoids the obvious
@@ -910,7 +910,7 @@ Not yet committed/pushed until the user says so.
   distractors) — added because "identify the device" alone was judged too
   easy; the effect question tests understanding of *why* the device works,
   not just keyword pattern-matching.
-- `src/RhetoricModule.jsx` has three views: **list** (the 7 devices) →
+- `src/RhetoricModule.jsx` has three views: **list** (the 10 devices) →
   **detail** (definition, tip, examples, "開始練習" button) → **practice**
   (8-question quiz generated from `RHETORIC_PRACTICE_SENTENCES`, filtered
   by the level chips on the list screen, alternating the two question
@@ -1159,7 +1159,7 @@ correctly since, and lets them specifically re-practice just those.
 **All 10 modules are built.** Remaining known gaps (content depth, not
 missing features):
 - [ ] Expand poem library further beyond the current 54+7 curated items (spec target: ~150)
-- [ ] Expand essay golden sentence library further beyond the current 60 curated items
+- [ ] Expand essay golden sentence library further beyond the current 150 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
 - [ ] Idiom library now at 653 (39 fully-verified + 495 lighter-schema + 119
       curriculum-gap batch with verified `origin` — see Module 5 notes);
@@ -1167,7 +1167,7 @@ missing features):
       entries if depth matters more than volume later
 - [ ] Expand history story library further beyond the current 36 curated items
 - [ ] Expand reading passage library further beyond the current 22 curated items (new 理解/語文 question format — see Module 7 REBUILD)
-- [ ] Expand rhetoric practice sentences further beyond the current 63 curated items
+- [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
 - [ ] Classical prose library at 17 texts (2 batches so far) — expand
       further toward the referenced ~26-text curriculum only if the user
@@ -1197,7 +1197,7 @@ missing features):
   characters (多音字 like 大/上/樂/行 deliberately excluded).
 - 歷史故事: 36 → 48 (+12: 商湯, 管鮑, 楚莊王, 張騫, 司馬遷, 蔡倫, 隋運河, 黃道婆,
   李時珍, 虎門銷煙, 詹天佑, 辛亥革命); facts web-verified (see comment above them).
-- 修辭手法: 63 → 105 practice sentences (15 per device; 對偶 = famous couplets).
+- 修辭手法: 63 → 105 practice sentences (15 per device; 對偶 = famous couplets). *(superseded by 階段 7 A 批 below: 200)*
 - 文言文選讀: +2 questions per text (字詞解釋 + 語譯), 3 → 5 each; 原文 untouched.
 - `FixedQuizFlow` (QuizQuestion.jsx) now shuffles options per attempt — most
   hand-authored fixed questions had the answer in slot 0. Never write
@@ -1321,9 +1321,9 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 
 ## 單元測試 (tests/)
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
-notices, 測試模式). **Optional dev tooling — the app itself still needs no Node, no build step.**
+notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 5 files, **67 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **85 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1335,7 +1335,9 @@ notices, 測試模式). **Optional dev tooling — the app itself still needs no
   thresholds, retroactive 累計答對, module badges, backup round trip) · `notices.test.js` (13 —
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
-  `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2").
+  `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
+  `content.test.js` (18 — see "階段 7 內容擴充 A 批" below; it loads the two content files in a `node:vm` sandbox, so a
+  broken `keyPhrase`, an unknown `device`, a duplicate id / sentence or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
@@ -1435,3 +1437,33 @@ notices, 測試模式). **Optional dev tooling — the app itself still needs no
   is used ONLY for 夏日絕句 ↔ 垓下之戰. Unpaired: 過零丁洋. 春望 ↔ 開元盛世 was declined (開元盛世 ending never mentions 春望).
   Navigation both ways via Root `navigate(key, opts)` → `nav` prop `{poemId|storyId, scopeIds?, from}`.
 - Backup/restore unaffected throughout (story ids unchanged; mistakes stored by id).
+
+## 階段 7 內容擴充 A 批 (Oct 2026) — 修辭手法 + 作文金句
+Content-only change (no screen, logic, storage or backup change; `RhetoricModule.jsx` / `EssayModule.jsx` untouched — nothing
+on screen hard-codes the number of devices or sentences). Added by the user's spec "階段 7 A 批".
+- **修辭手法: 7 → 10 devices, 105 → 200 sentences (20 per device).** New devices (ids `fanfu` / `yinyong` / `duibi`, appended after
+  設問, same fields as the others): **反覆**, **引用**, **對比**. New sentences are `fanfu-1…20`, `yinyong-1…20`, `duibi-1…20`; the
+  original seven devices got `…-16…20` (+5 each). Every device is now **6 / 7 / 7** (小五 / 小六 / 中一) except 對偶, which is
+  4 / 7 / 9 because it started at 1 / 5 / 9 and +5 cannot reach 6 / 7 / 7 (totals: 小五 58, 小六 70, 中一 72).
+  - **Rules the new sentences follow (keep them for any later batch):** one clear device per sentence. 引用 = a direct quotation of a
+    public-domain classic (論語、孟子、荀子、老子、周易、屈原、陶淵明、李白、蘇軾) or a 成語/俗語, always with an explicit frame
+    (「孔子說：「…」」, 「李白在詩中寫道：「…」」) and never a quote that is itself a 對偶 / 反問 / 反覆 line. 對比 = opposition in *meaning*,
+    deliberately not written as two equal-length parallel clauses (that would be 對偶). 反覆 = a word or sentence visibly repeated for
+    emphasis, not three parallel clauses (that would be 排比). Existing 對偶 sentences are bare famous couplets (no quotation frame),
+    which is what separates them from 引用.
+  - New devices' `effect` texts are worded to share no key phrase with the others (they are used as each other's quiz distractors).
+  - **Known overlap of OLD sentences with the new devices** (deliberately not changed — the user decides): `paibi-1`, `paibi-7`,
+    `paibi-12`, `paibi-13` also repeat a phrase (反覆); `duiou-4` and `duiou-12` also contain a contrast (對比); `duiou-9` and `duiou-15` are
+    contrast-flavoured couplets; every `duiou-*` couplet is a bare famous line, so a student could call it 引用.
+- **作文金句: 75 → 150 (50 per theme).** +25 per theme; by level 小五 +25 / 小六 +20 / 中一 +30 (描寫 +4/+7/+14, 抒情 +9/+7/+9,
+  論說 +12/+6/+7). New ids are English kebab-case (e.g. `lotus-pond`, `grandma-cooking`, `punctuality`). Scenarios, `keyPhrase`s and
+  sentences are all unique (they are quiz options / prompts), and each topic is new — no scenario repeats one of the old 75.
+- **`tests/content.test.js` (18 tests, auto-discovered by `run-all.js`):** unique ids; required fields; `level` ∈ p5/p6/s1; every
+  `device` exists; 20 per device (200 total) and 10 devices; unique 效果 texts; no duplicate sentences and no sentence equal to a
+  reference example; every device has every level; new devices split 6/7/7; every 引用 sentence has 「」 and a speaker; every 反覆
+  sentence repeats a chunk; essay: 150 items, 50 per theme, `theme` ∈ 描寫/抒情/論說, each `keyPhrase` occurs **exactly once** in its
+  sentence, no duplicate sentence / `keyPhrase` / `scenario`. Run `node tests/run-all.js` after touching either content file.
+- Verified in a browser (820 / 390 wide): rhetoric list shows 10 rows; the three new detail pages; one correct and one wrong answer
+  for every new device in both question types (「這句運用了什麼修辭手法？」 and the 作用 question, 4 distinct options each); one full
+  session per essay theme with new sentences appearing; backup export → import identical, version 2. Content in this batch was written
+  for this project (not copied from textbooks or papers); quoted classics are public domain.

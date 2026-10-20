@@ -1,7 +1,7 @@
 // Runs every tests/*.test.js in its own node process and prints a summary.
 //   node tests/run-all.js        (exit code 0 = all passed, 1 = something failed)
 // Needs only Node 18+ — no npm install, no build step. Covers the pure logic in
-// src/Storage.jsx; it does NOT test screens (those were checked in a real browser).
+// src/Storage.jsx and the content files (content.test.js); it does NOT test screens (those were checked in a real browser).
 const { spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
