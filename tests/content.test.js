@@ -231,6 +231,10 @@ const READING_SKILLS = ["重整", "解釋", "伸展", "評鑑", "成語／詞語
 const NUM_CN = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const paraNo = (s) => (/^\d+$/.test(s) ? Number(s) : s === "十" ? 10 : s[0] === "十" ? 10 + NUM_CN[s[1]] : s.length === 2 && s[1] === "十" ? NUM_CN[s[0]] * 10 : NUM_CN[s]);
 const readingQuestions = (x) => [...x.comprehension, ...x.language];
+// A passage entry is a string (a numbered paragraph) or { text, align: "right", numbered: false } (署名 / 日期 of a 實用文).
+const paraText = (p) => (typeof p === "string" ? p : p && p.text);
+const isNumberedPara = (p) => typeof p === "string" || (p && p.numbered !== false);
+const numberedCount = (x) => x.passage.filter(isNumberedPara).length;
 const readingTexts = (q) => [q.prompt, q.explanation, q.hint, q.scheme, q.modelAnswer, ...(q.points || []), ...(q.options || [])].filter(nonEmpty);
 
 t("reading: 34 passages, unique ids, 12 小五 / 10 小六 / 12 中一, level only p5 / p6 / s1", () => {
@@ -245,10 +249,10 @@ t("reading: 34 passages, unique ids, 12 小五 / 10 小六 / 12 中一, level on
 t("reading: passage is a non-empty array of non-empty strings; every vocab term occurs in the passage", () => {
   for (const x of READING) {
     for (const f of ["id", "title", "genre", "focus"]) assert.ok(nonEmpty(x[f]), `${x.id}.${f} is empty`);
-    assert.ok(Array.isArray(x.passage) && x.passage.length >= 3 && x.passage.every(nonEmpty), `${x.id}.passage`);
+    assert.ok(Array.isArray(x.passage) && x.passage.length >= 3 && x.passage.every((p) => nonEmpty(paraText(p))), `${x.id}.passage`);
     assert.ok(Array.isArray(x.vocab) && x.vocab.length >= 2, `${x.id}.vocab`);
     if (READING_VOCAB_EXCEPTIONS.includes(x.id)) continue;
-    const text = x.passage.join("");
+    const text = x.passage.map(paraText).join("");
     for (const v of x.vocab) assert.ok(nonEmpty(v.term) && nonEmpty(v.meaning) && text.includes(v.term), `${x.id}: vocab term 「${v.term}」 is not in the passage`);
   }
 });
@@ -294,16 +298,39 @@ t("reading: open questions have hint, points, scheme and modelAnswer, and their 
   }
 });
 
-t("reading: every 「第 N 段」 mentioned in a question, explanation, hint or answer is a paragraph that exists", () => {
+t("reading: every 「第 N 段」 mentioned in a question, explanation, hint or answer is a numbered paragraph that exists", () => {
   for (const x of READING) {
     for (const q of readingQuestions(x)) {
       for (const text of readingTexts(q)) {
         for (const m of text.matchAll(/第([一二三四五六七八九十]+|\d+)段/g)) {
           const n = paraNo(m[1]);
-          assert.ok(n >= 1 && n <= x.passage.length, `${x.id}: 「${m[0]}」 but the passage has ${x.passage.length} paragraphs (in 「${q.prompt}」)`);
+          assert.ok(n >= 1 && n <= numberedCount(x), `${x.id}: 「${m[0]}」 but the passage has ${numberedCount(x)} numbered paragraphs (in 「${q.prompt}」)`);
         }
       }
     }
+  }
+});
+
+t("reading: an un-numbered passage entry is { text, align: \"right\", numbered: false }, comes only at the very end (at most the last two), and the numbering of the others is unchanged", () => {
+  for (const x of READING) {
+    x.passage.forEach((p, i) => {
+      if (typeof p === "string") return;
+      assert.deepEqual(Object.keys(p).sort(), ["align", "numbered", "text"], `${x.id}: passage[${i}] has keys ${Object.keys(p)}`);
+      assert.equal(p.align, "right", `${x.id}: passage[${i}].align`);
+      assert.equal(p.numbered, false, `${x.id}: passage[${i}].numbered`);
+      assert.ok(i >= x.passage.length - 2, `${x.id}: un-numbered entry passage[${i}] is not one of the last two`);
+    });
+    const firstOff = x.passage.findIndex((p) => !isNumberedPara(p));
+    if (firstOff >= 0) assert.ok(x.passage.slice(firstOff).every((p) => !isNumberedPara(p)), `${x.id}: a numbered paragraph follows an un-numbered one`);
+    assert.ok(numberedCount(x) >= 3, `${x.id}: fewer than 3 numbered paragraphs`);
+  }
+});
+
+t("reading: every 實用文 ends with exactly two un-numbered right-aligned entries (署名, 日期); no other passage has any", () => {
+  for (const x of READING) {
+    const off = x.passage.filter((p) => !isNumberedPara(p)).length;
+    if (x.genre.startsWith("實用文")) assert.equal(off, 2, `${x.id}: ${off} un-numbered entries`);
+    else assert.equal(off, 0, `${x.id}: a ${x.genre} has un-numbered entries`);
   }
 });
 
@@ -338,7 +365,7 @@ t("reading C 批: passage length in 漢字 — 實用文 300–500, 小五 450�
   const range = { p5: [450, 620], p6: [540, 810], s1: [690, 850] };
   for (const id of READING_C_BATCH) {
     const x = READING.find((y) => y.id === id);
-    const n = x.passage.reduce((s, p) => s + han(p), 0);
+    const n = x.passage.reduce((s, p) => s + han(paraText(p)), 0);
     const [lo, hi] = x.genre.startsWith("實用文") ? [300, 500] : range[x.level];
     assert.ok(n >= lo && n <= hi, `${id}: ${n} 漢字, expected ${lo}–${hi}`);
   }

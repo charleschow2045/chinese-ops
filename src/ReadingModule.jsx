@@ -336,6 +336,13 @@ window.App = window.App || {};
   function PassageDetailA2({ item, onBack, onStartQuestions }) {
     const fresh = isNewFormat(item);
     const paragraphs = Array.isArray(item.passage) ? item.passage : [item.passage];
+    // A passage entry is a plain string (a numbered paragraph) or { text, align?: "right", numbered?: false } — used for the
+    // 署名 / 日期 lines at the end of a 實用文. Un-numbered entries do not take a ①②③ number and do not shift the others.
+    let nextNo = 0;
+    const rows = paragraphs.map((p) => {
+      const obj = p !== null && typeof p === "object";
+      return { text: obj ? p.text : p, right: obj && p.align === "right", no: !obj || p.numbered !== false ? nextNo++ : null };
+    });
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -355,12 +362,12 @@ window.App = window.App || {};
             </p>
           )}
           <div className="flex flex-col" style={{ gap: 16 }}>
-            {paragraphs.map((p, i) => (
-              <p key={i} className="font-serif" style={{ fontSize: 17, lineHeight: 2, color: A2.ink, margin: 0 }}>
-                {paragraphs.length > 1 && (
-                  <span style={{ fontWeight: 900, color: A2.accD, marginRight: 4 }}>{CIRCLED[i] || i + 1}</span>
+            {rows.map((r, i) => (
+              <p key={i} className="font-serif" style={{ fontSize: 17, lineHeight: 2, color: A2.ink, margin: 0, ...(r.right ? { textAlign: "right" } : null) }}>
+                {rows.length > 1 && r.no !== null && (
+                  <span style={{ fontWeight: 900, color: A2.accD, marginRight: 4 }}>{CIRCLED[r.no] || r.no + 1}</span>
                 )}
-                {p}
+                {r.text}
               </p>
             ))}
           </div>

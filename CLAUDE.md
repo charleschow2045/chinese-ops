@@ -769,7 +769,7 @@ passages, and a two-part question set with tagged skills and marks. Phase 1
 now use the new format and ids end `-v2`; the old-format `questions` /
 `FixedQuizFlow` branch in ReadingModule.jsx is dead code kept as a fallback.**
 Not yet committed/pushed until the user says so.
-- Passage fields: `passage` (array of paragraphs, shown with ①②③),
+- Passage fields: `passage` (array of paragraphs, shown with ①②③; an entry is a string, or — 階段 8a, see below — `{ text, align: "right", numbered: false }`),
   `genre`, `focus` (學習重點), `vocab` (詞語角), `comprehension` (理解能力)
   and `language` (語文能力). Question `kind`: `mc` (4 options) | `multi`
   ("哪兩項", 5 options, answer = 2 indices, all-or-nothing) | `open`
@@ -808,9 +808,8 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
 (小六, 中一), `comprehension` 6 (小五) / 7, `language` 3; every passage has mc + multi + open; skills only from the existing names).
 - **New `genre` values** (displayed as 「小五 · 實用文（通告）」): 實用文（通告）, （書信）, （電郵）, （建議信）. 實用文 passages are 300–500 字; the rest
   follow 小五 450–620 / 小六 540–810 / 中一 690–850.
-  - **How 實用文 renders:** every notice / letter part (稱呼, 結語, 祝頌語, 署名, 日期, 主旨 …) is its own `passage` entry, so the screen gives each one a ①②③
-    number and "第 N 段" counts them (the notice has 10, the letters 9–10). Nothing is right-aligned or un-numbered — that would need a `ReadingModule.jsx`
-    change, which has not been made (ask the user first).
+  - **How 實用文 renders (updated by 階段 8a):** every notice / letter part (稱呼, 結語, 祝頌語, 主旨 …) is its own `passage` entry with its own ①②③ number and
+    counts in "第 N 段"; the last two entries (署名, 日期) are `{ text, align: "right", numbered: false }` — right-aligned, no number, not counted.
 - **The 12:** 小五 — 閱讀嘉年華通告, 給小欣的慰問信, 小廚師的第一碗麵 (記敘文), 樹木的年輪 (說明文). 小六 — 查詢參觀回收中心的電郵, 外公的算盤 (記敘文), 海水為甚麼是鹹的,
   紙的故事 (說明文). 中一 — 建議舉辦舊物交換日 (建議信), 摩擦力的兩面, 指南針與磁偏角 (說明文), 寬容不是軟弱 (議論文). The 記敘文 and 實用文 are fictional (the
   names 新苗小學, 綠田回收中心 and all people are invented; dates are fictional and every 星期 matches the real 2026 calendar).
@@ -841,6 +840,17 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
   「心裏打鼓」 (chengshi-de-xuanze-v2) are written differently in the passage, and baoyu-wenhua-yichan-v2 has a 3-mark open question with 2 reference points.
 - Answer positions of the new mc questions were balanced (about 20 per slot over the four slots) although the module shuffles options anyway.
 - A read-only independent review of the 12 passages (answer keys, 「第 N 段」, facts, 書面語) found no wrong key; its minor points were applied (e.g. 「請用自己的話」, 「試想一想」, 「逐漸被廣泛使用」, 通告 signed 「新苗小學校長」, no repeated 學富五車 question).
+
+### 階段 8a — 實用文 署名 / 日期 right-aligned and un-numbered (on the dev branch, not merged until the user says so)
+- `ReadingModule.jsx` (`PassageDetailA2` only): a `passage` entry may now be a string (as before) **or** `{ text, align: "right", numbered: false }`. Un-numbered entries
+  get `textAlign: "right"` and no circled number; the number counter only advances on numbered entries, so the other paragraphs keep ①②③… exactly as before.
+  String-only passages render the same DOM as before (the old-format hashes are identical to `bb37b25`). The old string-passage fallback is untouched.
+- Content: only the four 實用文 use it (their last two entries): 閱讀嘉年華通告 (8 numbered + 署名 + 日期), 給小欣的慰問信 (7 + 2), 查詢參觀回收中心的電郵 (8 + 2),
+  建議舉辦舊物交換日 (7 + 2). The 結語 「特此通知」 / 「此致　敬禮！」 stays numbered. None of the other 30 passages (incl. the original 22, which contain no
+  notice / letter / email) has an object entry. No question, hint or explanation pointed at 署名 / 日期 by 「第 N 段」, so no text had to change.
+- Tests (`content.test.js`, 35): an un-numbered entry has exactly the keys `text / align / numbered` with `align: "right"`, sits in the last two positions with no numbered paragraph after it;
+  every 實用文 has exactly two, no other genre has any; 「第 N 段」 must be ≤ the number of **numbered** paragraphs; vocab / length checks read `text` of object entries.
+- **If a new 實用文 is added:** write the 署名 and 日期 as the last two entries in this object form; "第 N 段" then counts only the numbered ones.
 
 ## Module 7 details — 閱讀理解 (built, expanded after user feedback; describes the OLD format)
 - **Same flow shape as Module 6** (list → read → `FixedQuizFlow` → summary),
@@ -1380,7 +1390,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **100 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **102 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1393,7 +1403,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
-  `content.test.js` (33 — rhetoric, essay, 文言文選讀 and 閱讀理解 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (35 — rhetoric, essay, 文言文選讀 and 閱讀理解 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you

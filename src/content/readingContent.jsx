@@ -1,7 +1,8 @@
 // Reading-comprehension passages, each with hand-authored questions.
 //
 // All 34 passages use the rebuilt format (ids end "-v2"): `passage` is an
-// array of paragraphs; `genre`/`focus`/`vocab` (詞語角) metadata;
+// array of paragraphs (a string each, or { text, align: "right", numbered: false } for the 署名 / 日期 lines of a 實用文);
+// `genre`/`focus`/`vocab` (詞語角) metadata;
 // `comprehension` (理解能力: kind "mc" | "multi" | "open", each tagged with a
 // `skill` — 重整/解釋/伸展/評鑑 — and `marks`) and `language` (語文能力: mc
 // questions on 詞語/成語/修辭). "open" questions carry `points` (reference
@@ -2237,9 +2238,10 @@ window.App.Content = window.App.Content || {};
 
     // ==== 階段 7 C 批 (12 passages: 小五 +4, 小六 +4, 中一 +4) ====
     // Same format as above. Four of them are 實用文 (genre "實用文（通告）" / "（書信）" / "（電郵）" / "（建議信）"): the
-    // parts of a notice / letter (稱呼, 結語, 署名, 日期 …) are separate `passage` entries, so ReadingModule gives each its own
-    // ①②③ number and "第 N 段" in a question counts those entries too. All text is original. The facts the 說明文 / 議論文
-    // passages rest on are listed in CLAUDE.md (階段 7 C 批).
+    // parts of a notice / letter (稱呼, 結語, 祝頌語 …) are separate `passage` entries, each with its own ①②③ number, so "第 N 段"
+    // in a question counts those entries. The last two entries (署名, 日期) are objects { text, align: "right", numbered: false }:
+    // shown right-aligned and without a number, so "第 N 段" does not count them. All text is original. The facts the
+    // 說明文 / 議論文 passages rest on are listed in CLAUDE.md (階段 7 C 批).
     {
       id: "yuedu-jianianhua-tonggao-v2",
       title: "閱讀嘉年華通告",
@@ -2255,8 +2257,8 @@ window.App.Content = window.App.Content || {};
         "注意事項：（一）學生須於上午九時十五分前回校，並穿着整齊校服；（二）家長入場參觀，請在校門口登記，並佩戴訪客證；（三）為減少使用膠袋，請同學自備環保袋；（四）參與好書交換的圖書必須乾淨完整；（五）如遇惡劣天氣，活動將順延，詳情另行通知。",
         "請家長填妥後附的回條，並於二〇二六年十一月二十日（星期五）或之前交回班主任。",
         "特此通知。",
-        "新苗小學校長　李思敏　謹啟",
-        "二〇二六年十一月十三日",
+        { text: "新苗小學校長　李思敏　謹啟", align: "right", numbered: false },
+        { text: "二〇二六年十一月十三日", align: "right", numbered: false },
       ],
       vocab: [
         { term: "營造", meaning: "有計劃地創造出某種環境或氣氛。" },
@@ -2354,8 +2356,8 @@ window.App.Content = window.App.Content || {};
         "我知道你一向熱愛運動，現在要靜靜地待在家裏，一定覺得很煩悶。不過，醫生的叮囑一定要記住，千萬不要為了早點回校而急着走動，否則傷勢反而會拖得更久。你不妨趁這段時間看看那本你一直想看的《西遊記》故事書，說不定回校的時候，你已經比我們多讀了不少故事呢！",
         "盼望你早日康復，我們都在課室裏等着你回來。",
         "祝　早日康復！",
-        "你的好友　子晴　上",
-        "二〇二六年十月二十三日",
+        { text: "你的好友　子晴　上", align: "right", numbered: false },
+        { text: "二〇二六年十月二十三日", align: "right", numbered: false },
       ],
       vocab: [
         { term: "叮囑", meaning: "反覆囑咐，提醒對方要注意。" },
@@ -2646,8 +2648,8 @@ window.App.Content = window.App.Content || {};
         "如蒙安排，煩請於十一月三十日前回覆，以便我們向校方提出申請，並作出安排。",
         "謝謝貴中心撥冗閱讀本函，期待貴中心的回覆。",
         "此致　敬禮！",
-        "新苗小學環保學會會長　林嘉怡　謹上",
-        "二〇二六年十月十五日",
+        { text: "新苗小學環保學會會長　林嘉怡　謹上", align: "right", numbered: false },
+        { text: "二〇二六年十月十五日", align: "right", numbered: false },
       ],
       vocab: [
         { term: "初步", meaning: "剛開始的、還未最後確定的。" },
@@ -3070,8 +3072,8 @@ window.App.Content = window.App.Content || {};
         "或許有人擔心活動會增加老師的工作量。其實，環保學會的二十多名成員願意負責登記、擺放和檢查，並由學會的顧問老師從旁指導，校方只需借出禮堂和桌子。至於沒有被換走的物品，我們會安排送往慈善機構，讓它們繼續發揮作用。",
         "我相信，這項活動不但能培養同學愛惜物品的習慣，也讓大家明白「物盡其用」的道理。懇請校長考慮這項建議，若蒙批准，我們樂意進一步擬定詳細的計劃書。",
         "此致　敬禮！",
-        "中一乙班學生　陳子謙　謹上",
-        "二〇二六年十一月六日",
+        { text: "中一乙班學生　陳子謙　謹上", align: "right", numbered: false },
+        { text: "二〇二六年十一月六日", align: "right", numbered: false },
       ],
       vocab: [
         { term: "流轉", meaning: "物品轉手流通，輾轉到別人手中使用。" },
