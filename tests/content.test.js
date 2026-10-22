@@ -17,9 +17,12 @@ function loadContent(file) {
 
 const R = loadContent("rhetoricContent.jsx");
 const E = loadContent("essayContent.jsx");
+const P = loadContent("classicalProseContent.jsx");
 const DEVICES = R.RHETORIC_DEVICES;
 const SENTENCES = R.RHETORIC_PRACTICE_SENTENCES;
 const ESSAYS = E.ESSAY_ITEMS;
+const PROSE = P.CLASSICAL_PROSE_ITEMS;
+const PROSE_BATCH3 = ["yan-er-dao-ling", "hua-she-tian-zu", "yu-bang-xiang-zheng", "wang-rong-bu-qu-dao-pang-li", "zeng-zi-sha-zhi", "zao-bi-tou-guang", "lun-yu-lun-xue", "ai-lian-shuo", "lou-shi-ming", "yue-yang-lou-ji-jie-lu"];
 const LEVELS = ["p5", "p6", "s1"];
 const THEMES = ["描寫", "抒情", "論說"];
 const t = makeRunner("content");
@@ -147,6 +150,68 @@ t("essay: no duplicate sentences, keyPhrases or scenarios (they are quiz options
   assert.deepEqual(dups(ESSAYS.map((x) => x.sentence)), []);
   assert.deepEqual(dups(ESSAYS.map((x) => x.keyPhrase)), []);
   assert.deepEqual(dups(ESSAYS.map((x) => x.scenario)), []);
+});
+
+// ---------------------------------------------------------------- 文言文選讀
+t("prose: 27 passages, unique ids, 9 each of 小五 / 小六 / 中一, level only p5 / p6 / s1", () => {
+  assert.equal(PROSE.length, 27);
+  assert.deepEqual(dups(PROSE.map((x) => x.id)), []);
+  for (const x of PROSE) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
+  const n = countBy(PROSE, (x) => x.level);
+  assert.deepEqual([n.p5, n.p6, n.s1], [9, 9, 9]);
+});
+
+t("prose: every passage has all its fields and lines / lineExplanations of the same length", () => {
+  for (const x of PROSE) {
+    for (const f of ["id", "title", "source", "dynasty", "background"]) assert.ok(nonEmpty(x[f]), `${x.id}.${f} is empty`);
+    assert.ok(Array.isArray(x.lines) && x.lines.length >= 3 && x.lines.every(nonEmpty), `${x.id}.lines`);
+    assert.equal(x.lines.length, x.lineExplanations.length, `${x.id}: ${x.lines.length} lines vs ${x.lineExplanations.length} explanations`);
+    assert.ok(x.lineExplanations.every(nonEmpty), `${x.id}.lineExplanations`);
+    assert.ok(Array.isArray(x.glossary) && x.glossary.length >= 3, `${x.id}.glossary`);
+  }
+});
+
+t("prose: every glossary term occurs in the passage's lines; jyutping is lower-case letters + tone digits", () => {
+  for (const x of PROSE) {
+    for (const g of x.glossary) {
+      assert.ok(nonEmpty(g.term) && nonEmpty(g.meaning), `${x.id}: empty glossary entry`);
+      assert.ok(x.lines.some((l) => l.includes(g.term)), `${x.id}: glossary term 「${g.term}」 is not in the lines`);
+      if (g.jyutping !== undefined) assert.ok(/^[a-z]+[1-6]( [a-z]+[1-6])*$/.test(g.jyutping), `${x.id}: bad jyutping ${g.jyutping}`);
+    }
+    assert.deepEqual(dups(x.glossary.map((g) => g.term)), [], `${x.id}: duplicate glossary term`);
+  }
+});
+
+t("prose: exactly 5 questions per passage, each with 4 different non-empty options and correctIndex 0–3", () => {
+  for (const x of PROSE) {
+    assert.equal(x.questions.length, 5, `${x.id}: ${x.questions.length} questions`);
+    for (const q of x.questions) {
+      assert.ok(nonEmpty(q.prompt), `${x.id}: empty prompt`);
+      assert.equal(q.options.length, 4, `${x.id}: ${q.prompt}`);
+      assert.ok(q.options.every(nonEmpty), `${x.id}: empty option`);
+      assert.equal(new Set(q.options).size, 4, `${x.id}: repeated option in 「${q.prompt}」`);
+      assert.ok(Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex <= 3, `${x.id}: correctIndex ${q.correctIndex}`);
+    }
+    assert.deepEqual(dups(x.questions.map((q) => q.prompt)), [], `${x.id}: duplicate question`);
+  }
+});
+
+t("prose: the ten passages of 階段 7 B 批 are all present and spread their correct answers over the four positions", () => {
+  const batch = PROSE_BATCH3.map((id) => PROSE.find((x) => x.id === id));
+  batch.forEach((x, i) => assert.ok(x, `missing ${PROSE_BATCH3[i]}`));
+  const n = [0, 0, 0, 0];
+  for (const x of batch) {
+    const idx = x.questions.map((q) => q.correctIndex);
+    assert.ok(new Set(idx).size >= 3, `${x.id}: correct answers sit in only ${new Set(idx).size} positions`);
+    idx.forEach((i) => n[i]++);
+  }
+  for (const c of n) assert.ok(c >= 10 && c <= 15, `uneven correctIndex spread ${n}`);
+  const lv = countBy(batch, (x) => x.level);
+  assert.deepEqual([lv.p5, lv.p6, lv.s1], [3, 3, 4]);
+});
+
+t("prose: no passage repeats another's 原文 line", () => {
+  assert.deepEqual(dups(PROSE.flatMap((x) => x.lines)), []);
 });
 
 t.done();

@@ -66,8 +66,8 @@ within the module; content items are individually tagged with a level.
 7. **閱讀理解 (Reading Comprehension)** — ✅ built
 8. **修辭手法 (Rhetorical Devices)** — ✅ built
 9. **標點符號練習 (Punctuation Practice)** — ✅ built
-10. **文言文選讀 (Classical Chinese Reading)** — ✅ built, standalone, 17
-    texts across 2 batches (see Module 10 details below) — added after the
+10. **文言文選讀 (Classical Chinese Reading)** — ✅ built, standalone, 27
+    texts across 3 batches (see Module 10 details below) — added after the
     original 9 modules, per explicit user feedback that none of them
     actually present original classical-Chinese text with translation +
     glossary + comprehension questions together
@@ -1044,7 +1044,7 @@ correctly since, and lets them specifically re-practice just those.
     inside the review session cleared the mistake — with no console errors
     on any of the three points per module.
 
-## Module 10 details — 文言文選讀 (new module, 17 texts across 2 batches)
+## Module 10 details — 文言文選讀 (new module, 27 texts across 3 batches)
 - Added after the original 9 modules, following explicit user feedback
   ("修改要求5") that neither `poetryContent.jsx` (poems + a handful of prose
   excerpts folded into Module 1's generated MC-quiz flow) nor
@@ -1053,7 +1053,7 @@ correctly since, and lets them specifically re-practice just those.
   translation + glossary + comprehension questions" as its own standalone
   experience — hence a dedicated new module rather than extending either.
 - Content: `src/content/classicalProseContent.jsx` — `CLASSICAL_PROSE_ITEMS`,
-  17 entries (6×p5, 6×p6, 5×s1) with fixed fields: `id`, `title`, `source`
+  27 entries (9×p5, 9×p6, 9×s1) with fixed fields: `id`, `title`, `source`
   (出處，e.g. "《韓非子．五蠹》"), `dynasty`, `level`, `lines` (原文, split
   into sentence-level chunks — same "one array entry per rendered
   paragraph" convention as the `prose`-type entries in `poetryContent.jsx`),
@@ -1139,9 +1139,26 @@ correctly since, and lets them specifically re-practice just those.
   錯題 (1)" chip appeared, confirming the mistake was written to
   `localStorage` correctly.
 - **Per the user's original scope-limiting instruction, expansion beyond
-  this 17-text state should still wait for the user to ask again** — they
-  explicitly asked for batch 2 after reviewing batch 1, but don't add a
-  batch 3 to `CLASSICAL_PROSE_ITEMS` unprompted.
+  this 27-text state should still wait for the user to ask again** — each
+  batch was an explicit request; don't add a batch 4 to `CLASSICAL_PROSE_ITEMS` unprompted.
+- **Batch 3 (階段 7 B 批, 27 texts total, 9×p5 / 9×p6 / 9×s1)** — +3 p5 (掩耳盜鈴《呂氏春秋．自知》, 畫蛇添足《戰國策．齊策二》,
+  鷸蚌相爭（節錄）《戰國策．燕策二》), +3 p6 (王戎不取道旁李《世說新語．雅量》, 曾子殺彘《韓非子．外儲說左上》, 鑿壁偷光《西京雜記》),
+  +4 s1 (論語選章（論學）, 愛蓮說 周敦頤, 陋室銘 劉禹錫, 岳陽樓記（節錄）范仲淹). Same schema; 5 questions each (3 comprehension,
+  1 字詞解釋, 1 語譯填空), `correctIndex` spread over 0–3 (13/13/12/12) although `FixedQuizFlow` shuffles options anyway.
+  Source-line convention: a book title in 《》 gives a 2-character seal from the title (《呂氏春秋．自知》 → 「呂氏」); for a single
+  author-named essay `source` is the author (周敦頤 → 「周敦」, like 彭端淑).
+  - **愚公移山 was NOT used** although it was on the user's candidate list (long, and its printed editions differ in many characters —
+    厝/措, 亡/無, 隴/陵 — that could not be checked); 王戎不取道旁李 replaces it. 愛蓮說 and 陋室銘 also exist as prose entries in
+    `poetryContent.jsx` (Module 1), 曾子殺彘 / 鑿壁偷光 appear in Module 6 / 7 as vernacular stories — the same text in different modules.
+  - **VERIFICATION LEVEL (be honest about it):** the sandbox that wrote batch 3 could not open zh.wikisource.org, ctext.org or edb.gov.hk
+    (egress policy, HTTP 403), so no 原文 was compared with a page character by character — only cross-checked through WebSearch result
+    summaries, with the common textbook wording used. Re-check against 維基文庫 / 中華書局 / 教育局 before relying on any single character.
+    Chosen variants: 掩 (not 揜), 悖矣 (not 悖也), 鐘 (not 鍾), 卮, 并禽, 淨植, 引 (not 借) 其光. Jyutping in batch 3 (HK Jyutping): only
+    悖 bui6, 蚌 pong5 and 馨 hing1 were confirmed by search; 鷸 wat6 is reused from `idiomContent.jsx`; the rest (惡 wu3, 祠 ci4, 固 gu3,
+    亡 mong4, 喙 fui3, 嘗 soeng4, 烹 paang1, 償 soeng4, 說 jyut6, 慍 wan3, 罔 mong5, 殆 doi6, 蕃 faan4, 鮮 sin2, 褻玩 sit3 waan2,
+    白丁 baak6 ding1, 絲竹 si1 zuk1, 案牘 on3 duk6, 廟堂 miu6 tong4, 歟 jyu4, 微 mei4) are from the author's knowledge and still need an audit.
+  - The existing 狐假虎威 glossary entry 「假」 (not in its 原文 lines) was replaced by 「然」 so that every glossary term occurs in the lines
+    (`tests/content.test.js` now enforces this for all passages).
 
 ## Build status
 - [x] Project scaffold — theme, storage, Home dashboard (see 每日任務 notes for the current layout), hub-and-spoke nav
@@ -1154,7 +1171,7 @@ correctly since, and lets them specifically re-practice just those.
 - [x] Module 7 — 閱讀理解
 - [x] Module 8 — 修辭手法
 - [x] Module 9 — 標點符號練習
-- [x] Module 10 — 文言文選讀 (17 texts across 2 batches; see Module 10 notes)
+- [x] Module 10 — 文言文選讀 (27 texts across 3 batches; see Module 10 notes)
 
 **All 10 modules are built.** Remaining known gaps (content depth, not
 missing features):
@@ -1169,9 +1186,8 @@ missing features):
 - [ ] Expand reading passage library further beyond the current 22 curated items (new 理解/語文 question format — see Module 7 REBUILD)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
-- [ ] Classical prose library at 17 texts (2 batches so far) — expand
-      further toward the referenced ~26-text curriculum only if the user
-      asks again, per Module 10 notes
+- [ ] Classical prose library at 27 texts (3 batches so far, 9 / 9 / 9) — expand
+      further only if the user asks again, per Module 10 notes
 - [ ] Composing arbitrary multi-root Cangjie characters (currently scoped to
       the 24 basic roots + 5 verified compound examples — see Module 3 notes)
 - [ ] Cross-module linking from other modules back to Cangjie if a child
@@ -1323,7 +1339,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **85 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **91 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1336,8 +1352,9 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
-  `content.test.js` (18 — see "階段 7 內容擴充 A 批" below; it loads the two content files in a `node:vm` sandbox, so a
-  broken `keyPhrase`, an unknown `device`, a duplicate id / sentence or a wrong count fails the run).
+  `content.test.js` (24 — rhetoric, essay and 文言文選讀 content; it loads the content files in a `node:vm` sandbox, so a
+  broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
+  have exactly 5 questions with 4 different options, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
