@@ -761,7 +761,7 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   auto-derive questions from — the whole point is testing comprehension of
   facts specific to that one story).
 
-## Module 7 — 閱讀理解 REBUILD (COMPLETE: all 22 passages, phases 1+2)
+## Module 7 — 閱讀理解 REBUILD (COMPLETE: 22 passages in phases 1+2, +12 in 階段 7 C 批 = 34)
 User asked for a full rebuild modelled on real textbooks (樂思 P.6 26週 and
 領先中文 閱讀理解50篇 小五; the user shared screenshots of both): longer
 passages, and a two-part question set with tagged skills and marks. Phase 1
@@ -801,6 +801,46 @@ Not yet committed/pushed until the user says so.
   news ~70% more likely retweeted, ~6× faster to 1,500 people, humans not bots).
   Story passages (記敘文) are fictional; 荀子「鍥而不舍，金石可鏤」 and the
   李白「鐵杵磨成針」 legend are quoted as 相傳.
+
+### 階段 7 C 批 — 閱讀理解 22 → 34 passages (小五 12 / 小六 10 / 中一 12) — written, on the dev branch, not yet reviewed by the user
+Content-only change (`readingContent.jsx`, `tests/content.test.js`, this file; `ReadingModule.jsx` untouched — nothing there depends on
+the `genre` string, it is only displayed). Ids end `-v2`. Format identical to the other 22 (`passage` paragraphs, `focus`, `vocab` 2 (小五) / 3
+(小六, 中一), `comprehension` 6 (小五) / 7, `language` 3; every passage has mc + multi + open; skills only from the existing names).
+- **New `genre` values** (displayed as 「小五 · 實用文（通告）」): 實用文（通告）, （書信）, （電郵）, （建議信）. 實用文 passages are 300–500 字; the rest
+  follow 小五 450–620 / 小六 540–810 / 中一 690–850.
+  - **How 實用文 renders:** every notice / letter part (稱呼, 結語, 祝頌語, 署名, 日期, 主旨 …) is its own `passage` entry, so the screen gives each one a ①②③
+    number and "第 N 段" counts them (the notice has 10, the letters 9–10). Nothing is right-aligned or un-numbered — that would need a `ReadingModule.jsx`
+    change, which has not been made (ask the user first).
+- **The 12:** 小五 — 閱讀嘉年華通告, 給小欣的慰問信, 小廚師的第一碗麵 (記敘文), 樹木的年輪 (說明文). 小六 — 查詢參觀回收中心的電郵, 外公的算盤 (記敘文), 海水為甚麼是鹹的,
+  紙的故事 (說明文). 中一 — 建議舉辦舊物交換日 (建議信), 摩擦力的兩面, 指南針與磁偏角 (說明文), 寬容不是軟弱 (議論文). The 記敘文 and 實用文 are fictional (the
+  names 新苗小學, 綠田回收中心 and all people are invented; dates are fictional and every 星期 matches the real 2026 calendar).
+- **Facts the 說明文 / 議論文 rely on** (kept to what does not change; checked against general references and, where noted, a web search in this session):
+  - 年輪: 形成層 adds a ring of new wood each year; 春季至初夏 wood is larger-celled and lighter, 夏末和秋季 smaller-celled and darker, growth mostly pauses in 冬季; one light + one dark = one year in
+    places with distinct seasons; ring width reflects drought / cold; the 生長錐 takes a core without felling (web search confirmed increment boring and that
+    many tropical trees have no clear annual rings).
+  - 海水: average salinity ≈ 35 g per kg (3.5 %); 氯化鈉 is the largest part; salts come from rock weathering carried by rivers and from the sea floor
+    (volcanoes, hot springs); evaporation removes water, not salt; a part of the salt is removed again by settling into sea-floor sediment (no claim about organisms taking up salt — an independent review found that overstated); salinity differs by region (higher where evaporation is strong, lower where rivers / meltwater
+    enter); 死海 has no outlet and is far saltier, so a person floats; ocean salinity is roughly steady over long times (web search confirmed 35 ‰, NaCl ≈ 85 %
+    and the steady-state view).
+  - 紙: 《後漢書．蔡倫傳》 — 蔡倫 used 樹膚, 麻頭, 敝布, 魚網; 元興元年 (105) he presented it, and it was called 「蔡侯紙」 (web search confirmed the quotation and the
+    date); paper fragments older than 蔡倫 have been found in Han-dynasty sites and tombs (web search: Lop Nur 1933, Xi'an 1957, Juyan 1973–74 — which is why the text
+    says 「遺址和墓葬」); 學富五車 comes from 《莊子．天下》 on 惠施 「其書五車」; paper reached 朝鮮, 日本 and, via 中亞 / 阿拉伯, 歐洲, where it replaced parchment.
+  - 摩擦力: roughness at microscopic level, friction opposes relative motion; tyre treads clear water; brake pads wear; rubbing hands makes heat; sand on ice and
+    pressure raise friction; lubricant, rolling and ball bearings lower it; hovercraft and maglev reduce contact friction.
+  - 指南針: Earth acts like a giant magnet; the needle points to magnetic north, which differs from true north by the 磁偏角, which varies with place and slowly with time;
+    司南 is in ancient books and is generally thought to be a lodestone device; 沈括 《夢溪筆談》 describes magnetising a needle by rubbing it on a lodestone and the
+    declination (「常微偏東，不全南也」); 朱彧 《萍洲可談》 records compass use at sea on overcast days (web search confirmed both books and that 《萍洲可談》 is
+    regarded as the earliest such record). **The exact wording of the two quotations and of 《萍洲可談》 was not found verbatim in the search results — the user
+    should compare them with a 點校本.**
+  - 寬容: 《史記．廉頗藺相如列傳》 — 完璧歸趙, 澠池之會, 藺相如 made 上卿 above 廉頗, 廉頗's threat, 藺相如 avoiding him, the speech 「先國家之急而後私仇」 (web search
+    confirmed the speech; the 「引車避匿」 and 「位在廉頗之右」 details were not re-found in the search), 負荊請罪, 刎頸之交 (written 「生死與共的好朋友」).
+- **Checks (tests/content.test.js, 33 tests now):** 34 passages / unique ids / 12-10-12; passage array; vocab terms occur in the passage; known skill, positive marks;
+  mc 4 / multi 5 distinct options and valid answers; explanations; open has hint / points / scheme / modelAnswer and marks ≤ number of points; every 「第 N 段」 ≤ the passage's
+  paragraph count; for the 12 new ones also the genre per level, question counts, kinds, explanation cites a paragraph, `scheme` says 「共 N 分」 and the length in 字.
+  Three things in the OLD 22 do not meet the strictest rule and were left alone on purpose (listed in the test file): vocab 「防騙易18222」 (wangluo-xianjing-v2) and
+  「心裏打鼓」 (chengshi-de-xuanze-v2) are written differently in the passage, and baoyu-wenhua-yichan-v2 has a 3-mark open question with 2 reference points.
+- Answer positions of the new mc questions were balanced (about 20 per slot over the four slots) although the module shuffles options anyway.
+- A read-only independent review of the 12 passages (answer keys, 「第 N 段」, facts, 書面語) found no wrong key; its minor points were applied (e.g. 「請用自己的話」, 「試想一想」, 「逐漸被廣泛使用」, 通告 signed 「新苗小學校長」, no repeated 學富五車 question).
 
 ## Module 7 details — 閱讀理解 (built, expanded after user feedback; describes the OLD format)
 - **Same flow shape as Module 6** (list → read → `FixedQuizFlow` → summary),
@@ -1184,7 +1224,7 @@ missing features):
       could still have `origin` added back to more of the 495 lighter-schema
       entries if depth matters more than volume later
 - [ ] Expand history story library further beyond the current 36 curated items
-- [ ] Expand reading passage library further beyond the current 22 curated items (new 理解/語文 question format — see Module 7 REBUILD)
+- [ ] Expand reading passage library further beyond the current 34 curated items (new 理解/語文 question format — see Module 7 REBUILD and 階段 7 C 批)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
 - [ ] Classical prose library at 27 texts (3 batches so far, 9 / 9 / 9) — expand
@@ -1340,7 +1380,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **91 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **100 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1353,9 +1393,9 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
-  `content.test.js` (24 — rhetoric, essay and 文言文選讀 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (33 — rhetoric, essay, 文言文選讀 and 閱讀理解 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
-  have exactly 5 questions with 4 different options, or a wrong count fails the run).
+  have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
