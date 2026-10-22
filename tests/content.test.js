@@ -1,5 +1,5 @@
 // Content sanity checks for 修辭手法 (rhetoricContent.jsx), 作文金句 (essayContent.jsx), 文言文選讀 (classicalProseContent.jsx) and
-// 閱讀理解 (readingContent.jsx) — run: node tests/content.test.js
+// 閱讀理解 (readingContent.jsx) and 成語學習 (idiomContent.jsx) — run: node tests/content.test.js
 // Loads the content files exactly as the browser does (plain JavaScript inside an IIFE, no JSX) into a node:vm sandbox.
 // These checks catch the mistakes that fail silently on screen: a keyPhrase that is not in its sentence (the blank is not drawn),
 // a device name that does not exist (the quiz crashes), duplicated ids / sentences, wrong counts.
@@ -368,6 +368,88 @@ t("reading C 批: passage length in 漢字 — 實用文 300–500, 小五 450�
     const n = x.passage.reduce((s, p) => s + han(paraText(p)), 0);
     const [lo, hi] = x.genre.startsWith("實用文") ? [300, 500] : range[x.level];
     assert.ok(n >= lo && n <= hi, `${id}: ${n} 漢字, expected ${lo}–${hi}`);
+  }
+});
+
+// ---- 成語學習 (idiomContent.jsx), 階段 8b ----
+const ID = loadContent("idiomContent.jsx");
+const IDIOMS = ID.IDIOM_ITEMS;
+// 階段 8b (A): existing lightweight idioms that were given an `origin` (pinyin / meaning / clue / level untouched).
+const IDIOM_8B_ORIGIN_ADDED = ["溫故知新", "有始有終", "九牛一毛", "鶴立雞群", "水落石出", "不翼而飛", "出人頭地", "得心應手", "有備無患", "舉一反三", "不恥下問", "後來居上", "廢寢忘食", "如魚得水", "三思而後行", "依樣畫葫蘆", "更上一層樓", "眾志成城", "不自量力", "自暴自棄", "飲水思源", "取長補短", "精益求精", "大同小異", "虎頭蛇尾", "知己知彼", "打草驚蛇", "畫虎類犬", "羊質虎皮", "狼子野心", "遊刃有餘", "笑裏藏刀", "一諾千金", "忠言逆耳", "焦頭爛額", "如坐針氈", "生吞活剝", "世外桃源", "高山流水", "草木皆兵", "運籌帷幄", "妄自菲薄", "披荊斬棘", "未雨綢繆", "居安思危", "功虧一簣", "茅塞頓開", "青出於藍", "家徒四壁", "孤掌難鳴", "分道揚鑣", "食言而肥", "從善如流", "以管窺天", "引而不發"];
+// 階段 8b (B): idioms added, every field present.
+const IDIOM_8B_NEW = ["揠苗助長", "鑿壁偷光", "自相矛盾", "孟母三遷", "熟能生巧", "知足常樂", "事半功倍", "見賢思齊", "禮尚往來", "賓至如歸", "囊螢映雪", "驚弓之鳥", "螳螂捕蟬", "老馬識途", "閉門造車", "三顧茅廬", "畫餅充飢", "抱薪救火", "南轅北轍", "程門立雪", "洛陽紙貴", "一字千金", "聞雞起舞", "韋編三絕", "退避三舍", "約法三章", "管鮑之交", "桃園結義", "門庭若市", "三人成虎", "曲高和寡", "破鏡重圓", "一葉障目", "按圖索驥", "防微杜漸", "緣木求魚", "本末倒置", "謙謙君子", "黃粱一夢", "才高八斗", "江郎才盡", "入木三分", "大智若愚", "當頭棒喝", "一飯千金", "懸壺濟世", "兩袖清風", "安步當車", "溫柔敦厚", "返璞歸真", "妙筆生花", "栩栩如生", "口若懸河", "簞食瓢飲", "擇善而從", "乘風破浪", "傾蓋如故", "投鼠忌器"];
+// Older entries whose `origin` / `clue` names the idiom itself — left as they were (the user decides), so they are listed here on purpose.
+const IDIOM_OLD_ORIGIN_NAMES_IDIOM = ["半途而廢", "一鳴驚人", "罄竹難書", "尾大不掉", "司空見慣", "每況愈下", "刮目相待", "東窗事發", "孤注一擲", "炙手可熱", "恃強凌弱", "流連忘返", "唇槍舌劍", "鹿死誰手", "無濟於事", "義不容辭", "維妙維肖", "實事求是", "隨波逐流", "獨當一面", "獨佔鰲頭", "鞠躬盡瘁", "鍥而不捨", "豁然開朗", "覆水難收", "歸根結蒂", "躊躇滿志"];
+const IDIOM_OLD_CLUE_NAMES_IDIOM = ["恩將仇報", "班門弄斧"];
+const idiomByText = (s) => IDIOMS.find((x) => x.idiom === s);
+const idiomSlices = (s) => { const r = []; for (let i = 0; i + 3 <= s.length; i++) r.push(s.slice(i, i + 3)); return r; };
+
+t("idiom: 711 items, unique ids and unique idioms (variant characters 卧/臥 and 裡/裏 counted as the same)", () => {
+  assert.strictEqual(IDIOMS.length, 711);
+  assert.strictEqual(new Set(IDIOMS.map((x) => x.id)).size, IDIOMS.length, "duplicate id");
+  assert.strictEqual(new Set(IDIOMS.map((x) => x.idiom)).size, IDIOMS.length, "duplicate idiom");
+  const norm = (s) => s.replace(/卧/g, "臥").replace(/裡/g, "裏").replace(/爲/g, "為");
+  assert.strictEqual(new Set(IDIOMS.map((x) => norm(x.idiom))).size, IDIOMS.length, "duplicate idiom (variant character)");
+});
+
+t("idiom: base fields present, level valid, no comma, pinyin has one syllable per character", () => {
+  for (const x of IDIOMS) {
+    for (const f of ["id", "idiom", "pinyin", "level", "meaning", "clue"]) {
+      assert.ok(typeof x[f] === "string" && x[f].length > 0, `${x.idiom}: missing ${f}`);
+    }
+    assert.ok(LEVELS.includes(x.level), `${x.idiom}: level ${x.level}`);
+    assert.ok(!/[，,、。\s]/.test(x.idiom), `${x.idiom}: contains punctuation`);
+    assert.strictEqual(x.pinyin.split(" ").length, x.idiom.length, `${x.idiom}: pinyin syllables`);
+    assert.ok(!/[A-Z]/.test(x.pinyin), `${x.idiom}: pinyin must be lower case`);
+  }
+});
+
+t("idiom 8b: 55 idioms gained an origin, 58 were added; 271 idioms now have an origin", () => {
+  assert.strictEqual(IDIOM_8B_ORIGIN_ADDED.length, 55);
+  assert.strictEqual(IDIOM_8B_NEW.length, 58);
+  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 55 + 58);
+  for (const s of IDIOM_8B_ORIGIN_ADDED) {
+    const x = idiomByText(s);
+    assert.ok(x && x.origin && x.origin.length >= 20, `${s}: origin missing or too short`);
+  }
+});
+
+t("idiom 8b: the 58 new idioms have every field, including origin", () => {
+  for (const s of IDIOM_8B_NEW) {
+    const x = idiomByText(s);
+    assert.ok(x, `${s} missing`);
+    for (const f of ["id", "idiom", "pinyin", "level", "meaning", "origin", "clue"]) {
+      assert.ok(typeof x[f] === "string" && x[f].length > 0, `${s}: missing ${f}`);
+    }
+  }
+  assert.ok(!IDIOM_8B_NEW.some((s) => IDIOM_8B_ORIGIN_ADDED.includes(s)), "an idiom is in both lists");
+});
+
+t("idiom 8b: origin and clue never contain the idiom or three consecutive characters of it (new / 補充 items)", () => {
+  for (const s of [...IDIOM_8B_ORIGIN_ADDED, ...IDIOM_8B_NEW]) {
+    const x = idiomByText(s);
+    for (const f of ["origin", "clue"]) {
+      for (const piece of [s, ...idiomSlices(s)]) {
+        assert.ok(!x[f].includes(piece), `${s}: ${f} contains "${piece}"`);
+      }
+    }
+  }
+});
+
+t("idiom: no origin names its idiom (older entries that still do are listed explicitly and must not grow)", () => {
+  const offenders = Array.from(IDIOMS.filter((x) => x.origin && x.origin.includes(x.idiom)).map((x) => x.idiom)).sort();
+  assert.deepStrictEqual(offenders, [...IDIOM_OLD_ORIGIN_NAMES_IDIOM].sort());
+  const clueOffenders = Array.from(IDIOMS.filter((x) => x.clue.includes(x.idiom)).map((x) => x.idiom)).sort();
+  assert.deepStrictEqual(clueOffenders, [...IDIOM_OLD_CLUE_NAMES_IDIOM].sort());
+});
+
+t("idiom 8b: new text is 書面語 (no 什麼 / 裡 / colloquial particles)", () => {
+  for (const s of [...IDIOM_8B_ORIGIN_ADDED, ...IDIOM_8B_NEW]) {
+    const x = idiomByText(s);
+    for (const f of ["meaning", "origin", "clue"]) {
+      if (!x[f]) continue;
+      assert.ok(!/什麼|裡|嘅|咗|唔|喺|呢|咩|啲|冇|睇|佢/.test(x[f]), `${s}: ${f} looks colloquial`);
+    }
   }
 });
 

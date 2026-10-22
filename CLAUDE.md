@@ -557,8 +557,9 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   eligible — difficulty comes entirely from which items are in the content
   file at each level, same as Modules 1–2.
 
-## Module 5 details — 成語學習 (built, expanded three times after user feedback)
-- Content: `src/content/idiomContent.jsx` — **653 idioms total**. Three tiers
+## Module 5 details — 成語學習 (built, expanded four times after user feedback)
+- Content: `src/content/idiomContent.jsx` — **711 idioms total** (653 + 58 added by 階段 8b; **271 carry `origin`**: 158 + 55
+  補上 + 58 new — see "階段 8b" at the end of this file; the tier descriptions below describe the 653 before 8b). Three tiers
   of depth, all sharing the same base fields (`idiom`, `pinyin`, `level`,
   `meaning`, `clue`):
   - **The original 39** (curated, first expansion) additionally carry
@@ -1229,10 +1230,11 @@ missing features):
 - [ ] Expand poem library further beyond the current 54+7 curated items (spec target: ~150)
 - [ ] Expand essay golden sentence library further beyond the current 150 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
-- [ ] Idiom library now at 653 (39 fully-verified + 495 lighter-schema + 119
-      curriculum-gap batch with verified `origin` — see Module 5 notes);
-      could still have `origin` added back to more of the 495 lighter-schema
-      entries if depth matters more than volume later
+- [ ] Idiom library now at 711 (39 fully-verified + 495 lighter-schema + 119
+      curriculum-gap batch + 58 from 階段 8b; 55 of the lighter-schema entries
+      got an `origin` in 8b — see Module 5 notes and 階段 8b); could still have
+      `origin` added back to the other ~440 lighter-schema entries if depth matters
+      more than volume later
 - [ ] Expand history story library further beyond the current 36 curated items
 - [ ] Expand reading passage library further beyond the current 34 curated items (new 理解/語文 question format — see Module 7 REBUILD and 階段 7 C 批)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
@@ -1390,7 +1392,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **102 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **109 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1403,9 +1405,9 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
-  `content.test.js` (35 — rhetoric, essay, 文言文選讀 and 閱讀理解 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (42 — rhetoric, essay, 文言文選讀, 閱讀理解 and 成語 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
-  have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, or a wrong count fails the run).
+  have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
   add a stored field, add it to `normalizeGamification` AND a round-trip assertion to
   `storage.test.js`; when you add a badge, update the approved-names list in `badges.test.js`
@@ -1535,3 +1537,22 @@ on screen hard-codes the number of devices or sentences). Added by the user's sp
   for every new device in both question types (「這句運用了什麼修辭手法？」 and the 作用 question, 4 distinct options each); one full
   session per essay theme with new sentences appearing; backup export → import identical, version 2. Content in this batch was written
   for this project (not copied from textbooks or papers); quoted classics are public domain.
+
+## 階段 8b — 成語學習擴充 (Oct 2026): 653 → 711 idioms, 55 idioms gained an `origin`
+Content-only change (`idiomContent.jsx`, `tests/content.test.js`, this file; `IdiomModule.jsx` untouched — it already shows 出處及故事 only `{item.origin && …}`).
+- **(A) 補 origin: 55 existing lightweight idioms** (level / pinyin / meaning / clue NOT touched — existing doubts are only listed below): p5 溫故知新, 有始有終;
+  p6 九牛一毛, 鶴立雞群, 水落石出, 不翼而飛, 出人頭地, 得心應手, 有備無患, 舉一反三, 不恥下問, 後來居上, 廢寢忘食, 如魚得水, 三思而後行, 依樣畫葫蘆, 更上一層樓, 眾志成城, 不自量力, 自暴自棄,
+  飲水思源, 取長補短, 精益求精, 大同小異, 虎頭蛇尾, 知己知彼; s1 打草驚蛇, 畫虎類犬, 羊質虎皮, 狼子野心, 遊刃有餘, 笑裏藏刀, 一諾千金, 忠言逆耳, 焦頭爛額, 如坐針氈, 生吞活剝, 世外桃源, 高山流水, 草木皆兵,
+  運籌帷幄, 妄自菲薄, 披荊斬棘, 未雨綢繆, 居安思危, 功虧一簣, 茅塞頓開, 青出於藍, 家徒四壁, 孤掌難鳴, 分道揚鑣, 食言而肥, 從善如流, 以管窺天, 引而不發. (The full list is `IDIOM_8B_ORIGIN_ADDED` in the test file.)
+- **(B) 58 new idioms**, all six fields (`IDIOM_8B_NEW` in the test file), level as suggested: 15 p5 / 23 p6 / 20 s1. Ids = toneless pinyin hyphenated (unique; existing ids end in digits where they clash).
+- **How the facts were obtained:** the sandbox cannot open dict.idioms.moe.edu.tw or zdic.net (proxy 403), so every idiom was checked through `WebSearch` summaries of 《成語典》/漢典 by 12 delegated agents; each draft
+  was then read and checked by script (no idiom / no 3 consecutive characters in `origin` and `clue`, pinyin = one syllable per character, no duplicate vs the existing list incl. variant characters, 書面語 scan).
+  **Rule applied:** where 《成語典》 and 漢典 disagreed on the 典源 (or nothing explicit was found) the idiom was NOT added / NOT given an origin and is listed below. Pinyin summaries were rarely shown, so most new pinyin is the standard reading, not a quoted dictionary line.
+- **Not added / no origin (needs a human check of the dictionary page):** 典源 conflict — 一舉兩得 (《戰國策．秦策二》 vs 《晉書．束皙傳》), 如虎添翼 (《將苑》 vs 《心書》), 雪中送炭 (《四字經》 vs 范成大詩), 水滴石穿 (《尸子》 vs 《漢書》), 口蜜腹劍 (《開元天寶遺事》 vs 《資治通鑑》),
+  言過其實, 指鹿為馬 (《新語．辨惑》 vs 《史記》), 手不釋卷, 管中窺豹 (《晉書》 vs 《世說新語》), 隔岸觀火, 一勞永逸, 因小失大, 夜郎自大 (《史記》 vs 《漢書》), 胸有成竹, 背水一戰, 高枕無憂, 路不拾遺, 點石成金, 鐵面無私; 查不到 — 醍醐灌頂;
+  寫法 — 鐵杵成針 (《成語典》 only has 鐵杵磨成針 / 磨杵成針), 洗耳恭聽 (only a late 書證, no story), 揚揚自得 (《成語典》 headword is 洋洋自得; only one sentence of story), 前功盡棄 (no story text found).
+- **Kept with a note:** 囊螢映雪 (only 漢典 has this order; 《成語典》 has 映雪囊螢 / 聚螢映雪), 一葉障目 and 妙筆生花 (only 漢典 has these 4-character headwords; 《成語典》 has 一葉蔽目，不見泰山 / 生花妙筆), and in (A) 三思而後行 (《成語典》: 三思而行) and 畫虎類犬 (《成語典》: 畫虎類狗) — the existing writing was kept.
+- **Sensitive topics** (笑裏藏刀、草木皆兵、投鼠忌器、懸壺濟世、狼子野心) use a neutral origin; 草木皆兵 does not name the river (sources wrote 肥水 / 淝水).
+- **Existing entries with doubts (reported, NOT edited):** 27 older `origin`s contain their own idiom and 2 older `clue`s do (listed in the test as `IDIOM_OLD_*`, the test fails if the list grows or shrinks); 九牛一毛 meaning lacks 「極大數量中的極小部分」; 出人頭地 meaning leans to 出類拔萃;
+  運籌帷幄 meaning says 「在後方」 which the dictionaries do not; 揚揚自得 meaning 「滿足自誇」 vs 「十分得意」; 引而不發 meaning lacks the 《孟子》 原義 (善於啟發誘導); 依樣畫葫蘆 pinyin ends in a neutral-tone `lu` (dictionaries `lú`).
+- **Tests:** `content.test.js` 35 → 42 (711 items, unique ids / idioms incl. 卧-臥 and 裡-裏 variants, base fields, one pinyin syllable per character, 55 + 58 lists, 271 origins, origin / clue never contain the idiom or 3 consecutive characters for the 113 touched items, 書面語 scan); whole suite 6 files, 109 tests.
