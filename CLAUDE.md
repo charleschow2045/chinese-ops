@@ -802,7 +802,7 @@ Not yet committed/pushed until the user says so.
   Story passages (記敘文) are fictional; 荀子「鍥而不舍，金石可鏤」 and the
   李白「鐵杵磨成針」 legend are quoted as 相傳.
 
-### 階段 7 C 批 — 閱讀理解 22 → 34 passages (小五 12 / 小六 10 / 中一 12) — written, on the dev branch, not yet reviewed by the user
+### 階段 7 C 批 — 閱讀理解 22 → 34 passages (小五 12 / 小六 10 / 中一 12) — reviewed and approved by the user, MERGED into master (with one follow-up: moca-li-de-liang-mian-v2 C4 option 「工程師」→「人類」)
 Content-only change (`readingContent.jsx`, `tests/content.test.js`, this file; `ReadingModule.jsx` untouched — nothing there depends on
 the `genre` string, it is only displayed). Ids end `-v2`. Format identical to the other 22 (`passage` paragraphs, `focus`, `vocab` 2 (小五) / 3
 (小六, 中一), `comprehension` 6 (小五) / 7, `language` 3; every passage has mc + multi + open; skills only from the existing names).
