@@ -171,11 +171,11 @@ t("prose: every passage has all its fields and lines / lineExplanations of the s
   }
 });
 
-t("prose: every glossary term occurs in the passage's lines; jyutping is lower-case letters + tone digits", () => {
+t("prose: every glossary term occurs in the passage's lines or title; jyutping is lower-case letters + tone digits", () => {
   for (const x of PROSE) {
     for (const g of x.glossary) {
       assert.ok(nonEmpty(g.term) && nonEmpty(g.meaning), `${x.id}: empty glossary entry`);
-      assert.ok(x.lines.some((l) => l.includes(g.term)), `${x.id}: glossary term 「${g.term}」 is not in the lines`);
+      assert.ok(x.lines.some((l) => l.includes(g.term)) || x.title.includes(g.term), `${x.id}: glossary term 「${g.term}」 is in neither the lines nor the title`);
       if (g.jyutping !== undefined) assert.ok(/^[a-z]+[1-6]( [a-z]+[1-6])*$/.test(g.jyutping), `${x.id}: bad jyutping ${g.jyutping}`);
     }
     assert.deepEqual(dups(x.glossary.map((g) => g.term)), [], `${x.id}: duplicate glossary term`);

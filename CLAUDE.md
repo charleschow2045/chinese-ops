@@ -1151,14 +1151,15 @@ correctly since, and lets them specifically re-practice just those.
     厝/措, 亡/無, 隴/陵 — that could not be checked); 王戎不取道旁李 replaces it. 愛蓮說 and 陋室銘 also exist as prose entries in
     `poetryContent.jsx` (Module 1), 曾子殺彘 / 鑿壁偷光 appear in Module 6 / 7 as vernacular stories — the same text in different modules.
   - **VERIFICATION LEVEL (be honest about it):** the sandbox that wrote batch 3 could not open zh.wikisource.org, ctext.org or edb.gov.hk
-    (egress policy, HTTP 403), so no 原文 was compared with a page character by character — only cross-checked through WebSearch result
-    summaries, with the common textbook wording used. Re-check against 維基文庫 / 中華書局 / 教育局 before relying on any single character.
-    Chosen variants: 掩 (not 揜), 悖矣 (not 悖也), 鐘 (not 鍾), 卮, 并禽, 淨植, 引 (not 借) 其光. Jyutping in batch 3 (HK Jyutping): only
-    悖 bui6, 蚌 pong5 and 馨 hing1 were confirmed by search; 鷸 wat6 is reused from `idiomContent.jsx`; the rest (惡 wu3, 祠 ci4, 固 gu3,
-    亡 mong4, 喙 fui3, 嘗 soeng4, 烹 paang1, 償 soeng4, 說 jyut6, 慍 wan3, 罔 mong5, 殆 doi6, 蕃 faan4, 鮮 sin2, 褻玩 sit3 waan2,
-    白丁 baak6 ding1, 絲竹 si1 zuk1, 案牘 on3 duk6, 廟堂 miu6 tong4, 歟 jyu4, 微 mei4) are from the author's knowledge and still need an audit.
-  - The existing 狐假虎威 glossary entry 「假」 (not in its 原文 lines) was replaced by 「然」 so that every glossary term occurs in the lines
-    (`tests/content.test.js` now enforces this for all passages).
+    (egress policy, HTTP 403), so the author compared no 原文 with a page character by character — only cross-checked through WebSearch
+    result summaries, with the common textbook wording used. **The user then reviewed batch 3 themselves and confirmed 原文 / 白話 / 答案 /
+    粵音 ("B 批已核對…通過").** Chosen variants: 掩 (not 揜), 悖矣 (not 悖也), 鐘 (not 鍾), 卮, 并禽, 淨植, 引 (not 借) 其光.
+  - **Four follow-up fixes after that review (own commit):** 岳陽樓記 last 白話 → 「我與誰同道呢？」 (a scan of the new passages found no other
+    colloquial 同); 陋室銘 background no longer calls it a 駢體文 (now 「全文句式整齊，多用對偶，節奏明快」); 鷸蚌相爭 quotation marks —
+    蘇代's whole speech is in 「」 (opens on line 2, closes at the end of the excerpt, line 5) and the 鷸曰 / 蚌曰 speeches inside it are in 『』,
+    in both `lines` and `lineExplanations`; 狐假虎威's glossary has 「假」(借助) back.
+  - **Glossary rule (tests/content.test.js):** every glossary term must occur in the passage's `lines` **or its `title`** (狐假虎威's 「假」
+    is only in the title); nothing else was relaxed.
 
 ## Build status
 - [x] Project scaffold — theme, storage, Home dashboard (see 每日任務 notes for the current layout), hub-and-spoke nav
