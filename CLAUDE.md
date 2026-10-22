@@ -841,7 +841,7 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
 - Answer positions of the new mc questions were balanced (about 20 per slot over the four slots) although the module shuffles options anyway.
 - A read-only independent review of the 12 passages (answer keys, 「第 N 段」, facts, 書面語) found no wrong key; its minor points were applied (e.g. 「請用自己的話」, 「試想一想」, 「逐漸被廣泛使用」, 通告 signed 「新苗小學校長」, no repeated 學富五車 question).
 
-### 階段 8a — 實用文 署名 / 日期 right-aligned and un-numbered (on the dev branch, not merged until the user says so)
+### 階段 8a — 實用文 署名 / 日期 right-aligned and un-numbered (reviewed and approved by the user, MERGED into master)
 - `ReadingModule.jsx` (`PassageDetailA2` only): a `passage` entry may now be a string (as before) **or** `{ text, align: "right", numbered: false }`. Un-numbered entries
   get `textAlign: "right"` and no circled number; the number counter only advances on numbered entries, so the other paragraphs keep ①②③… exactly as before.
   String-only passages render the same DOM as before (the old-format hashes are identical to `bb37b25`). The old string-passage fallback is untouched.
