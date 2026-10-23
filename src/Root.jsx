@@ -22,8 +22,17 @@ window.App = window.App || {};
   } = window.App;
   const { A2, A2Background } = window.App.UI;
 
+  // An idiom that a later release removed or re-spelled can still be in an old save or an
+  // old backup's 錯題 list; drop those ids so the home screen's 錯題 count matches what the
+  // review list can show. Other idioms' records and every other module are untouched.
+  function dropRetiredIdiomMistakes(s) {
+    const items = window.App.Content && window.App.Content.IDIOM_ITEMS;
+    if (!Array.isArray(items)) return s;
+    return Storage.pruneUnknownMistakes(s, "idiom", items.map((it) => it.id));
+  }
+
   function Root() {
-    const [state, setState] = useState(() => Storage.loadState());
+    const [state, setState] = useState(() => dropRetiredIdiomMistakes(Storage.loadState()));
     const [view, setView] = useState("home");
     // Optional params for a module opened via a cross-module link (e.g. a story
     // opening a poem): { poemId | storyId, from: { module, opts } }.
@@ -59,8 +68,9 @@ window.App = window.App || {};
 
     // Overwrites progress with an already-sanitized backup (BackupSettings.jsx).
     function restoreProgress(restored) {
-      Storage.restoreState(restored);
-      setState(restored);
+      const cleaned = dropRetiredIdiomMistakes(restored);
+      Storage.restoreState(cleaned);
+      setState(cleaned);
       setNotices([]);
     }
 

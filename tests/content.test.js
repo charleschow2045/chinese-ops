@@ -384,8 +384,8 @@ const IDIOM_OLD_CLUE_NAMES_IDIOM = ["恩將仇報", "班門弄斧"];
 const idiomByText = (s) => IDIOMS.find((x) => x.idiom === s);
 const idiomSlices = (s) => { const r = []; for (let i = 0; i + 3 <= s.length; i++) r.push(s.slice(i, i + 3)); return r; };
 
-t("idiom: 711 items, unique ids and unique idioms (variant characters 卧/臥 and 裡/裏 counted as the same)", () => {
-  assert.strictEqual(IDIOMS.length, 711);
+t("idiom: 696 items, unique ids and unique idioms (variant characters 卧/臥 and 裡/裏 counted as the same)", () => {
+  assert.strictEqual(IDIOMS.length, 696);
   assert.strictEqual(new Set(IDIOMS.map((x) => x.id)).size, IDIOMS.length, "duplicate id");
   assert.strictEqual(new Set(IDIOMS.map((x) => x.idiom)).size, IDIOMS.length, "duplicate idiom");
   const norm = (s) => s.replace(/卧/g, "臥").replace(/裡/g, "裏").replace(/爲/g, "為");

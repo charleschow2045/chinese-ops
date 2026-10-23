@@ -290,6 +290,31 @@ window.App = window.App || {};
     };
   }
 
+  // Drops mistake ids that no longer exist in a module's content (for example an
+  // idiom that a later release removed or re-spelled). Storage knows nothing about
+  // content, so the caller passes the ids that are still valid. Only that module's
+  // `mistakes` list is touched: practiceStats, stats (this is NOT 清除錯題, so
+  // `mistakesCleared` stays as it is) and every other module are left alone. Pure,
+  // never throws, and returns the very same object when nothing has to be dropped.
+  function pruneUnknownMistakes(state, moduleKey, validIds) {
+    try {
+      const prev = state && state.moduleProgress && state.moduleProgress[moduleKey] && state.moduleProgress[moduleKey].mistakes;
+      if (!Array.isArray(prev) || !validIds) return state;
+      const valid = new Set(validIds);
+      const next = prev.filter((id) => valid.has(id));
+      if (next.length === prev.length) return state;
+      return {
+        ...state,
+        moduleProgress: {
+          ...state.moduleProgress,
+          [moduleKey]: { ...state.moduleProgress[moduleKey], mistakes: next },
+        },
+      };
+    } catch (e) {
+      return state;
+    }
+  }
+
   // Called once per finished practice session (the same moment as
   // recordPracticeResult). Updates the day's missions, the streak and the
   // lifetime stats. Pure: returns { state, events } — `events` is a transient
@@ -669,6 +694,7 @@ window.App = window.App || {};
     recordPracticeResult,
     addMistake,
     removeMistake,
+    pruneUnknownMistakes,
     MAX_STREAK_FREEZES,
     MISSION_GROUPS,
     todayStr,

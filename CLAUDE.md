@@ -558,7 +558,7 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   file at each level, same as Modules 1–2.
 
 ## Module 5 details — 成語學習 (built, expanded four times after user feedback)
-- Content: `src/content/idiomContent.jsx` — **711 idioms total** (653 + 58 added by 階段 8b; **270 carry `origin`**: 158 + 54
+- Content: `src/content/idiomContent.jsx` — **696 idioms total** (653 + 58 added by 階段 8b = 711, then −15 +0 by 階段 8d — see "階段 8d" at the end of this file; **270 carry `origin`**: 158 + 54
   補上 + 58 new — see "階段 8b" at the end of this file; the tier descriptions below describe the 653 before 8b). Three tiers
   of depth, all sharing the same base fields (`idiom`, `pinyin`, `level`,
   `meaning`, `clue`):
@@ -1230,7 +1230,7 @@ missing features):
 - [ ] Expand poem library further beyond the current 54+7 curated items (spec target: ~150)
 - [ ] Expand essay golden sentence library further beyond the current 150 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
-- [ ] Idiom library now at 711 (39 fully-verified + 495 lighter-schema + 119
+- [ ] Idiom library now at 696 (711 before 階段 8d removed 15; 39 fully-verified + 495 lighter-schema + 119
       curriculum-gap batch + 58 from 階段 8b; 54 of the lighter-schema entries
       got an `origin` in 8b — see Module 5 notes and 階段 8b); could still have
       `origin` added back to the other ~440 lighter-schema entries if depth matters
@@ -1392,7 +1392,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **115 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 7 files, **123 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1405,6 +1405,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
+  `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
   `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
@@ -1555,7 +1556,7 @@ Content-only change (`idiomContent.jsx`, `tests/content.test.js`, this file; `Id
 - **Kept with a note:** 囊螢映雪 (only 漢典 has this order; 《成語典》 has 映雪囊螢 / 聚螢映雪), 一葉障目 and 妙筆生花 (only 漢典 has these 4-character headwords; 《成語典》 has 一葉蔽目，不見泰山 / 生花妙筆), and in (A) 三思而後行 (《成語典》: 三思而行) and 畫虎類犬 (《成語典》: 畫虎類狗) — the existing writing was kept.
 - **Sensitive topics** (笑裏藏刀、草木皆兵、投鼠忌器、懸壺濟世、狼子野心) use a neutral origin; 草木皆兵 does not name the river (sources wrote 肥水 / 淝水).
 - **Existing entries with doubts (reported, NOT edited):** 27 older `origin`s contain their own idiom and 2 older `clue`s do (listed in the test as `IDIOM_OLD_*`, the test fails if the list grows or shrinks); 九牛一毛 meaning lacks 「極大數量中的極小部分」; 出人頭地 meaning leans to 出類拔萃;
-  運籌帷幄 meaning says 「在後方」 which the dictionaries do not; 揚揚自得 meaning 「滿足自誇」 vs 「十分得意」; 引而不發 meaning lacks the 《孟子》 原義 (善於啟發誘導); 依樣畫葫蘆 pinyin ends in a neutral-tone `lu` (dictionaries `lú`).
+  運籌帷幄 meaning says 「在後方」 (**correction made in 階段 8d: this note and the 8b report were wrong — 漢典 does say 「在後方擬定作戰策略」; only 《成語典》 says 「在軍帳中出謀策劃」; the meaning is kept**); 揚揚自得 meaning 「滿足自誇」 vs 「十分得意」; 引而不發 meaning lacks the 《孟子》 原義 (善於啟發誘導); 依樣畫葫蘆 pinyin ends in a neutral-tone `lu` (dictionaries `lú`).
 - **Tests:** `content.test.js` 35 → 42 (711 items, unique ids / idioms incl. 卧-臥 and 裡-裏 variants, base fields, one pinyin syllable per character, 54 + 58 lists, 270 origins, origin / clue never contain the idiom or 3 consecutive characters for the 113 touched items, 書面語 scan); whole suite 6 files, 109 tests.
 
 ## 階段 8c — 歷史故事 +12 (78 → 90): 戰爭故事 22 / 治國與時代發展 22 / 計謀 22 / 品德與勵志 24
@@ -1566,3 +1567,16 @@ Content-only change (`historyContent.jsx`, `tests/content.test.js`, this file; `
 - **Written with a caveat in `sourceNote`:** 玄奘 出發年份 627 (道宣《廣弘明集》, 日韓文獻) vs 629 (中文資料) — the story gives no year; 王昭君 毛延壽 (《西京雜記》, 作者有爭議) and 落雁 are 相傳, only in `sourceNote`; 昭君 「主動請行」 is from the 《後漢書》 only; 杯酒釋兵權 — 罷兵權 is in the 《宋史．太祖本紀》, the banquet dialogue only in 筆記 and its truth is questioned (the story says 「據筆記記載」, and gives the gist, not a quotation); 李冰 公元前256 (also 256–251) and the dispute over whether he did it alone; 孝文帝 = 北魏拓跋宏 (not 漢文帝), 493 以南伐為名 / 494 正式遷都; 燕昭王 黃金台 = 後世傳說; 文天祥 就義 = 農曆至元十九年十二月初九 = 1283-01-09 (so sources say 1282 or 1283); 郭子儀 聯軍人數 (10 萬 / 30 萬) not written; 韓信 兵力 numbers not written (only 「先派一萬人」); 毛遂 前257 vs 《資治通鑑》前258, and some of the dialogue is 史家渲染; 觸龍 / 觸讋 (the HK 教育局 material uses 觸讋).
 - **不肯定 (searched, not found or sources disagree — NOT written in the stories):** 玄奘 高昌 / 麴文泰 and the number of years at 那爛陀寺; 《匈奴傳贊》 「邊城晏閉…」 (how many years of peace after 昭君); 杯酒 original wording in 《涑水記聞》 and the scholar who questioned it (only a popular article); 都江堰 飛沙堰 function, 二郎神 / 石人, 「天府之國」; 孝文帝 任城王元澄's role and 馮太后's role in the story, exact year of 禁胡服; 燕昭王 破齊 year, 「三年」 in the horse story; 文天祥 location of the execution (柴市: one source 城北, one 城南), the date the poem was written, 張弘範 being moved by the poem; 郭子儀 兵數 and who stopped him from going; 韓信 陳餘 / 李左車's roles; 毛遂 「三年」 and the sword-and-steps details; 觸龍 the year and 《史記．趙世家》's spelling of the name.
 - **Tests:** `content.test.js` 42 → 48 (90 stories, unique ids / titles, 22 / 22 / 22 / 24, required fields, 4 distinct options, the 12 ids in order with 3 questions each, 書面語 scan incl. 同, the agreed caveats for 玄奘 / 昭君 / 孝文帝 / 觸龍 / 文天祥, link well-formedness and "only 文天祥 is paired"); whole suite 6 files, 115 tests.
+
+## 階段 8d — 成語核對修正 (Oct 2026): 711 → 696 idioms (本節由 `docs/idiom-audit.md` 的核對報告而來，只做用戶批准的部分)
+Content change (`idiomContent.jsx`, `tests/content.test.js` 711 → 696, new `tests/idiom-compat.test.js`) plus one small logic addition (`Storage.pruneUnknownMistakes`, hooked in `Root.jsx`). `IdiomModule.jsx` untouched.
+- **Deleted (15, all ids removed):** 煥然不同, 度量寬宏, 應付了事, 運籌決策, 正正當當, 重重困難, 由此可見, 意見分歧, 分出高下, 機會難得, 果敢決斷, 靈活變通, 碧水藍天, 大題小作, 自不量力 (自不量力 is a non-standard form of 不自量力, which stays).
+- **克服萬難 → 排除萬難** (id `pai-chu-wan-nan`, a new id; the old id `ke-fu-wan-nan` is retired): 排除萬難 was NOT in the file; 《成語典》 does list 排除萬難 (ID 12487, 修訂本參考資料), so the entry was rewritten (pinyin, meaning, clue).
+- **固步自封 → 故步自封:** 《成語典》 says explicitly that 「故」 must not be written 「固」, so the headword was changed; **id `gu-bu-zi-feng` kept** so learner records stay attached.
+- **發憤圖強:** pinyin → `fā fèn tú qiáng` (id `fen-fa-tu-qiang` kept).
+- **九牛一毛 / 引而不發 meanings extended with the dictionary's original sense** (quotes from search summaries of 《成語典》, not the page): 九牛一毛 「九頭牛身上的一根毫毛，比喻極大數量中的一小部分」 (國語辭典: 「許多牛身上的一根毛。比喻多數中的極少部分」); 引而不發 「拉開弓弦而不射箭。語出《孟子．盡心上》…後用以比喻善於啟發誘導，使其跟從學習，或準備妥當，伺機而行動」. Both were rewritten in 書面語 for P5–S1.
+- **NOT changed — 歸根結蒂:** 《成語典》 lists 「歸根結蒂」 as an 也作 form (not as non-standard) and 漢典 treats it as the main form, so the user's condition (原寫法被明確列為不標準) is not met. 不肯定.
+- **Registered as 不肯定 and left untouched (user decision):** 知恩圖報, 風景如畫, 輝煌燦爛, 苦思冥想, 團結一致, 山明水秀 / 山清水秀, 隨機應變 / 臨機應變, 無畏無懼, 難於上青天, 馬馬虎虎 (pinyin), 依樣畫葫蘆 (neutral-tone `lu`), 出人頭地 (meaning leans to 出類拔萃), 揚揚自得 (meaning), 冰釋前嫌, 標本兼治 and the other word-level items of `docs/idiom-audit.md`; the older doubts listed in 階段 8b (27 origins / 2 clues containing their own idiom, 九牛一毛 and 引而不發 now fixed) stay as they were. **運籌帷幄's meaning is kept; the earlier claim that 詞典 has no 「在後方」 was wrong (see 8b note).**
+- **How learner data is keyed (checked before deleting):** the only per-idiom record is `moduleProgress.idiom.mistakes`, an array of idiom **ids** (strings). `practiceStats` and `stats.sessions` are plain counters; 稱號 / 里程 / 徽章 are computed from counters; the 成語稱號 stage count is `attempts / QUESTION_COUNT`. Nothing is keyed by idiom text. `sanitizeState` keeps any string id ≤ 100 chars (a backup of any age imports without error), `IdiomModule` filters `IDIOM_ITEMS` by `mistakes.includes(id)` (an unknown id simply never matches — no error).
+- **Finding fixed on the way:** a retired id left in `mistakes` was harmless in the module but was still **counted** by Home / BackupSettings (`mistakes.length`), so deleting idioms would have inflated 「錯題 N」 forever. `Storage.pruneUnknownMistakes(state, moduleKey, validIds)` (pure; never throws; touches only that module's `mistakes`; returns the same object when nothing was dropped; does NOT count as 清除錯題) is called by `Root.jsx` (`dropRetiredIdiomMistakes`) when the state is first loaded and after a backup restore. Saving happens through the normal state effect; the stored backup file is never modified.
+- **Tests:** `idiom-compat.test.js` (8): retired ids gone / fixes present; an old save with retired ids loads without error and keeps the strings; the review-list filter ignores them; prune drops only retired ids, mutates nothing, leaves every other module (incl. the same string in `history`) and all counters untouched, is idempotent, accepts junk; v1 and v2 old backups containing retired ids import fine (also round-trip through `buildBackup`). `content.test.js` count 711 → 696. Whole suite: 7 files, 123 tests.
