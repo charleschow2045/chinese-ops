@@ -1538,7 +1538,7 @@ on screen hard-codes the number of devices or sentences). Added by the user's sp
   session per essay theme with new sentences appearing; backup export → import identical, version 2. Content in this batch was written
   for this project (not copied from textbooks or papers); quoted classics are public domain.
 
-## 階段 8b — 成語學習擴充 (Oct 2026): 653 → 711 idioms, 54 idioms gained an `origin`
+## 階段 8b — 成語學習擴充 (Oct 2026): 653 → 711 idioms, 54 idioms gained an `origin` — 已審核並已合併 (reviewed by the user and MERGED into master; the 「不肯定」 list below stays open for a human check of the dictionary pages)
 Content-only change (`idiomContent.jsx`, `tests/content.test.js`, this file; `IdiomModule.jsx` untouched — it already shows 出處及故事 only `{item.origin && …}`).
 - **(A) 補 origin: 54 existing lightweight idioms** (level / pinyin / meaning / clue NOT touched — existing doubts are only listed below): p5 溫故知新, 有始有終;
   p6 九牛一毛, 鶴立雞群, 水落石出, 不翼而飛, 出人頭地, 得心應手, 有備無患, 舉一反三, 不恥下問, 後來居上, 廢寢忘食, 如魚得水, 三思而後行, 依樣畫葫蘆, 更上一層樓, 眾志成城, 不自量力, 自暴自棄,
