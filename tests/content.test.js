@@ -1,5 +1,5 @@
 // Content sanity checks for 修辭手法 (rhetoricContent.jsx), 作文金句 (essayContent.jsx), 文言文選讀 (classicalProseContent.jsx) and
-// 閱讀理解 (readingContent.jsx) and 成語學習 (idiomContent.jsx) — run: node tests/content.test.js
+// 閱讀理解 (readingContent.jsx), 成語學習 (idiomContent.jsx) and 中國歷史故事 (historyContent.jsx) — run: node tests/content.test.js
 // Loads the content files exactly as the browser does (plain JavaScript inside an IIFE, no JSX) into a node:vm sandbox.
 // These checks catch the mistakes that fail silently on screen: a keyPhrase that is not in its sentence (the blank is not drawn),
 // a device name that does not exist (the quiz crashes), duplicated ids / sentences, wrong counts.
@@ -451,6 +451,95 @@ t("idiom 8b: new text is 書面語 (no 什麼 / 裡 / colloquial particles)", ()
       assert.ok(!/什麼|裡|嘅|咗|唔|喺|呢|咩|啲|冇|睇|佢/.test(x[f]), `${s}: ${f} looks colloquial`);
     }
   }
+});
+
+// ---- 歷史故事 (historyContent.jsx), 階段 8c ----
+const HI = loadContent("historyContent.jsx");
+const HISTORY = HI.HISTORY_ITEMS;
+const POEMS_FOR_HISTORY = loadContent("poetryContent.jsx").POETRY_ITEMS;
+const HISTORY_8C_NEW = ["xuan-zang-xi-xing", "wang-zhao-jun-chu-sai", "bei-jiu-shi-bing-quan", "li-bing-du-jiang-yan", "wei-xiao-wen-di-qian-du", "yan-zhao-wang-qian-jin-mai-gu", "zhou-ya-fu-xi-liu-ying", "wen-tian-xiang-kang-yuan", "guo-zi-yi-dan-qi-tui-hui-he", "han-xin-bei-shui-yi-zhan", "mao-sui-zi-jian", "chu-long-shuo-zhao-tai-hou"];
+const HISTORY_CATEGORY_COUNTS = { "戰爭故事": 22, "治國與時代發展": 22, "計謀": 22, "品德與勵志": 24 };
+
+t("history: 90 stories, unique ids, category counts 22 / 22 / 22 / 24", () => {
+  assert.strictEqual(HISTORY.length, 90);
+  assert.strictEqual(new Set(HISTORY.map((x) => x.id)).size, HISTORY.length, "duplicate id");
+  assert.strictEqual(new Set(HISTORY.map((x) => x.title)).size, HISTORY.length, "duplicate title");
+  const n = {};
+  for (const s of HISTORY) n[s.category] = (n[s.category] || 0) + 1;
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(n)), HISTORY_CATEGORY_COUNTS);
+});
+
+t("history: every story has all fields; category / source / level valid; 2-4 characters", () => {
+  for (const s of HISTORY) {
+    for (const f of ["id", "title", "period", "level", "category", "source", "sourceRef", "lesson", "story"]) {
+      assert.ok(typeof s[f] === "string" && s[f].length > 0, `${s.id}: missing ${f}`);
+    }
+    assert.ok(typeof s.sortYear === "number" && Number.isFinite(s.sortYear), `${s.id}: sortYear`);
+    assert.ok(LEVELS.includes(s.level), `${s.id}: level ${s.level}`);
+    assert.ok(Array.from(HI.HISTORY_SOURCES).includes(s.source), `${s.id}: source ${s.source}`);
+    assert.ok(Object.prototype.hasOwnProperty.call(HISTORY_CATEGORY_COUNTS, s.category), `${s.id}: category ${s.category}`);
+    assert.ok(Array.isArray(s.characters) && s.characters.length >= 2 && s.characters.length <= 4, `${s.id}: characters`);
+    if (s.sourceNote !== undefined) assert.ok(typeof s.sourceNote === "string" && s.sourceNote.length > 0, `${s.id}: sourceNote`);
+  }
+});
+
+t("history: every question has a prompt, 4 different non-empty options and an in-range correctIndex", () => {
+  for (const s of HISTORY) {
+    assert.ok(Array.isArray(s.questions) && s.questions.length >= 2, `${s.id}: questions`);
+    for (const q of s.questions) {
+      assert.ok(typeof q.prompt === "string" && q.prompt.length > 0, `${s.id}: prompt`);
+      assert.strictEqual(q.options.length, 4, `${s.id}: options`);
+      assert.strictEqual(new Set(q.options).size, 4, `${s.id}: duplicate options in "${q.prompt}"`);
+      for (const o of q.options) assert.ok(typeof o === "string" && o.length > 0, `${s.id}: empty option`);
+      assert.ok(Number.isInteger(q.correctIndex) && q.correctIndex >= 0 && q.correctIndex < 4, `${s.id}: correctIndex`);
+    }
+  }
+});
+
+t("history 8c: the 12 new stories are present at the end, 3 questions each, in 書面語", () => {
+  assert.deepStrictEqual(Array.from(HISTORY.slice(78).map((x) => x.id)), HISTORY_8C_NEW);
+  const allowedTong = /不同|相同|共同|同樣|同一|同行|同盟|同時|同意|同學|同情|同類|同等/g;
+  for (const id of HISTORY_8C_NEW) {
+    const s = HISTORY.find((x) => x.id === id);
+    assert.strictEqual(s.questions.length, 3, `${id}: 3 questions`);
+    assert.ok(s.story.length >= 200, `${id}: story too short`);
+    const text = JSON.stringify(s);
+    assert.ok(!/什麼|裡|嘅|咗|唔|喺|呢|咩|啲|冇|睇|佢/.test(text), `${id}: colloquial wording`);
+    assert.ok(!text.replace(allowedTong, "").includes("同"), `${id}: 同 used as "and"?`);
+  }
+});
+
+t("history 8c: 玄奘 / 昭君 / 文天祥 follow the agreed caveats", () => {
+  const get = (id) => HISTORY.find((x) => x.id === id);
+  const xz = get("xuan-zang-xi-xing");
+  assert.ok(/627|六二七/.test(xz.sourceNote) && /629|六二九/.test(xz.sourceNote), "玄奘: both 627 and 629 in sourceNote");
+  assert.ok(!/西遊記|孫悟空/.test(xz.story), "玄奘: story must not use 西遊記 plot");
+  const zj = get("wang-zhao-jun-chu-sai");
+  assert.ok(!/毛延壽|落雁/.test(zj.story), "昭君: 毛延壽 / 落雁 only in sourceNote");
+  assert.ok(/毛延壽/.test(zj.sourceNote) && /落雁/.test(zj.sourceNote), "昭君: sourceNote mentions them as 相傳");
+  const xw = get("wei-xiao-wen-di-qian-du");
+  assert.ok(xw.story.includes("北魏") && xw.period === "北魏", "孝文帝: dynasty stated");
+  const cl = get("chu-long-shuo-zhao-tai-hou");
+  assert.ok(/觸讋/.test(cl.sourceNote) && /觸龍/.test(cl.sourceNote), "觸龍: both spellings in sourceNote");
+  const wt = get("wen-tian-xiang-kang-yuan");
+  assert.ok(!/斬|砍頭|鮮血|血/.test(wt.story), "文天祥: no gore");
+});
+
+t("history 8c: only 文天祥 is paired with a poem (過零丁洋); links are well-formed", () => {
+  const poemIds = new Set(Array.from(POEMS_FOR_HISTORY.map((p) => p.id)));
+  const storyIds = new Set(Array.from(HISTORY.map((s) => s.id)));
+  const rel = ["事件背景", "詩中所詠", "同一時代", "同一主題"];
+  for (const l of HI.HISTORY_POEM_STORY_LINKS) {
+    assert.ok(poemIds.has(l.poemId), `link: unknown poem ${l.poemId}`);
+    assert.ok(storyIds.has(l.storyId), `link: unknown story ${l.storyId}`);
+    assert.ok(rel.includes(l.relation), `link: relation ${l.relation}`);
+    assert.ok(typeof l.note === "string" && l.note.length > 0, "link: note");
+  }
+  const forNew = Array.from(HI.HISTORY_POEM_STORY_LINKS).filter((l) => HISTORY_8C_NEW.includes(l.storyId));
+  assert.strictEqual(forNew.length, 1);
+  assert.strictEqual(forNew[0].poemId, "guo-lingdingyang");
+  assert.strictEqual(forNew[0].storyId, "wen-tian-xiang-kang-yuan");
+  for (const id of HI.HISTORY_WAR_POEM_IDS) assert.ok(poemIds.has(id), `war poem ${id} missing`);
 });
 
 t.done();

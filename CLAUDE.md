@@ -1235,7 +1235,7 @@ missing features):
       got an `origin` in 8b — see Module 5 notes and 階段 8b); could still have
       `origin` added back to the other ~440 lighter-schema entries if depth matters
       more than volume later
-- [ ] Expand history story library further beyond the current 36 curated items
+- [ ] Expand history story library further beyond the current 90 curated items (see 歷史故事改版 and 階段 8c)
 - [ ] Expand reading passage library further beyond the current 34 curated items (new 理解/語文 question format — see Module 7 REBUILD and 階段 7 C 批)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
@@ -1392,7 +1392,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **109 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 6 files, **115 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1405,7 +1405,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `buildNotices` wording and "never re-announce an already-earned badge") · `test-mode.test.js` (7 —
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
-  `content.test.js` (42 — rhetoric, essay, 文言文選讀, 閱讀理解 and 成語 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
@@ -1491,7 +1491,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
 - Quiz options length-balanced (correct answer strictly longest in 1/18 new questions, never by 2+ characters).
 
 ### 歷史故事改版 — 最終結構 (7 次總結)
-- **78 stories**: 戰爭故事 19 / 治國與時代發展 16 / 計謀 19 / 品德與勵志 24, plus the 戰爭詩詞 tab (10 poems, no stories of
+- **78 stories** (階段 8c later added 12 → 90: 戰爭故事 22 / 治國與時代發展 22 / 計謀 22 / 品德與勵志 24): 戰爭故事 19 / 治國與時代發展 16 / 計謀 19 / 品德與勵志 24, plus the 戰爭詩詞 tab (10 poems, no stories of
   its own; ids in `HISTORY_WAR_POEM_IDS`, text stays in poetryContent.jsx, now 74 poems).
 - Category tabs replace the old level filter; stories sort by `sortYear` (BCE negative, ties keep array order). `level`
   stays in the data. Story fields: `id, title, period, level, category, sortYear, source, sourceRef, [sourceNote],
@@ -1557,3 +1557,12 @@ Content-only change (`idiomContent.jsx`, `tests/content.test.js`, this file; `Id
 - **Existing entries with doubts (reported, NOT edited):** 27 older `origin`s contain their own idiom and 2 older `clue`s do (listed in the test as `IDIOM_OLD_*`, the test fails if the list grows or shrinks); 九牛一毛 meaning lacks 「極大數量中的極小部分」; 出人頭地 meaning leans to 出類拔萃;
   運籌帷幄 meaning says 「在後方」 which the dictionaries do not; 揚揚自得 meaning 「滿足自誇」 vs 「十分得意」; 引而不發 meaning lacks the 《孟子》 原義 (善於啟發誘導); 依樣畫葫蘆 pinyin ends in a neutral-tone `lu` (dictionaries `lú`).
 - **Tests:** `content.test.js` 35 → 42 (711 items, unique ids / idioms incl. 卧-臥 and 裡-裏 variants, base fields, one pinyin syllable per character, 54 + 58 lists, 270 origins, origin / clue never contain the idiom or 3 consecutive characters for the 113 touched items, 書面語 scan); whole suite 6 files, 109 tests.
+
+## 階段 8c — 歷史故事 +12 (78 → 90): 戰爭故事 22 / 治國與時代發展 22 / 計謀 22 / 品德與勵志 24
+Content-only change (`historyContent.jsx`, `tests/content.test.js`, this file; `HistoryModule.jsx` untouched — tabs, counts and 相關詩詞 are all derived from the data). The 12 were approved by the user from my candidate list (no backups used). History questions have **no `skill` tag** (that field belongs to the 閱讀理解 module); format is the existing `{ prompt, options, correctIndex }`, 3 questions per new story, `correctIndex` 0 (FixedQuizFlow shuffles).
+- **治國與時代發展 +6:** 玄奘西行取經 (p6), 王昭君出塞 (p6), 杯酒釋兵權 (s1), 李冰修都江堰 (p6), 魏孝文帝遷都洛陽 (s1, 北魏), 燕昭王千金買骨 (p6). **戰爭故事 +3:** 周亞夫細柳營 (p6), 文天祥抗元與〈過零丁洋〉 (s1), 郭子儀單騎退回紇 (s1). **計謀 +3:** 韓信背水一戰 (s1), 毛遂自薦 (p6), 觸龍說趙太后 (s1). All are `史書記載`, with a `sourceNote` wherever a detail is disputed or only in a later source.
+- **Pairing:** only 文天祥 ↔ 〈過零丁洋〉 (`relation: 事件背景`, the one war poem that was still unpaired); `HISTORY_POEM_STORY_LINKS` is now 13. The other 11 stories are deliberately unpaired (a test enforces "exactly one link for the new stories").
+- **How facts were checked:** `WebSearch` only (the sandbox cannot open ctext / wikisource / zdic pages), ≥ 2 independent results per story; the original 《史記》《漢書》《宋史》《舊唐書》《資治通鑑》《魏書》 texts were mostly NOT retrieved, so several stories rest on dictionary pages, school / museum teaching material and encyclopaedia summaries. Details that only one popular source gave, or that sources disagreed on, were left out of the story and are listed here.
+- **Written with a caveat in `sourceNote`:** 玄奘 出發年份 627 (道宣《廣弘明集》, 日韓文獻) vs 629 (中文資料) — the story gives no year; 王昭君 毛延壽 (《西京雜記》, 作者有爭議) and 落雁 are 相傳, only in `sourceNote`; 昭君 「主動請行」 is from the 《後漢書》 only; 杯酒釋兵權 — 罷兵權 is in the 《宋史．太祖本紀》, the banquet dialogue only in 筆記 and its truth is questioned (the story says 「據筆記記載」, and gives the gist, not a quotation); 李冰 公元前256 (also 256–251) and the dispute over whether he did it alone; 孝文帝 = 北魏拓跋宏 (not 漢文帝), 493 以南伐為名 / 494 正式遷都; 燕昭王 黃金台 = 後世傳說; 文天祥 就義 = 農曆至元十九年十二月初九 = 1283-01-09 (so sources say 1282 or 1283); 郭子儀 聯軍人數 (10 萬 / 30 萬) not written; 韓信 兵力 numbers not written (only 「先派一萬人」); 毛遂 前257 vs 《資治通鑑》前258, and some of the dialogue is 史家渲染; 觸龍 / 觸讋 (the HK 教育局 material uses 觸讋).
+- **不肯定 (searched, not found or sources disagree — NOT written in the stories):** 玄奘 高昌 / 麴文泰 and the number of years at 那爛陀寺; 《匈奴傳贊》 「邊城晏閉…」 (how many years of peace after 昭君); 杯酒 original wording in 《涑水記聞》 and the scholar who questioned it (only a popular article); 都江堰 飛沙堰 function, 二郎神 / 石人, 「天府之國」; 孝文帝 任城王元澄's role and 馮太后's role in the story, exact year of 禁胡服; 燕昭王 破齊 year, 「三年」 in the horse story; 文天祥 location of the execution (柴市: one source 城北, one 城南), the date the poem was written, 張弘範 being moved by the poem; 郭子儀 兵數 and who stopped him from going; 韓信 陳餘 / 李左車's roles; 毛遂 「三年」 and the sword-and-steps details; 觸龍 the year and 《史記．趙世家》's spelling of the name.
+- **Tests:** `content.test.js` 42 → 48 (90 stories, unique ids / titles, 22 / 22 / 22 / 24, required fields, 4 distinct options, the 12 ids in order with 3 questions each, 書面語 scan incl. 同, the agreed caveats for 玄奘 / 昭君 / 孝文帝 / 觸龍 / 文天祥, link well-formedness and "only 文天祥 is paired"); whole suite 6 files, 115 tests.
