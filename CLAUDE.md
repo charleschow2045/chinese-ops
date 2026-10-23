@@ -558,7 +558,7 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   file at each level, same as Modules 1–2.
 
 ## Module 5 details — 成語學習 (built, expanded four times after user feedback)
-- Content: `src/content/idiomContent.jsx` — **711 idioms total** (653 + 58 added by 階段 8b; **271 carry `origin`**: 158 + 55
+- Content: `src/content/idiomContent.jsx` — **711 idioms total** (653 + 58 added by 階段 8b; **270 carry `origin`**: 158 + 54
   補上 + 58 new — see "階段 8b" at the end of this file; the tier descriptions below describe the 653 before 8b). Three tiers
   of depth, all sharing the same base fields (`idiom`, `pinyin`, `level`,
   `meaning`, `clue`):
@@ -1231,7 +1231,7 @@ missing features):
 - [ ] Expand essay golden sentence library further beyond the current 150 curated items
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
 - [ ] Idiom library now at 711 (39 fully-verified + 495 lighter-schema + 119
-      curriculum-gap batch + 58 from 階段 8b; 55 of the lighter-schema entries
+      curriculum-gap batch + 58 from 階段 8b; 54 of the lighter-schema entries
       got an `origin` in 8b — see Module 5 notes and 階段 8b); could still have
       `origin` added back to the other ~440 lighter-schema entries if depth matters
       more than volume later
@@ -1538,21 +1538,22 @@ on screen hard-codes the number of devices or sentences). Added by the user's sp
   session per essay theme with new sentences appearing; backup export → import identical, version 2. Content in this batch was written
   for this project (not copied from textbooks or papers); quoted classics are public domain.
 
-## 階段 8b — 成語學習擴充 (Oct 2026): 653 → 711 idioms, 55 idioms gained an `origin`
+## 階段 8b — 成語學習擴充 (Oct 2026): 653 → 711 idioms, 54 idioms gained an `origin`
 Content-only change (`idiomContent.jsx`, `tests/content.test.js`, this file; `IdiomModule.jsx` untouched — it already shows 出處及故事 only `{item.origin && …}`).
-- **(A) 補 origin: 55 existing lightweight idioms** (level / pinyin / meaning / clue NOT touched — existing doubts are only listed below): p5 溫故知新, 有始有終;
+- **(A) 補 origin: 54 existing lightweight idioms** (level / pinyin / meaning / clue NOT touched — existing doubts are only listed below): p5 溫故知新, 有始有終;
   p6 九牛一毛, 鶴立雞群, 水落石出, 不翼而飛, 出人頭地, 得心應手, 有備無患, 舉一反三, 不恥下問, 後來居上, 廢寢忘食, 如魚得水, 三思而後行, 依樣畫葫蘆, 更上一層樓, 眾志成城, 不自量力, 自暴自棄,
-  飲水思源, 取長補短, 精益求精, 大同小異, 虎頭蛇尾, 知己知彼; s1 打草驚蛇, 畫虎類犬, 羊質虎皮, 狼子野心, 遊刃有餘, 笑裏藏刀, 一諾千金, 忠言逆耳, 焦頭爛額, 如坐針氈, 生吞活剝, 世外桃源, 高山流水, 草木皆兵,
+  飲水思源, 取長補短, 精益求精, 大同小異, 知己知彼; s1 打草驚蛇, 畫虎類犬, 羊質虎皮, 狼子野心, 遊刃有餘, 笑裏藏刀, 一諾千金, 忠言逆耳, 焦頭爛額, 如坐針氈, 生吞活剝, 世外桃源, 高山流水, 草木皆兵,
   運籌帷幄, 妄自菲薄, 披荊斬棘, 未雨綢繆, 居安思危, 功虧一簣, 茅塞頓開, 青出於藍, 家徒四壁, 孤掌難鳴, 分道揚鑣, 食言而肥, 從善如流, 以管窺天, 引而不發. (The full list is `IDIOM_8B_ORIGIN_ADDED` in the test file.)
+- **Review round 1 (user-requested rewrites, each re-checked by WebSearch):** 驚弓之鳥 (speaker = 趙國使者魏加 to 楚國春申君, against 臨武君 as 主將; 《戰國策．楚策四》 — 趙使者 and 「曾敗給秦國」 rest on an online article + 國語辭典 summary, not the original text), 羊質虎皮 (《法言．吾子》 asks whether someone calling himself 孔子 is 孔子; the reply is paraphrased, not quoted — the verbatim 「其文是也，其質非也」 was not shown in the search results), 南轅北轍 (季梁, 太行山, 馬好 / 盤纏多 / 車夫能幹; 《戰國策．魏策四》), 返璞歸真 (洪仁玕 sentence removed; the quotation 「歸真反璞…」 is from 《戰國策．齊策四》 per 國語辭典, and the idiom itself appears in 《成語典》 only among 題辭), 高山流水 (「春秋時代」 — HK 教材 describes 伯牙 as a 春秋時代 琴師; 「楚國」 dropped, no reliable basis), 虎頭蛇尾 (origin removed, see above).
 - **(B) 58 new idioms**, all six fields (`IDIOM_8B_NEW` in the test file), level as suggested: 15 p5 / 23 p6 / 20 s1. Ids = toneless pinyin hyphenated (unique; existing ids end in digits where they clash).
 - **How the facts were obtained:** the sandbox cannot open dict.idioms.moe.edu.tw or zdic.net (proxy 403), so every idiom was checked through `WebSearch` summaries of 《成語典》/漢典 by 12 delegated agents; each draft
   was then read and checked by script (no idiom / no 3 consecutive characters in `origin` and `clue`, pinyin = one syllable per character, no duplicate vs the existing list incl. variant characters, 書面語 scan).
   **Rule applied:** where 《成語典》 and 漢典 disagreed on the 典源 (or nothing explicit was found) the idiom was NOT added / NOT given an origin and is listed below. Pinyin summaries were rarely shown, so most new pinyin is the standard reading, not a quoted dictionary line.
 - **Not added / no origin (needs a human check of the dictionary page):** 典源 conflict — 一舉兩得 (《戰國策．秦策二》 vs 《晉書．束皙傳》), 如虎添翼 (《將苑》 vs 《心書》), 雪中送炭 (《四字經》 vs 范成大詩), 水滴石穿 (《尸子》 vs 《漢書》), 口蜜腹劍 (《開元天寶遺事》 vs 《資治通鑑》),
   言過其實, 指鹿為馬 (《新語．辨惑》 vs 《史記》), 手不釋卷, 管中窺豹 (《晉書》 vs 《世說新語》), 隔岸觀火, 一勞永逸, 因小失大, 夜郎自大 (《史記》 vs 《漢書》), 胸有成竹, 背水一戰, 高枕無憂, 路不拾遺, 點石成金, 鐵面無私; 查不到 — 醍醐灌頂;
-  寫法 — 鐵杵成針 (《成語典》 only has 鐵杵磨成針 / 磨杵成針), 洗耳恭聽 (only a late 書證, no story), 揚揚自得 (《成語典》 headword is 洋洋自得; only one sentence of story), 前功盡棄 (no story text found).
+  典源不確定 — 虎頭蛇尾 (origin removed after review: 《成語典》 itself says only 「語或出」 元．康進之《李逵負荊》第二折, and 漢典 reads that line as 「裝着虎頭、拖着蛇尾」, i.e. a different meaning from today's idiom — an `origin` cannot be written as a certain statement; the entry stays as a lightweight one); 寫法 — 鐵杵成針 (《成語典》 only has 鐵杵磨成針 / 磨杵成針), 洗耳恭聽 (only a late 書證, no story), 揚揚自得 (《成語典》 headword is 洋洋自得; only one sentence of story), 前功盡棄 (no story text found).
 - **Kept with a note:** 囊螢映雪 (only 漢典 has this order; 《成語典》 has 映雪囊螢 / 聚螢映雪), 一葉障目 and 妙筆生花 (only 漢典 has these 4-character headwords; 《成語典》 has 一葉蔽目，不見泰山 / 生花妙筆), and in (A) 三思而後行 (《成語典》: 三思而行) and 畫虎類犬 (《成語典》: 畫虎類狗) — the existing writing was kept.
 - **Sensitive topics** (笑裏藏刀、草木皆兵、投鼠忌器、懸壺濟世、狼子野心) use a neutral origin; 草木皆兵 does not name the river (sources wrote 肥水 / 淝水).
 - **Existing entries with doubts (reported, NOT edited):** 27 older `origin`s contain their own idiom and 2 older `clue`s do (listed in the test as `IDIOM_OLD_*`, the test fails if the list grows or shrinks); 九牛一毛 meaning lacks 「極大數量中的極小部分」; 出人頭地 meaning leans to 出類拔萃;
   運籌帷幄 meaning says 「在後方」 which the dictionaries do not; 揚揚自得 meaning 「滿足自誇」 vs 「十分得意」; 引而不發 meaning lacks the 《孟子》 原義 (善於啟發誘導); 依樣畫葫蘆 pinyin ends in a neutral-tone `lu` (dictionaries `lú`).
-- **Tests:** `content.test.js` 35 → 42 (711 items, unique ids / idioms incl. 卧-臥 and 裡-裏 variants, base fields, one pinyin syllable per character, 55 + 58 lists, 271 origins, origin / clue never contain the idiom or 3 consecutive characters for the 113 touched items, 書面語 scan); whole suite 6 files, 109 tests.
+- **Tests:** `content.test.js` 35 → 42 (711 items, unique ids / idioms incl. 卧-臥 and 裡-裏 variants, base fields, one pinyin syllable per character, 54 + 58 lists, 270 origins, origin / clue never contain the idiom or 3 consecutive characters for the 113 touched items, 書面語 scan); whole suite 6 files, 109 tests.

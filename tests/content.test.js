@@ -375,7 +375,7 @@ t("reading C 批: passage length in 漢字 — 實用文 300–500, 小五 450�
 const ID = loadContent("idiomContent.jsx");
 const IDIOMS = ID.IDIOM_ITEMS;
 // 階段 8b (A): existing lightweight idioms that were given an `origin` (pinyin / meaning / clue / level untouched).
-const IDIOM_8B_ORIGIN_ADDED = ["溫故知新", "有始有終", "九牛一毛", "鶴立雞群", "水落石出", "不翼而飛", "出人頭地", "得心應手", "有備無患", "舉一反三", "不恥下問", "後來居上", "廢寢忘食", "如魚得水", "三思而後行", "依樣畫葫蘆", "更上一層樓", "眾志成城", "不自量力", "自暴自棄", "飲水思源", "取長補短", "精益求精", "大同小異", "虎頭蛇尾", "知己知彼", "打草驚蛇", "畫虎類犬", "羊質虎皮", "狼子野心", "遊刃有餘", "笑裏藏刀", "一諾千金", "忠言逆耳", "焦頭爛額", "如坐針氈", "生吞活剝", "世外桃源", "高山流水", "草木皆兵", "運籌帷幄", "妄自菲薄", "披荊斬棘", "未雨綢繆", "居安思危", "功虧一簣", "茅塞頓開", "青出於藍", "家徒四壁", "孤掌難鳴", "分道揚鑣", "食言而肥", "從善如流", "以管窺天", "引而不發"];
+const IDIOM_8B_ORIGIN_ADDED = ["溫故知新", "有始有終", "九牛一毛", "鶴立雞群", "水落石出", "不翼而飛", "出人頭地", "得心應手", "有備無患", "舉一反三", "不恥下問", "後來居上", "廢寢忘食", "如魚得水", "三思而後行", "依樣畫葫蘆", "更上一層樓", "眾志成城", "不自量力", "自暴自棄", "飲水思源", "取長補短", "精益求精", "大同小異", "知己知彼", "打草驚蛇", "畫虎類犬", "羊質虎皮", "狼子野心", "遊刃有餘", "笑裏藏刀", "一諾千金", "忠言逆耳", "焦頭爛額", "如坐針氈", "生吞活剝", "世外桃源", "高山流水", "草木皆兵", "運籌帷幄", "妄自菲薄", "披荊斬棘", "未雨綢繆", "居安思危", "功虧一簣", "茅塞頓開", "青出於藍", "家徒四壁", "孤掌難鳴", "分道揚鑣", "食言而肥", "從善如流", "以管窺天", "引而不發"];
 // 階段 8b (B): idioms added, every field present.
 const IDIOM_8B_NEW = ["揠苗助長", "鑿壁偷光", "自相矛盾", "孟母三遷", "熟能生巧", "知足常樂", "事半功倍", "見賢思齊", "禮尚往來", "賓至如歸", "囊螢映雪", "驚弓之鳥", "螳螂捕蟬", "老馬識途", "閉門造車", "三顧茅廬", "畫餅充飢", "抱薪救火", "南轅北轍", "程門立雪", "洛陽紙貴", "一字千金", "聞雞起舞", "韋編三絕", "退避三舍", "約法三章", "管鮑之交", "桃園結義", "門庭若市", "三人成虎", "曲高和寡", "破鏡重圓", "一葉障目", "按圖索驥", "防微杜漸", "緣木求魚", "本末倒置", "謙謙君子", "黃粱一夢", "才高八斗", "江郎才盡", "入木三分", "大智若愚", "當頭棒喝", "一飯千金", "懸壺濟世", "兩袖清風", "安步當車", "溫柔敦厚", "返璞歸真", "妙筆生花", "栩栩如生", "口若懸河", "簞食瓢飲", "擇善而從", "乘風破浪", "傾蓋如故", "投鼠忌器"];
 // Older entries whose `origin` / `clue` names the idiom itself — left as they were (the user decides), so they are listed here on purpose.
@@ -404,10 +404,10 @@ t("idiom: base fields present, level valid, no comma, pinyin has one syllable pe
   }
 });
 
-t("idiom 8b: 55 idioms gained an origin, 58 were added; 271 idioms now have an origin", () => {
-  assert.strictEqual(IDIOM_8B_ORIGIN_ADDED.length, 55);
+t("idiom 8b: 54 idioms gained an origin, 58 were added; 270 idioms now have an origin", () => {
+  assert.strictEqual(IDIOM_8B_ORIGIN_ADDED.length, 54);
   assert.strictEqual(IDIOM_8B_NEW.length, 58);
-  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 55 + 58);
+  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 54 + 58);
   for (const s of IDIOM_8B_ORIGIN_ADDED) {
     const x = idiomByText(s);
     assert.ok(x && x.origin && x.origin.length >= 20, `${s}: origin missing or too short`);
