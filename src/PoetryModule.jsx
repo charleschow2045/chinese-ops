@@ -1,7 +1,8 @@
 // Module 1: 詩詞學習 (Classical Poetry + 文言文)
 // Three views: list (browse, filterable by level) -> detail (full text,
-// pinyin toggle, explanation, background) -> practice (mixed quiz: fill-in
-// -the-blank line picking, author MC, meaning MC — all tap-to-select, no typing).
+// pinyin toggle, explanation, background) -> practice (a 15-question mixed quiz of
+// seven kinds — fill-in-the-blank line, author, meaning, next line, line -> title,
+// term meaning, dynasty — built by poetryQuiz.jsx; all tap-to-select, no typing).
 window.App = window.App || {};
 
 (function () {
@@ -10,7 +11,7 @@ window.App = window.App || {};
   const ACCENT = MODULE_ACCENTS.poetry;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { POETRY_ITEMS, POETRY_LEVEL_LABEL } = window.App.Content;
-  const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
+  const PoetryQuiz = window.App.PoetryQuiz;
   const { AudioButtons } = window.App;
 
   // 體裁 pill tones (方案 B) — grouped by the app's existing 4-family
@@ -32,58 +33,99 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  // 節錄 poems use a "……" line to mark omitted text. Such a line is not a real
-  // line of the poem, so it must never be the blanked answer nor a distractor.
-  const isRealLine = (l) => /[一-鿿]/.test(l);
-
-  function buildFillBlankQuestion(pool, item) {
-    const candidates = item.lines.map((l, i) => i).filter((i) => isRealLine(item.lines[i]));
-    const lineIdx = candidates[Math.floor(Math.random() * candidates.length)];
-    const correct = item.lines[lineIdx];
-    const otherLines = pool
-      .filter((it) => it.id !== item.id)
-      .flatMap((it) => it.lines)
-      .filter((l, i, arr) => isRealLine(l) && l !== correct && arr.indexOf(l) === i);
-    const distractors = shuffle(otherLines).slice(0, 3);
-    const options = shuffle([correct, ...distractors]);
-    const prompt = (
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
-          《{item.title}》 · {item.author} — 哪一句才是正確的？
-        </p>
-        <div className="text-xl leading-relaxed font-serif" style={{ fontWeight: 700 }}>
-          {item.lines.map((l, i) => (
-            <p key={i} style={i === lineIdx ? { color: A2.accD } : undefined}>
-              {i === lineIdx ? "＿＿＿＿＿＿＿" : l}
+  // The questions themselves are built by poetryQuiz.jsx (plain objects, no screen code, 15 questions of seven kinds); this turns one into
+  // what QuestionBlock draws: a small heading (work and author), the stem (blanked poem / a line / a line with the term) and the question.
+  const headingStyle = { fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" };
+  const lineStyle = { fontWeight: 800 };
+  function toQuestion(q) {
+    let prompt;
+    switch (q.kind) {
+      case "fill":
+        prompt = (
+          <div>
+            <p style={headingStyle}>
+              《{q.title}》 · {q.author} — 哪一句才是正確的？
             </p>
-          ))}
-        </div>
-      </div>
-    );
-    return { itemId: item.id, type: "fill", prompt, options, correctIndex: options.indexOf(correct) };
-  }
-
-  function buildAuthorQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.author);
-    const options = shuffle([item.author, ...distractors]);
-    const prompt = `《${item.title}》的作者是誰？`;
-    return { itemId: item.id, type: "author", prompt, options, correctIndex: options.indexOf(item.author) };
-  }
-
-  function buildMeaningQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.meaningQuiz);
-    const options = shuffle([item.meaningQuiz, ...distractors]);
-    const prompt = (
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
-          《{item.title}》 · {item.author}
-        </p>
-        <p className="mb-2" style={{ fontWeight: 800 }}>
-          <span className="font-serif">「{item.lines.find(isRealLine)}」</span>……這句的意思最貼近以下哪一項？
-        </p>
-      </div>
-    );
-    return { itemId: item.id, type: "meaning", prompt, options, correctIndex: options.indexOf(item.meaningQuiz) };
+            <div className="text-xl leading-relaxed font-serif" style={{ fontWeight: 700 }}>
+              {q.lines.map((l, i) => (
+                <p key={i} style={i === q.blankIndex ? { color: A2.accD } : undefined}>
+                  {i === q.blankIndex ? "＿＿＿＿＿＿＿" : l}
+                </p>
+              ))}
+            </div>
+          </div>
+        );
+        break;
+      case "meaning":
+        prompt = (
+          <div>
+            <p style={headingStyle}>
+              《{q.title}》 · {q.author}
+            </p>
+            <p className="mb-2" style={lineStyle}>
+              <span className="font-serif">「{q.stem}」</span>
+              {q.ask}
+            </p>
+          </div>
+        );
+        break;
+      case "next-line":
+        prompt = (
+          <div>
+            <p style={headingStyle}>
+              接下句 — 《{q.title}》 · {q.author}
+            </p>
+            <p className="font-serif text-2xl leading-relaxed mb-2" style={{ fontWeight: 800 }}>
+              「{q.stem}」
+            </p>
+            <p className="text-xl" style={lineStyle}>
+              {q.ask}
+            </p>
+          </div>
+        );
+        break;
+      case "line-title":
+        prompt = (
+          <div>
+            <p style={headingStyle}>詩句配詩題</p>
+            <p className="font-serif text-2xl leading-relaxed mb-2" style={{ fontWeight: 800 }}>
+              「{q.stem}」
+            </p>
+            <p className="text-xl" style={lineStyle}>
+              {q.ask}
+            </p>
+          </div>
+        );
+        break;
+      case "annotation":
+        prompt = (
+          <div>
+            <p style={headingStyle}>
+              字詞註釋 — 《{q.title}》 · {q.author}
+            </p>
+            {q.stem && (
+              <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>
+                「{q.stem}」
+              </p>
+            )}
+            <p className="text-xl" style={lineStyle}>
+              {q.ask}
+            </p>
+          </div>
+        );
+        break;
+      default:
+        // author, dynasty: one plain question line
+        prompt = (
+          <div>
+            {q.kind === "dynasty" && <p style={headingStyle}>朝代</p>}
+            <p className="text-xl" style={lineStyle}>
+              {q.ask}
+            </p>
+          </div>
+        );
+    }
+    return { itemId: q.itemId, prompt, options: q.options, correctIndex: q.correctIndex };
   }
 
   // `chooseFrom` restricts which poems are actually asked about (used by
@@ -91,14 +133,11 @@ window.App = window.App || {};
   // doesn't run short of plausible wrong options — same pattern as
   // RhetoricModule/PunctuationModule.
   function buildQuestions(pool, count, chooseFrom) {
-    const builders = [buildFillBlankQuestion, buildAuthorQuestion, buildMeaningQuestion];
-    const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item));
+    return PoetryQuiz.buildQuestions(pool, count, chooseFrom).map(toQuestion);
   }
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
-    const QUESTION_COUNT = 8;
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
+    const [questions] = useState(() => buildQuestions(pool, PoetryQuiz.QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);

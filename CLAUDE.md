@@ -340,12 +340,13 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
     aloud via `item.lines.join("")` — added after user request, reusing the
     shared component built for Module 5, see the shared-primitives note
     above), "開始練習" button
-  - **practice** — an 8-question mixed quiz auto-generated from whichever
+  - **practice** — a **15-question** mixed quiz (階段 9b-2: seven kinds, built by `src/poetryQuiz.jsx` — see "階段 9b" at the end of this
+    file; it was 8 questions of three kinds) auto-generated from whichever
     pool is in scope (the current level filter, or all items if the filter
     has fewer than 4 items): fill-in-the-blank (one line of a poem is hidden,
     4 whole-line options — the correct line plus 3 sampled from other poems —
     all tap-to-select, no typing), author MC ("《題目》的作者是誰？"), and
-    meaning MC (shows the first line, asks which paraphrase matches). Ends
+    meaning MC (shows the first line, asks which paraphrase matches), plus 接下句, 詩句配詩題, 字詞註釋 and 朝代. Ends
     on a score screen; results are folded into
     `moduleProgress.poetry.practiceStats` in localStorage.
 - Practice questions are **generated at runtime** from the content list
@@ -1391,7 +1392,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 9 files, **153 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 10 files, **168 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1406,6 +1407,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
+  `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
   `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
@@ -1624,3 +1626,26 @@ returns plain objects with `itemId`); the module files only draw them. `chooseFr
   pool + 800 per level + 練習錯題 sets: every question has exactly one defensible answer (0 violations)**; story fallback when the mistaken idioms have no usable origin; origin leak rule; 是非題 true share within ±0.05
   over 5000 sessions; `STAGE_SIZE` compatibility; 書面語 scan. Mutation-checked (each made the file fail, then reverted): drop the whole synonym rule / only the groups / only the similarity guard /
   the same-story rule, all-true 是非題, fixed kind order, fill-char without the "does not complete another idiom" rule, story without the leak rule, story kind without the eligibility repair.
+
+### 9b-2 詩詞 (`poetryQuiz.jsx`, `PoetryModule.jsx`)
+- **A session is 15 questions over 7 kinds** (was 8 questions of 3 kinds): the existing `fill` 填空 · `author` 作者 · `meaning` 句意, plus **`next-line` 接下句** (a line is shown with 《title》·author; pick the line that directly
+  follows) · **`line-title` 詩句配詩題** (a line → 《title》) · **`annotation` 字詞註釋** (「在《X》中，「term」是什麼意思？」, the line containing the term is shown) · **`dynasty` 朝代** (「《X》的作者是「Y」。這位作者生活在哪一個朝代？」 — 「這位作者」, not 他/她).
+  **Kind rule (my design, please review):** `planKinds` deals the 7 kinds in blocks of seven (each block a shuffle of all seven, never starting with the kind the previous block ended on) → 15 = two full blocks + the first
+  slot of a third, so **every kind appears at least twice, exactly one kind (random) three times, never the same kind twice in a row**. An item a kind cannot be built from is swapped to another slot or its slot changes kind.
+- **Rules per kind** (all in the file header comment): "……" (the 節錄 omission marker) is never a stem / answer / option (only lines with a Chinese character count). *next-line:* stem and answer are neighbouring real lines of
+  the same work; a stem line occurring twice in its work is skipped; a wrong line is never a line of the same work; wrong lines come from other works (the asked pool first, then the whole library), preferring the same kind of work
+  (poem / prose), a similar length and **the same closing punctuation** (otherwise the 「，」/「。」 pattern gives the answer away). *line-title:* only a line that occurs **exactly once in the whole library** (`lineCount`) and does not
+  contain a part of its own title; wrong titles never share the answer's base title (憫農（其一）／（其二）) and are not named in the line. The real library currently has **no** line occurring in two poems — the rule is tested with a
+  synthetic library (a copy of 靜夜思). *annotation:* wrong meanings come from other terms, share no two-character word with the right meaning (very short meanings: no shared character), mention neither term, prefer the same kind of
+  explanation (`meaningKind`: place / state / thing / figure / refer / variant / word) and a similar length; **meanings are shown without a closing 「。」** (only some entries have one — it would give the answer away). *dynasty:* wrong
+  dynasties are other dynasties of the library (**6: 唐 45 / 宋 22 / 晉 3 / 清 2 / 春秋 1 / 戰國 1 poems**); 春秋 and 戰國 are never offered against each other; `DYNASTY_BORDERS` = 陶淵明 → 宋 (his life ran into 劉宋) is never a
+  wrong option; with fewer than four dynasties the options are padded from `COMMON_DYNASTIES` (漢 三國 隋 唐 宋 元 明 清) — not used with the real library, tested with a 唐/宋-only library.
+- **Scope unchanged:** `PoetryModule` still passes the level-filtered list or, from the 戰爭詩詞 tab, the 10-poem `scopeItems` as `pool`; 練習錯題 passes `chooseFrom`. `buildQuestions(pool, count, chooseFrom, allItems)` takes the whole library as an
+  optional fourth argument (default `POETRY_ITEMS`) so tests can inject synthetic libraries.
+- **待確認 (poetry):** (1) 朝代 tags are the file's `dynasty` field as is (陶淵明 晉, 孔子及其弟子 春秋, 孟子 戰國, 文天祥 宋); only 陶淵明 / 春秋–戰國 were judged ambiguous. (2) 字詞註釋 asks the entry's meaning *in that poem*; a few
+  single-character terms (斯, 爾, 渠, 元) are context-specific, the shown line gives the context. (3) The existing `meaning` question (`meaningQuiz` sentences) was not changed — its wrong options can still be near-synonyms of
+  the right sentence in principle (not checked here).
+- **Tests:** `tests/poetry-quiz.test.js` (15): 15 questions, kinds ≥2 each / one 3 times, never repeated in a row (full, level, scope pools); random order; **5000 full-library sessions + 1000 per level + 1500 ten-poem scope sessions + 800 練習錯題
+  sets, 0 violations of "exactly one defensible answer"**; omission-line poems; synthetic libraries (duplicate line, no annotations, unusable stems, < 4 dynasties); 書面語 scan (no 同). Mutation-checked (each made the file fail,
+  then reverted): drop the duplicate-line rule, drop the same-work-lines rule, allow "……" options, fixed kind order, drop the annotation word-overlap rule, drop the 春秋/戰國 rule, drop the 陶淵明 border, drop the same-base-title rule,
+  annotation kind without its eligibility repair, keep the closing 「。」 in annotation options.
