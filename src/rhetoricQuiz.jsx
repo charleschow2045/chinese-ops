@@ -138,9 +138,11 @@ window.App = window.App || {};
       }
     });
 
-    // About half of the 是非題 are true: a shuffled alternating list, so 3 questions give 2 + 1.
+    // About half of the 是非題 are true: a shuffled alternating list, so 3 questions give 2 + 1 (either way round).
     const tfCount = kinds.filter((k) => k === "true-false").length;
-    const tfFlags = shuffle(Array.from({ length: tfCount }, (_, i) => i % 2 === 0));
+    // (which side has the extra one is decided at random per session, so over many sessions it is half and half)
+    const flip = Math.random() < 0.5;
+    const tfFlags = shuffle(Array.from({ length: tfCount }, (_, i) => (i % 2 === 0) !== flip));
     let tf = 0;
     return chosen.map((item, i) => {
       switch (kinds[i]) {

@@ -214,7 +214,7 @@ t("true-false: stem never has alsoDevices; the claim is right or a confusable de
     assert.ok(trues === 1 || trues === 2, `a session had ${trues} true statements out of 3`);
     n += 3; trueCount += trues;
   }
-  assert.ok(Math.abs(trueCount / n - 0.5) < 0.2, `true share ${trueCount / n}`);
+  assert.ok(Math.abs(trueCount / n - 0.5) < 0.05, `true share ${trueCount / n} — 是非題 should be about half true, half false`);
 });
 
 t("effect-device: the effect belongs to the right option; no two options have clashing effects", () => {
