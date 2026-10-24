@@ -652,13 +652,14 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
     tiles, plus 🔊 普通話 / 🔊 粵語 pronunciation buttons — see below),
     meaning, 難字讀音 (annotations, if present), origin story (if present),
     "開始成語猜猜" button
-  - **practice** — an 8-question "成語猜猜"-style mixed game, all
+  - **practice** — a **15-question** "成語猜猜"-style mixed game (階段 9b-1: five kinds, 3 of each, built by `src/idiomQuiz.jsx` — see "階段 9b"
+    at the end of this file; it was 8 questions of three kinds), all
     tap-to-select (idioms are one of the modules where free typing is
     *not* appropriate, per the design brief): guess-the-idiom-from-clue
     (`clue` shown, 4 idiom options), match-idiom-to-meaning (idiom shown,
-    4 meaning options), and fill-the-missing-character (one character of
+    4 meaning options), fill-the-missing-character (one character of
     the idiom blanked, 4 character options sampled from other idioms'
-    characters). Same score-screen/persistence pattern as earlier modules;
+    characters), 故事猜成語 (the `origin` shown) and 是非判斷. Same score-screen/persistence pattern as earlier modules;
     results go to `moduleProgress.idiom.practiceStats`.
 - Like Modules 1–2, questions are generated at runtime from the content
   fields (no hand-authored "questions" array) — adding more idioms only
@@ -685,20 +686,19 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   `getIdiomMasteryTier(stagesCompleted)` / `getNextIdiomMasteryTier(...)`
   work the same as before, just re-keyed. `IdiomModule.jsx`:
   - `stagesCompleted` is derived, not stored separately:
-    `Math.floor(practiceStats.attempts / QUESTION_COUNT)` — safe because
-    `Storage.recordPracticeResult` always adds the full `total` (here always
-    `QUESTION_COUNT`) to `attempts` regardless of how many were answered
-    correctly, and `QUESTION_COUNT` (8) is a module-level constant shared by
-    `IdiomModule` and `PracticeSession`. If `QUESTION_COUNT` ever changes,
-    stage counts computed from *old* `attempts` history will shift
-    retroactively — that's expected, not a bug, since stages are always
-    reconstructed from raw attempts rather than persisted directly.
+    `Math.floor(practiceStats.attempts / 8)` — safe because
+    `Storage.recordPracticeResult` always adds the full `total` to `attempts` regardless of how many were answered
+    correctly. **階段 9b changed the session length from 8 to 15 questions but NOT this unit:** the 8 is now
+    `IdiomQuiz.STAGE_SIZE` (idiomQuiz.jsx, "legacy stage"), `IdiomQuiz.stagesFromAttempts(attempts)` is the one place that applies it, and a
+    finished session adds 15 to `attempts`. So nobody's existing 成語稱號 drops (e.g. `attempts` 80 is still 10 stages = 舉人); the price is that
+    a title now needs fewer *sessions* than before (秀才: 24 questions = 2 sessions instead of 3). `IdiomQuiz.sessionsToReach(attempts, minStages)`
+    gives the 「再完成 N 次成語練習」 number. If `STAGE_SIZE` ever changes, stage counts computed from *old* `attempts` shift retroactively.
   - Shows a `MasteryBadge` card (current tier + emoji + blurb + "再完成 N
     次練習，即可晉升為「X」！") on the list view, computed from
-    `priorStages` (before the current session).
-  - On the practice completion screen, compares the tier at `priorStages`
-    vs. `priorStages + 1` (always +1, not +correctCount, since finishing a
-    session — right or wrong — always advances one stage); if they differ,
+    `priorAttempts` (`practiceStats.attempts` before the current session).
+  - On the practice completion screen, compares the tier at `priorAttempts`
+    vs. `priorAttempts + 15` (always the full session, not the correct count, since finishing a
+    session — right or wrong — always advances the same amount); if they differ,
     shows the level-up congratulation ("恭喜！你晉升為「X」了！") with the
     new tier's emoji instead of the generic "練習完成！" message.
   - `practiceStats` is passed into `IdiomModule` from `Root.jsx` (the only
@@ -1315,7 +1315,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
   `recordPracticeResult` + `recordSession` — **no module file knows about missions or badges**.
   State is updated with a *functional* `setState` because History/Reading/ClassicalProse call
   `onRecordPractice` and then `onAnswerItem` in the same event; the notices are computed from a
-  `stateRef` snapshot instead. Idiom's stage count (`attempts / QUESTION_COUNT`) is unaffected.
+  `stateRef` snapshot instead. Idiom's stage count (`attempts / IdiomQuiz.STAGE_SIZE`, 8) is unaffected.
 - **Missions:** `pickMissions(dateStr)` is deterministic per date, one module from each group:
   A 語文基礎 `idiom, rhetoric, punctuation, essay` · B 閱讀文化 `poetry, classicalProse, history,
   reading` · C 字音輸入 `mandarin, cangjie` (group B uses `(day + floor(day/4)) % 4` so the A/B
@@ -1391,7 +1391,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 8 files, **138 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 9 files, **153 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1405,6 +1405,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
+  `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
   `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
@@ -1590,3 +1591,36 @@ Changes: `src/rhetoricQuiz.jsx` (new, question generation only — plain JavaScr
 - **待確認 — still open, NOT given `alsoDevices` (the user decided not to add them for now):** 排比 + 反覆 (the app's own 反覆 tip says 開頭相同的三項屬排比): `paibi-1`, `paibi-7`, `paibi-12`, `paibi-13` · 設問 + 排比: `shewen-13` · 比喻 + 對比: `biyu-19` · 對偶 + 誇張: `duiou-16`. They can still appear as wrong options next to those devices.
 - **Register fixes (user-approved, done):** `kuazhang-3` 「隔壁條街」 → 「隔壁那條街」; the 設問 `tip` 「問完之後自己即刻回答」 → 「問完之後自己立刻回答」. A scan of `rhetoricContent.jsx`, `RhetoricModule.jsx` and `rhetoricQuiz.jsx` for 呢個 咩 嘅 咗 唔 喺 哋 嘢 啲 佢 冇 乜 嚟 點解 邊個 而家 即刻 嗰 咁 好似 and 條 as a Cantonese classifier found nothing else (the other 條 are ordinary written Chinese: 有條理, 一條小河, 這條河, 一條長長的鐵鏈; the sentence-final 呢 in 反問 sentences is ordinary written Chinese too). The test now scans every sentence, definition, tip, effect and example for these words.
 - **Tests:** `tests/rhetoric-quiz.test.js` (15): the approved `alsoDevices` list is exact; `confusableWith` valid and two-way; clash list valid and every device keeps a clash-free option set; 15 questions with 3 of each kind for the full pool and each level; 4 distinct options (2 for 是非題) and a valid `correctIndex`; 「device」「effect」 wrong options never an `alsoDevices` and ≥ 2 confusable (as far as the clash rule allows); `find-sentence` has exactly one option using the asked device (device or alsoDevices) and four different devices; 是非題 stems never have `alsoDevices`, false claims are confusable devices, 2 + 1 true/false per session; `effect-device` effect belongs to the right option and no two options clash; 練習錯題 sessions and a 4-sentence pool still work; no colloquial wording. Checked to be sensitive: ignoring `alsoDevices`, switching off the clash rule, dropping the 是非題 guard and using non-confusable false claims each made the file fail (then reverted).
+
+## 階段 9b — 成語、詩詞：新題型、每次 15 題 (Oct 2026) — 待審核 (built on `claude/elegant-volta-ihb51l`, NOT merged; two commits: 9b-1 成語, 9b-2 詩詞)
+Shared helper `src/quizPlan.jsx` (`window.App.QuizPlan = { planKinds, trueFalseFlags }`, loaded after `quizUtils.jsx`): `planKinds(items, kinds, eligible)` deals the question kinds out in
+blocks, each block a shuffle of all kinds, a block never starts with the kind the previous block ended on (so no kind twice in a row); an item that a kind cannot be built from
+(`eligible(kind, item)` false) is swapped with another slot that suits both, or its slot is changed to the eligible kind used least so far — never an empty / broken question.
+`trueFalseFlags(n)` = the 9a 是非題 rule (about half true over many sessions: alternating flags, shuffled, the majority side chosen at random per session).
+Like 9a, the generators are plain JavaScript with no screen code (`src/idiomQuiz.jsx`, `src/poetryQuiz.jsx` → `window.App.IdiomQuiz` / `PoetryQuiz`, `buildQuestions(pool, count, chooseFrom)`
+returns plain objects with `itemId`); the module files only draw them. `chooseFrom` (練習錯題) restricts the asked items while `pool` / the whole library supplies wrong options.
+
+### 9b-1 成語 (`idiomQuiz.jsx`, `IdiomModule.jsx`, `idiomContent.jsx`)
+- **A session is 15 questions: 3 of each of 5 kinds** in a random order — `clue` 成語猜猜 · `meaning` 「X」是什麼意思？ · `fill-char` 填字砌成語 · **`story` 故事猜成語**
+  (stem = the `origin`, 「這個故事和哪個成語有關？」, 4 idiom options) · **`true-false` 是非判斷** (「X」的意思是「Y」。這個說法正確嗎？ — 正確／不正確, true ≈ half; a false
+  claim uses the meaning of an unrelated idiom, preferring the same level).
+- **故事猜成語 only for idioms whose `origin` does not give them away** (`IdiomQuiz.storyUsable`): 235 of the 270 idioms with an `origin` (p5 23 / p6 148 / s1 64). The other 35 — whose origin
+  contains the whole idiom or 3 consecutive characters of it (these are the older entries; the 8b entries never do) — are never asked as a story: 半途而廢 一鳴驚人 罄竹難書 尾大不掉 大煞風景 毛遂自薦
+  司空見慣 作繭自縛 每況愈下 刮目相待 東窗事發 孤注一擲 炙手可熱 恃強凌弱 流連忘返 袖手旁觀 唇槍舌劍 鹿死誰手 無濟於事 義不容辭 綽綽有餘 維妙維肖 實事求是 裹足不前 樂不思蜀
+  隨波逐流 獨當一面 獨佔鰲頭 鞠躬盡瘁 鍥而不捨 豁然開朗 覆水難收 歸根結蒂 穩操勝券 躊躇滿志. Wrong story options never come from the same story (the two `origin` texts share no run of 3 characters,
+  and the wrong idiom is not named in the origin). `buildQuestions` first makes sure the 15 asked idioms contain enough usable origins for the 3 story slots whenever the source has them; an idiom
+  without one in a slot is swapped or its slot changes kind (練習錯題 of idioms without origin therefore has fewer or no story questions, never an error).
+- **`IDIOM_SYNONYM_GROUPS`** (idiomContent.jsx, written by idiom text, **83 groups covering 249 idioms**, an idiom may sit in several groups; the list is in the 9b report and below only in the file): idioms whose
+  meanings are close enough that a student could fairly pick either. **A wrong option is never in a common group with the right answer** (clue, meaning, story options; the 是非題's false meaning).
+  Second, automatic guard `IdiomQuiz.meaningsSimilar`: cleaned `meaning` texts that share ≥ 2 bigrams and have bigram-Jaccard ≥ 0.2 are also "related" (catches pairs the list does not name, mostly
+  antonyms / topic neighbours such as 表裏如一 vs 表裏不一, 名副其實 vs 名不副實, 因地制宜 vs 因時制宜 — 27 such pairs exist beyond the groups; the scan found 76 pairs in all, 49 of them inside groups).
+  No two idioms have the identical `meaning`. **Borderline cases are NOT forced into the list — see 待確認.**
+- **成語稱號 compatibility (decision, please review):** progress is still `floor(practiceStats.attempts / 8)` (`IdiomQuiz.STAGE_SIZE = 8`, `stagesFromAttempts`); a session adds 15. Nobody's title goes
+  down (attempts 80 = 10 stages = 舉人 before and after). A new title needs fewer sessions than before (秀才 = 24 questions = 2 sessions, was 3). Alternative: divide by 15 — would demote existing records.
+- **待確認 (idiom groups, loose edges):** group 7 (勤學：手不釋卷 … 廢寢忘食, 7 members), group 25 (堅持：持之以恆 … 堅苦卓絕, 9), group 29 (交情：管鮑之交 … 心心相印, 5), group 39 (景色：山清水秀 … 春花秋月, 6),
+  group 51 (守舊：食古不化 … 按圖索驥, 6), group 83 (刎頸之交／生死與共 bridge) — kept broad on purpose because a too-wide group only removes some wrong options, but they could be trimmed. The 27
+  auto-guard-only pairs (list in the 9b report) are left to the similarity guard rather than added to the list.
+- **Tests:** `tests/idiom-quiz.test.js` (15): group members exist; 15 questions, 3 of each kind, no kind twice in a row (full pool + each level); random kind order; unique `itemId`s; **5000 sessions over the full
+  pool + 800 per level + 練習錯題 sets: every question has exactly one defensible answer (0 violations)**; story fallback when the mistaken idioms have no usable origin; origin leak rule; 是非題 true share within ±0.05
+  over 5000 sessions; `STAGE_SIZE` compatibility; 書面語 scan. Mutation-checked (each made the file fail, then reverted): drop the whole synonym rule / only the groups / only the similarity guard /
+  the same-story rule, all-true 是非題, fixed kind order, fill-char without the "does not complete another idiom" rule, story without the leak rule, story kind without the eligibility repair.

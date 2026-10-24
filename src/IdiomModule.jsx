@@ -1,8 +1,8 @@
 // Module 5: 成語學習 (game-style, standalone) — inspired by 成語猜猜.
 // Three views: list (browse, filter by level) -> detail (idiom, meaning,
-// origin story) -> practice (a "成語猜猜" mixed game: guess-the-idiom from
-// a clue, match idiom to meaning, and fill-in-the-missing-character — all
-// tap-to-select, no typing).
+// origin story) -> practice (a "成語猜猜" mixed game of 15 questions in five
+// kinds — guess from a clue, meaning, missing character, guess from the origin
+// story, true/false — built by idiomQuiz.jsx; all tap-to-select, no typing).
 window.App = window.App || {};
 
 (function () {
@@ -10,10 +10,9 @@ window.App = window.App || {};
   const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.idiom;
   const { QuestionBlock } = window.App.QuizQuestion;
-  const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
+  const IdiomQuiz = window.App.IdiomQuiz;
   const { IDIOM_ITEMS, IDIOM_LEVEL_LABEL, getIdiomMasteryTier, getNextIdiomMasteryTier } = window.App.Content;
   const { AudioButtons } = window.App;
-  const QUESTION_COUNT = 8;
 
   const LEVEL_FILTERS = [
     { key: "all", label: "全部" },
@@ -22,58 +21,29 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function buildClueQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.idiom);
-    const options = shuffle([item.idiom, ...distractors]);
+  // The questions themselves are built by idiomQuiz.jsx (plain objects, no screen code); this turns one into what QuestionBlock draws:
+  // a small label, the stem (clue / blanked idiom / origin story) and the question line, depending on the kind.
+  function toQuestion(q) {
     const prompt = (
       <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>成語猜猜 — 根據提示猜出成語</p>
-        <p className="text-xl leading-relaxed" style={{ fontWeight: 800 }}>{item.clue}</p>
+        {q.label && <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>{q.label}</p>}
+        {q.kind === "clue" && <p className="text-xl leading-relaxed" style={{ fontWeight: 800 }}>{q.text}</p>}
+        {q.kind === "fill-char" && <p className="text-4xl font-serif" style={{ fontWeight: 900, color: A2.ink }}>{q.text}</p>}
+        {q.kind === "story" && <p className="font-serif text-lg leading-relaxed" style={{ fontWeight: 600, color: A2.ink, margin: 0 }}>{q.text}</p>}
+        {q.ask && <p className={q.kind === "true-false" ? "text-xl leading-relaxed" : "text-xl"} style={{ fontWeight: q.kind === "true-false" ? 800 : 700, margin: 0 }}>{q.ask}</p>}
       </div>
     );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.idiom) };
+    return { itemId: q.itemId, prompt, options: q.options, correctIndex: q.correctIndex };
   }
 
-  function buildMeaningQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.meaning);
-    const options = shuffle([item.meaning, ...distractors]);
-    const prompt = `「${item.idiom}」是什麼意思？`;
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.meaning) };
-  }
-
-  function buildFillCharQuestion(pool, item) {
-    const charIndex = Math.floor(Math.random() * item.idiom.length);
-    const correct = item.idiom[charIndex];
-    const otherChars = pool
-      .filter((it) => it.id !== item.id)
-      .flatMap((it) => it.idiom.split(""))
-      .filter((c, i, arr) => c !== correct && arr.indexOf(c) === i);
-    const distractors = shuffle(otherChars).slice(0, 3);
-    const options = shuffle([correct, ...distractors]);
-    const blanked = item.idiom
-      .split("")
-      .map((c, i) => (i === charIndex ? "▁" : c))
-      .join("");
-    const prompt = (
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>填字砌成語 — 哪一個字才是正確的？</p>
-        <p className="text-4xl font-serif" style={{ fontWeight: 900, color: A2.ink }}>{blanked}</p>
-      </div>
-    );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(correct) };
-  }
-
-  // `chooseFrom` restricts which idioms 練習錯題 asks about; `pool` still
-  // supplies distractors — same pattern as the other runtime-generated
-  // modules (see RhetoricModule for the fullest explanation).
+  // `chooseFrom` restricts which idioms 練習錯題 asks about; `pool` still supplies the wrong options — same pattern as the other
+  // runtime-generated modules (see RhetoricModule for the fullest explanation).
   function buildQuestions(pool, count, chooseFrom) {
-    const builders = [buildClueQuestion, buildMeaningQuestion, buildFillCharQuestion];
-    const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item));
+    return IdiomQuiz.buildQuestions(pool, count, chooseFrom).map(toQuestion);
   }
 
-  function PracticeSession({ pool, chooseFrom, priorStages, onBack, onFinish, onAnswerItem }) {
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
+  function PracticeSession({ pool, chooseFrom, priorAttempts, onBack, onFinish, onAnswerItem }) {
+    const [questions] = useState(() => buildQuestions(pool, IdiomQuiz.QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
@@ -100,8 +70,9 @@ window.App = window.App || {};
     }
 
     if (done) {
-      const beforeTier = getIdiomMasteryTier(priorStages);
-      const afterTier = getIdiomMasteryTier(priorStages + 1);
+      // 稱號 is derived from practiceStats.attempts in legacy stages of 8 questions (IdiomQuiz.STAGE_SIZE); a 15-question session adds 15.
+      const beforeTier = getIdiomMasteryTier(IdiomQuiz.stagesFromAttempts(priorAttempts));
+      const afterTier = getIdiomMasteryTier(IdiomQuiz.stagesFromAttempts(priorAttempts + questions.length));
       const leveledUp = afterTier.title !== beforeTier.title;
       return (
         <PaperCard accent={ACCENT} className="text-center">
@@ -149,7 +120,8 @@ window.App = window.App || {};
 
   // 成語稱號 card (A2). Stage-based: every finished session advances one 關卡 whatever the score. The label says 「成語稱號」 and that only 成語學習 sessions
   // count, so it is not mistaken for the 科舉稱號 on the home screen (which counts every module).
-  function MasteryBadgeA2({ stagesCompleted }) {
+  function MasteryBadgeA2({ attempts }) {
+    const stagesCompleted = IdiomQuiz.stagesFromAttempts(attempts);
     const tier = getIdiomMasteryTier(stagesCompleted);
     const next = getNextIdiomMasteryTier(stagesCompleted);
     return (
@@ -164,7 +136,7 @@ window.App = window.App || {};
         </div>
         {next && (
           <p style={{ fontSize: 14, fontWeight: 700, color: A2.fireInk, margin: "8px 0 0" }}>
-            再完成 {next.minStages - stagesCompleted} 次成語練習，即可晉升為「{next.title}」！
+            再完成 {IdiomQuiz.sessionsToReach(attempts, next.minStages)} 次成語練習，即可晉升為「{next.title}」！
           </p>
         )}
       </PaperCard>
@@ -238,12 +210,12 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ priorStages, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
+  function ListViewA2({ priorAttempts, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="idiom" title="成語學習" onBack={onBack} />
 
-        <MasteryBadgeA2 stagesCompleted={priorStages} />
+        <MasteryBadgeA2 attempts={priorAttempts} />
 
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
@@ -278,7 +250,7 @@ window.App = window.App || {};
     const [selectedId, setSelectedId] = useState(null);
     const [practiceScope, setPracticeScope] = useState(null);
     const [reviewScope, setReviewScope] = useState(null);
-    const priorStages = Math.floor(((practiceStats && practiceStats.attempts) || 0) / QUESTION_COUNT);
+    const priorAttempts = (practiceStats && practiceStats.attempts) || 0;
 
     const filtered = useMemo(
       () => (filterLevel === "all" ? IDIOM_ITEMS : IDIOM_ITEMS.filter((it) => it.level === filterLevel)),
@@ -314,7 +286,7 @@ window.App = window.App || {};
         <PracticeSession
           pool={practiceScope}
           chooseFrom={reviewScope}
-          priorStages={priorStages}
+          priorAttempts={priorAttempts}
           onBack={() => setView("list")}
           onFinish={finishPractice}
           onAnswerItem={onAnswerItem}
@@ -324,7 +296,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
-        priorStages={priorStages}
+        priorAttempts={priorAttempts}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}
         filtered={filtered}
