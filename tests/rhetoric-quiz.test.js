@@ -92,7 +92,7 @@ t("effect clash list: valid, no duplicates, no pair of identical effects, every 
 });
 
 // ---------------------------------------------------------------- generator, structure
-t("a session is 15 questions: 5 kinds in turn, 3 of each (full pool and every level)", () => {
+t("a session is 15 questions: all 5 kinds, 3 of each, never the same kind twice in a row (full pool and every level)", () => {
   assert.strictEqual(Q.QUESTION_COUNT, 15);
   for (const lv of LEVELS) {
     for (let r = 0; r < 60; r++) {
@@ -102,8 +102,15 @@ t("a session is 15 questions: 5 kinds in turn, 3 of each (full pool and every le
       const counts = {};
       qs.forEach((q) => { counts[q.kind] = (counts[q.kind] || 0) + 1; });
       Q.KINDS.forEach((k) => assert.strictEqual(counts[k], 3, `${lv}: kind ${k} appears ${counts[k]} times`));
+      qs.forEach((q, i) => { if (i) assert.notStrictEqual(q.kind, qs[i - 1].kind, "the same kind twice in a row"); });
     }
   }
+});
+
+t("the order of the kinds varies from session to session", () => {
+  const orders = new Set();
+  for (let r = 0; r < 60; r++) orders.add(Q.buildQuestions(SENTENCES, 15).map((q) => q.kind[0]).join(""));
+  assert.ok(orders.size > 30, `only ${orders.size} different orders in 60 sessions`);
 });
 
 t("every question: sentence id exists, 4 distinct options (2 for 是非題), valid correctIndex, itemId returned", () => {

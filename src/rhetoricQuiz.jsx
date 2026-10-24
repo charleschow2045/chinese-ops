@@ -2,7 +2,7 @@
 // tests/rhetoric-quiz.test.js can run it in a node:vm sandbox thousands of times and check that every question has
 // exactly one defensible answer. RhetoricModule.jsx only turns the plain objects returned here into screens.
 //
-// Five question kinds are used in turn (a session is 15 questions, 3 of each kind):
+// Five question kinds are used in a random order (a session is 15 questions, 3 of each kind):
 //   device         「這句運用了什麼修辭手法？」          options = device names
 //   effect         「這句運用了「X」，這樣寫有什麼作用？」 options = effect texts
 //   find-sentence  「以下哪一句運用了「X」？」           options = 4 sentences (1 with X, 3 without)
@@ -115,7 +115,15 @@ window.App = window.App || {};
   function buildQuestions(pool, count, chooseFrom) {
     const n = count || QUESTION_COUNT;
     const chosen = sampleWithRepeats(chooseFrom || pool, n);
-    const kinds = chosen.map((_, i) => KINDS[i % KINDS.length]);
+    // Kinds come in blocks of five, each block a shuffle of all five kinds, so every kind appears (3 times in 15) in an
+    // unpredictable order; a block never starts with the kind the previous block ended on.
+    const kinds = [];
+    while (kinds.length < chosen.length) {
+      let block = shuffle(KINDS);
+      while (kinds.length && block[0] === kinds[kinds.length - 1]) block = shuffle(KINDS);
+      kinds.push(...block);
+    }
+    kinds.length = chosen.length;
 
     // A 是非題 needs a stem without alsoDevices: swap such a sentence into a slot of another kind, or ask a different kind.
     kinds.forEach((kind, i) => {
