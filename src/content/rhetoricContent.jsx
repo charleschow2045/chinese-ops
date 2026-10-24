@@ -4,7 +4,11 @@
 // sentences, so practice isn't just rote memorization of what was just
 // read), each tagged with the `device` name it demonstrates — this mirrors
 // the generic-field pattern from Poetry/Essay/Idiom, so questions are
-// generated at runtime (see RhetoricModule.jsx), not hand-authored.
+// generated at runtime (see RhetoricModule.jsx / rhetoricQuiz.jsx), not hand-authored.
+//
+// 階段 9a optional fields: DEVICES[].confusableWith (names of the devices students mix this one up with; always two-way) and
+// PRACTICE_SENTENCES[].alsoDevices (names of OTHER devices the sentence also genuinely uses; such a sentence is never offered
+// as a wrong option for those devices and never used as a 是非題 stem).
 window.App = window.App || {};
 window.App.Content = window.App.Content || {};
 
@@ -17,6 +21,7 @@ window.App.Content = window.App.Content || {};
         "用另一種事物來比方要說明的事物，使描寫更加生動具體。常見標誌詞包括「像」、「如」、「彷彿」等，但有時也可以不用標誌詞而直接比作。",
       tip: "留意句子裏有沒有「用另一件事物形容另一件事物」的情況。",
       effect: "使抽象或難以形容的事物變得具體、形象，幫助讀者更容易理解和想像。",
+      confusableWith: ["擬人", "誇張"],
       examples: ["月亮像一個銀盤掛在天上。", "他的心像鐵一樣硬。"],
     },
     {
@@ -25,6 +30,7 @@ window.App.Content = window.App.Content || {};
       definition: "把沒有生命的事物或者動物當成人一樣，賦予它們人類的動作、情感或者性格。",
       tip: "留意句子裏的事物有沒有做着「只有人才會做」的動作或情感（例如說話、微笑、傷心）。",
       effect: "令景物變得生動、有生命力，拉近讀者與描寫對象的距離，使文字更富感染力。",
+      confusableWith: ["比喻"],
       examples: ["小草從泥土裏探出頭來。", "風兒輕輕地唱着歌。"],
     },
     {
@@ -33,6 +39,7 @@ window.App.Content = window.App.Content || {};
       definition: "為了突出事物的特點或者強調某種感受，故意誇大或者縮小事實的描述。",
       tip: "留意句子裏有沒有明顯誇大到不可能是事實的描述。",
       effect: "強烈突出事物的特點，加深讀者的印象，增強語氣的感染力。",
+      confusableWith: ["比喻"],
       examples: ["他嚇得魂飛魄散。", "教室裏靜得連一根針掉在地上都聽得見。"],
     },
     {
@@ -41,6 +48,7 @@ window.App.Content = window.App.Content || {};
       definition: "用字數相等、結構相同或相似的兩個句子或短語，表達相關或相反的意思，讀起來工整、有節奏感。",
       tip: "留意有沒有兩句字數相同、結構對稱的句子並列出現。",
       effect: "使句子結構工整，讀起來朗朗上口，富有節奏感和音韻美。",
+      confusableWith: ["排比", "對比", "引用"],
       examples: ["山重水複疑無路，柳暗花明又一村。", "野火燒不盡，春風吹又生。"],
     },
     {
@@ -49,6 +57,7 @@ window.App.Content = window.App.Content || {};
       definition: "用三個或以上結構相似、字數相近的句子或短語排列在一起，加強語氣和節奏感。",
       tip: "留意有沒有三個或以上結構相似的句子連續出現。",
       effect: "加強語氣，層層遞進地渲染情感或說理，使文章讀起來氣勢磅礴。",
+      confusableWith: ["對偶", "反覆"],
       examples: ["他熱愛學習，熱愛運動，熱愛生活。", "書本是老師，書本是朋友，書本是通往世界的橋樑。"],
     },
     {
@@ -57,6 +66,7 @@ window.App.Content = window.App.Content || {};
       definition: "用疑問的形式表達肯定或否定的意思，不需要對方回答，用來加強語氣。",
       tip: "留意這個「問題」背後是不是其實已經有一個明顯的答案，並非真的想發問。",
       effect: "加強肯定或否定的語氣，比直接敘述更能引發讀者思考，加深說服力。",
+      confusableWith: ["設問"],
       examples: ["難道我們不應該珍惜時間嗎？", "這樣做，你認為對嗎？"],
     },
     {
@@ -65,6 +75,7 @@ window.App.Content = window.App.Content || {};
       definition: "先提出問題，然後自己回答，用來引起讀者注意，帶出下文重點。",
       tip: "留意句子是不是有「問完之後自己即刻回答」的結構。",
       effect: "引起讀者的注意和思考，順勢帶出下文要強調的重點，使論述更有條理。",
+      confusableWith: ["反問"],
       examples: ["什麼是快樂？快樂就是能夠與家人在一起。", "誰是最可愛的人？當然是默默付出的人。"],
     },
     {
@@ -74,6 +85,7 @@ window.App.Content = window.App.Content || {};
         "為了強調某個意思、突出某種感情，有意重複使用相同的詞語或句子。重複的詞語可以緊接着出現（連續反覆），也可以中間隔着其他詞語（間隔反覆）。",
       tip: "留意句子裏有沒有同一個詞語或同一個句子刻意出現兩次或以上，而且是為了強調才重複，並非無意中用了相同的字。只是句子開頭相同、後面內容各不相同，而且有三項或以上的，屬排比，不是反覆。",
       effect: "突出所要強調的詞語或意思，把強烈的感情反覆地抒發出來，使情感更加濃烈。",
+      confusableWith: ["排比"],
       examples: ["加油，加油，我們一定能贏！", "一年又一年，一年又一年，爺爺依然守着那間小店。"],
     },
     {
@@ -83,6 +95,7 @@ window.App.Content = window.App.Content || {};
         "在寫作時引用名言、詩句或別人說過的話，並說明說話的人或出處，用來證明自己的看法或增添文采。引用時要原封不動地照錄原文，並用引號標示。",
       tip: "留意句子裏有沒有「某人說」、「古人云」或引號中的名言、詩句，並且是原封不動地引用別人的話。沒有說明出處或說話人、單獨出現的名句，不算引用。",
       effect: "借助名人名言、詩句或成語，令論點更有根據、更具權威，同時增添文句的文采和韻味。",
+      confusableWith: ["對偶"],
       examples: ["老子說：「知足者富。」", "荀子說：「學不可以已。」"],
     },
     {
@@ -92,6 +105,7 @@ window.App.Content = window.App.Content || {};
         "把兩種相反或相對的事物，或者同一事物的兩個方面，放在一起互相對照，使事物的特點更加鮮明。",
       tip: "留意句子裏有沒有意思相反或相對的事物並列對照（例如大與小、苦與樂、過去與現在）。重點在內容上的對照；對偶則講求字數相等、結構相同。",
       effect: "把相反的事物並列對照，使雙方的差別更加鮮明，令讀者一目了然，並突出所要強調的一方。",
+      confusableWith: ["對偶"],
       examples: ["弟弟活潑好動，姐姐卻文靜內向。", "城市白天熙來攘往，夜晚卻異常冷清。"],
     },
   ];
@@ -138,11 +152,11 @@ window.App.Content = window.App.Content || {};
     { id: "kuazhang-5", sentence: "那間餐廳的排隊人龍，長得幾乎望不到盡頭。", device: "誇張", level: "p6" },
     { id: "kuazhang-6", sentence: "這件事令他傷心欲絕，眼淚幾乎流成一條小河。", device: "誇張", level: "s1" },
 
-    { id: "duiou-4", sentence: "業精於勤，荒於嬉；行成於思，毀於隨。", device: "對偶", level: "s1" },
+    { id: "duiou-4", sentence: "業精於勤，荒於嬉；行成於思，毀於隨。", device: "對偶", level: "s1", alsoDevices: ["對比"] },
     { id: "duiou-5", sentence: "海納百川，有容乃大；壁立千仞，無欲則剛。", device: "對偶", level: "s1" },
     { id: "duiou-6", sentence: "讀萬卷書，行萬里路。", device: "對偶", level: "p6" },
 
-    { id: "paibi-4", sentence: "青春是一首歌，是一幅畫，更是一場永不重來的旅程。", device: "排比", level: "s1" },
+    { id: "paibi-4", sentence: "青春是一首歌，是一幅畫，更是一場永不重來的旅程。", device: "排比", level: "s1", alsoDevices: ["比喻"] },
     { id: "paibi-5", sentence: "他勤奮讀書，努力練習，堅持不懈，終於考獲佳績。", device: "排比", level: "p6" },
     { id: "paibi-6", sentence: "陽光灑落大地，雨水滋潤禾苗，微風吹拂麥浪。", device: "排比", level: "p5" },
 
@@ -210,7 +224,7 @@ window.App.Content = window.App.Content || {};
 
     { id: "duiou-10", sentence: "白日依山盡，黃河入海流。", device: "對偶", level: "p5" },
     { id: "duiou-11", sentence: "兩個黃鸝鳴翠柳，一行白鷺上青天。", device: "對偶", level: "p6" },
-    { id: "duiou-12", sentence: "勿以善小而不為，勿以惡小而為之。", device: "對偶", level: "p6" },
+    { id: "duiou-12", sentence: "勿以善小而不為，勿以惡小而為之。", device: "對偶", level: "p6", alsoDevices: ["對比"] },
     { id: "duiou-13", sentence: "大漠孤煙直，長河落日圓。", device: "對偶", level: "s1" },
     { id: "duiou-14", sentence: "海內存知己，天涯若比鄰。", device: "對偶", level: "s1" },
     { id: "duiou-15", sentence: "山不在高，有仙則名；水不在深，有龍則靈。", device: "對偶", level: "s1" },
@@ -347,7 +361,25 @@ window.App.Content = window.App.Content || {};
 
   const RHETORIC_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
 
+  // 階段 9a. Pairs of devices whose `effect` texts are too close for a student to tell apart (they share the "加強語氣 /
+  // 突出強調 / 引起思考 / 生動形象" kind of wording). The quiz never puts two devices of a pair into the same
+  // 「作用」 question (as options of the 作用對應手法 question, or as an option next to the correct effect). The effect
+  // texts themselves are NOT changed here — that is a separate decision. strong = very hard to tell apart, moderate = partly.
+  const EFFECT_CLASHES = [
+    ["比喻", "擬人"], // strong
+    ["排比", "反問"], // strong (both open with 「加強…語氣」)
+    ["排比", "誇張"], // strong
+    ["誇張", "反問"], // strong
+    ["誇張", "反覆"], // strong
+    ["排比", "反覆"], // strong
+    ["反問", "設問"], // strong (both about 引起 / 引發思考)
+    ["反問", "反覆"], // moderate
+    ["擬人", "誇張"], // moderate (both end in 感染力)
+    ["誇張", "對比"], // moderate (both 突出)
+  ];
+
   window.App.Content.RHETORIC_DEVICES = DEVICES;
   window.App.Content.RHETORIC_PRACTICE_SENTENCES = PRACTICE_SENTENCES;
   window.App.Content.RHETORIC_LEVEL_LABEL = RHETORIC_LEVEL_LABEL;
+  window.App.Content.RHETORIC_EFFECT_CLASHES = EFFECT_CLASHES;
 })();

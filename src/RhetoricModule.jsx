@@ -1,7 +1,7 @@
-// Module 8: 修辭手法 — list (the 7 devices) -> detail (definition, tip,
-// examples) -> practice (mixed quiz, generated at runtime from
-// PRACTICE_SENTENCES, same pattern as Modules 1/2/5: "identify the device"
-// is naturally multiple-choice, so there's no typing-vs-spec tension here).
+// Module 8: 修辭手法 — list (the 10 devices) -> detail (definition, tip,
+// examples) -> practice (15-question mixed quiz of 5 kinds, generated at runtime from
+// PRACTICE_SENTENCES by rhetoricQuiz.jsx, same pattern as Modules 1/2/5: all
+// multiple-choice, so there's no typing-vs-spec tension here).
 window.App = window.App || {};
 
 (function () {
@@ -9,7 +9,7 @@ window.App = window.App || {};
   const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.rhetoric;
   const { QuestionBlock } = window.App.QuizQuestion;
-  const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
+  const RhetoricQuiz = window.App.RhetoricQuiz;
   const { RHETORIC_DEVICES, RHETORIC_PRACTICE_SENTENCES } = window.App.Content;
 
   const LEVEL_FILTERS = [
@@ -19,36 +19,16 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function buildDeviceQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.device);
-    const options = shuffle([item.device, ...distractors]);
+  // The questions themselves are built by rhetoricQuiz.jsx (plain objects, no screen code); this turns one into what
+  // QuestionBlock draws: the sentence (if the question shows one) in serif, then the question line.
+  function toQuestion(q) {
     const prompt = (
       <div>
-        <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
-        <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句運用了什麼修辭手法？</p>
+        {q.sentence && <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{q.sentence}」</p>}
+        <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>{q.ask}</p>
       </div>
     );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.device) };
-  }
-
-  // Harder second question type (user feedback: "too easy") — instead of
-  // just naming the device, asks what *effect* it achieves, testing
-  // understanding of why a writer would use it, not just pattern-matching
-  // keywords like 像/難道/什麼是.
-  function buildEffectQuestion(pool, item) {
-    const device = RHETORIC_DEVICES.find((d) => d.name === item.device);
-    const otherDevices = RHETORIC_DEVICES.filter((d) => d.name !== item.device);
-    const distractors = shuffle(otherDevices)
-      .slice(0, 3)
-      .map((d) => d.effect);
-    const options = shuffle([device.effect, ...distractors]);
-    const prompt = (
-      <div>
-        <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
-        <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句運用了「{item.device}」，這樣寫有什麼作用？</p>
-      </div>
-    );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(device.effect) };
+    return { itemId: q.itemId, prompt, options: q.options, correctIndex: q.correctIndex };
   }
 
   // `chooseFrom` (defaults to `pool`) is the set of items actually asked
@@ -57,14 +37,11 @@ window.App = window.App || {};
   // without also shrinking the distractor pool down to just those few
   // items (see RhetoricModule's mistake-review button below).
   function buildQuestions(pool, count, chooseFrom) {
-    const builders = [buildDeviceQuestion, buildEffectQuestion];
-    const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item));
+    return RhetoricQuiz.buildQuestions(pool, count, chooseFrom).map(toQuestion);
   }
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
-    const QUESTION_COUNT = 8;
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
+    const [questions] = useState(() => buildQuestions(pool, RhetoricQuiz.QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);

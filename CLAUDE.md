@@ -954,7 +954,7 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
   keyword giveaways the earlier batches sometimes had (e.g. 反問 sentences
   no longer all start with "難道", 比喻 sentences aren't always flagged by
   "像"/"如") so the quiz can't be solved by pattern-matching one signal word.
-- **Two question types now, alternating** (`RhetoricModule.jsx`'s
+- **Two question types now, alternating** *(superseded by 階段 9a — five kinds, 15 questions, built in `src/rhetoricQuiz.jsx`; see the end of this file)* (`RhetoricModule.jsx`'s
   `buildQuestions`): the original `buildDeviceQuestion` ("這句運用了什麼修辭
   手法？", 4 device-name options) and a new `buildEffectQuestion` ("這樣寫有
   什麼作用？", 4 `effect` strings sampled from `RHETORIC_DEVICES` as
@@ -963,9 +963,8 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
   not just keyword pattern-matching.
 - `src/RhetoricModule.jsx` has three views: **list** (the 10 devices) →
   **detail** (definition, tip, examples, "開始練習" button) → **practice**
-  (8-question quiz generated from `RHETORIC_PRACTICE_SENTENCES`, filtered
-  by the level chips on the list screen, alternating the two question
-  types above). Results go to `moduleProgress.rhetoric.practiceStats`.
+  (15-question quiz of five kinds generated from `RHETORIC_PRACTICE_SENTENCES` by `rhetoricQuiz.jsx` (階段 9a), filtered
+  by the level chips on the list screen). Results go to `moduleProgress.rhetoric.practiceStats`.
 - 反問 vs 設問 are commonly confused in Chinese-language teaching generally —
   keep their examples/practice sentences unambiguous (設問 must show a clear
   question immediately followed by its own answer; 反問 gets no answer at
@@ -1392,7 +1391,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 7 files, **123 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 8 files, **136 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1406,6 +1405,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
+  `rhetoric-quiz.test.js` (13 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
   `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
@@ -1580,3 +1580,13 @@ Content change (`idiomContent.jsx`, `tests/content.test.js` 711 → 696, new `te
 - **How learner data is keyed (checked before deleting):** the only per-idiom record is `moduleProgress.idiom.mistakes`, an array of idiom **ids** (strings). `practiceStats` and `stats.sessions` are plain counters; 稱號 / 里程 / 徽章 are computed from counters; the 成語稱號 stage count is `attempts / QUESTION_COUNT`. Nothing is keyed by idiom text. `sanitizeState` keeps any string id ≤ 100 chars (a backup of any age imports without error), `IdiomModule` filters `IDIOM_ITEMS` by `mistakes.includes(id)` (an unknown id simply never matches — no error).
 - **Finding fixed on the way:** a retired id left in `mistakes` was harmless in the module but was still **counted** by Home / BackupSettings (`mistakes.length`), so deleting idioms would have inflated 「錯題 N」 forever. `Storage.pruneUnknownMistakes(state, moduleKey, validIds)` (pure; never throws; touches only that module's `mistakes`; returns the same object when nothing was dropped; does NOT count as 清除錯題) is called by `Root.jsx` (`dropRetiredIdiomMistakes`) when the state is first loaded and after a backup restore. Saving happens through the normal state effect; the stored backup file is never modified.
 - **Tests:** `idiom-compat.test.js` (8): retired ids gone / fixes present; an old save with retired ids loads without error and keeps the strings; the review-list filter ignores them; prune drops only retired ids, mutates nothing, leaves every other module (incl. the same string in `history`) and all counters untouched, is idempotent, accepts junk; v1 and v2 old backups containing retired ids import fine (also round-trip through `buildBackup`). `content.test.js` count 711 → 696. Whole suite: 7 files, 123 tests.
+
+## 階段 9a — 修辭手法：5 種題型、15 題、加強辨析 (Oct 2026) — 待審核 (NOT merged; waits for the user's review)
+Changes: `src/rhetoricQuiz.jsx` (new, question generation only — plain JavaScript, no JSX / React, so node tests can run it), `RhetoricModule.jsx` (renders the objects it returns; header comment now says 10 devices), `rhetoricContent.jsx` (new optional fields), `index.html` (one script tag, after `rhetoricContent.jsx`), `tests/rhetoric-quiz.test.js` (new, 13 tests). No storage / backup change, no new stored field.
+- **A session is 15 questions** (`RhetoricQuiz.QUESTION_COUNT`), five kinds in turn, 3 of each: `device` 「這句運用了什麼修辭手法？」 · `effect` 「這句運用了「X」，這樣寫有什麼作用？」 · `find-sentence` 「以下哪一句運用了「X」？」(4 sentences) · `true-false` 「這句運用了「X」。這個說法正確嗎？」(正確 / 不正確 — `QuestionBlock` already draws any number of options, so 2 options work and no 4-option fallback was needed) · `effect-device` 「哪一種修辭手法的作用是「…」？」(effect shown without its final 。). Every question still returns `itemId` (the sentence it came from) so a wrong answer goes into 錯題本 as before; 練習錯題 (`chooseFrom`) still restricts which sentences are asked about while `pool` supplies wrong options.
+- **`alsoDevices` (optional, on a practice sentence): other devices it genuinely also uses.** Such a sentence is never a wrong option for those devices (`find-sentence`), never a wrong option in 「這句運用了什麼修辭手法？」 / the 作用 question, and never the stem of a 是非題 (it is swapped into another kind, or asked as `device`). Only three sentences carry it (user-reviewed list in the 9a report): `paibi-4` 排比 + 比喻 (青春是歌／畫／旅程), `duiou-4` 對偶 + 對比, `duiou-12` 對偶 + 對比. `tests/rhetoric-quiz.test.js` fails if any other sentence gets `alsoDevices` — a new one needs an explicit approval.
+- **`confusableWith` (optional, on a device): devices students mix it up with — always two-way, 1–3 entries.** 比喻: 擬人 誇張 · 擬人: 比喻 · 誇張: 比喻 · 對偶: 排比 對比 引用 · 排比: 對偶 反覆 · 反問: 設問 · 設問: 反問 · 反覆: 排比 · 引用: 對偶 · 對比: 對偶. Wrong options prefer these (`pickDeviceNames`: up to two confusable devices, the rest random; a device with only one confusable device gets just that one). Wrong 是非題 claims are always a confusable device of the sentence's own device.
+- **`RHETORIC_EFFECT_CLASHES`** (rhetoricContent.jsx, 10 pairs): devices whose `effect` texts are too close for a student to tell apart. Two devices of a pair are never offered together in a question that shows effects (the 作用 question and `effect-device`). Strong: 比喻–擬人, 排比–反問, 排比–誇張, 誇張–反問, 誇張–反覆, 排比–反覆, 反問–設問; moderate: 反問–反覆, 擬人–誇張, 誇張–對比. **The effect texts themselves were NOT changed** (the user decides whether to reword them). Because of this rule a confusable device that also clashes (e.g. 反覆 next to 排比) is skipped in effect questions.
+- **待確認 — sentences that may also use a second device, NOT given `alsoDevices` (the user decides):** 擬人 + 比喻 (彷彿／好像…似的): `niren-6`, `niren-9` · 誇張 + 比喻: `kuazhang-9`, `kuazhang-13`, `kuazhang-6` (+ 對比 for `kuazhang-9`) · 排比 + 反覆 (the app's own 反覆 tip says 開頭相同的三項屬排比): `paibi-1`, `paibi-7`, `paibi-12`, `paibi-13` · 排比 + 比喻 (澆灌希望): `paibi-15` · 設問 + 排比: `shewen-13` · 比喻 + 對比: `biyu-14`, `biyu-19` · 對偶 + 對比: `duiou-9`, `duiou-3` · 對偶 + 比喻: `duiou-2` (書山／學海), `duiou-14` (若比鄰) · 對偶 + 誇張: `duiou-16`. Until decided they can still appear as wrong options next to those devices.
+- **Known register slips found while auditing, NOT changed (not asked for):** `kuazhang-3` 「隔壁條街」 (條 is Cantonese), the 設問 `tip` 「問完之後自己即刻回答」 (即刻 is Cantonese). The sentence-final particle 呢 in the 反問 sentences is ordinary written Chinese and was left.
+- **Tests:** `tests/rhetoric-quiz.test.js` (13): the approved `alsoDevices` list is exact; `confusableWith` valid and two-way; clash list valid and every device keeps a clash-free option set; 15 questions with 3 of each kind for the full pool and each level; 4 distinct options (2 for 是非題) and a valid `correctIndex`; 「device」「effect」 wrong options never an `alsoDevices` and ≥ 2 confusable (as far as the clash rule allows); `find-sentence` has exactly one option using the asked device (device or alsoDevices) and four different devices; 是非題 stems never have `alsoDevices`, false claims are confusable devices, 2 + 1 true/false per session; `effect-device` effect belongs to the right option and no two options clash; 練習錯題 sessions and a 4-sentence pool still work; no colloquial wording. Checked to be sensitive: ignoring `alsoDevices`, switching off the clash rule, dropping the 是非題 guard and using non-confusable false claims each made the file fail (then reverted).
