@@ -73,7 +73,7 @@ window.App.Content = window.App.Content || {};
       id: "shewen",
       name: "設問",
       definition: "先提出問題，然後自己回答，用來引起讀者注意，帶出下文重點。",
-      tip: "留意句子是不是有「問完之後自己即刻回答」的結構。",
+      tip: "留意句子是不是有「問完之後自己立刻回答」的結構。",
       effect: "引起讀者的注意和思考，順勢帶出下文要強調的重點，使論述更有條理。",
       confusableWith: ["反問"],
       examples: ["什麼是快樂？快樂就是能夠與家人在一起。", "誰是最可愛的人？當然是默默付出的人。"],
@@ -121,11 +121,11 @@ window.App.Content = window.App.Content || {};
 
     { id: "kuazhang-1", sentence: "他一口氣就能吃下十個漢堡包。", device: "誇張", level: "p5" },
     { id: "kuazhang-2", sentence: "等了足足一個世紀，公車終於到了。", device: "誇張", level: "p6" },
-    { id: "kuazhang-3", sentence: "他的音量大到隔壁條街都聽得到。", device: "誇張", level: "s1" },
+    { id: "kuazhang-3", sentence: "他的音量大到隔壁那條街都聽得到。", device: "誇張", level: "s1" },
 
     { id: "duiou-1", sentence: "海闊憑魚躍，天空任鳥飛。", device: "對偶", level: "p6" },
-    { id: "duiou-2", sentence: "書山有路勤為徑，學海無涯苦作舟。", device: "對偶", level: "s1" },
-    { id: "duiou-3", sentence: "橫眉冷對千夫指，俯首甘為孺子牛。", device: "對偶", level: "s1" },
+    { id: "duiou-2", sentence: "書山有路勤為徑，學海無涯苦作舟。", device: "對偶", level: "s1", alsoDevices: ["比喻"] },
+    { id: "duiou-3", sentence: "橫眉冷對千夫指，俯首甘為孺子牛。", device: "對偶", level: "s1", alsoDevices: ["對比", "比喻"] },
 
     { id: "paibi-1", sentence: "我愛藍天，我愛白雲，我愛這片美麗的土地。", device: "排比", level: "p5" },
     { id: "paibi-2", sentence: "早晨的陽光，午後的微風，黃昏的餘暉，都令人陶醉。", device: "排比", level: "p6" },
@@ -146,11 +146,11 @@ window.App.Content = window.App.Content || {};
 
     { id: "niren-4", sentence: "夕陽依依不捨地向大地道別，才緩緩沉入地平線。", device: "擬人", level: "p6" },
     { id: "niren-5", sentence: "老樹默默地訴說着歲月的故事，見證了小鎮的變遷。", device: "擬人", level: "s1" },
-    { id: "niren-6", sentence: "微風輕撫過臉頰，彷彿在跟我打招呼。", device: "擬人", level: "p5" },
+    { id: "niren-6", sentence: "微風輕撫過臉頰，彷彿在跟我打招呼。", device: "擬人", level: "p5", alsoDevices: ["比喻"] },
 
     { id: "kuazhang-4", sentence: "他嚇得整個人跳起三尺高。", device: "誇張", level: "p5" },
     { id: "kuazhang-5", sentence: "那間餐廳的排隊人龍，長得幾乎望不到盡頭。", device: "誇張", level: "p6" },
-    { id: "kuazhang-6", sentence: "這件事令他傷心欲絕，眼淚幾乎流成一條小河。", device: "誇張", level: "s1" },
+    { id: "kuazhang-6", sentence: "這件事令他傷心欲絕，眼淚幾乎流成一條小河。", device: "誇張", level: "s1", alsoDevices: ["比喻"] },
 
     { id: "duiou-4", sentence: "業精於勤，荒於嬉；行成於思，毀於隨。", device: "對偶", level: "s1", alsoDevices: ["對比"] },
     { id: "duiou-5", sentence: "海納百川，有容乃大；壁立千仞，無欲則剛。", device: "對偶", level: "s1" },
@@ -176,15 +176,15 @@ window.App.Content = window.App.Content || {};
 
     { id: "niren-7", sentence: "路燈在寂靜的街角站了一整夜，靜靜守護着回家的人。", device: "擬人", level: "p6" },
     { id: "niren-8", sentence: "書桌上那盞舊枱燈，陪着他熬過一個又一個深夜。", device: "擬人", level: "s1" },
-    { id: "niren-9", sentence: "海浪一次又一次撲向岸邊，好像捨不得離開似的。", device: "擬人", level: "p6" },
+    { id: "niren-9", sentence: "海浪一次又一次撲向岸邊，好像捨不得離開似的。", device: "擬人", level: "p6", alsoDevices: ["比喻"] },
 
     { id: "kuazhang-7", sentence: "這個消息一傳開，全城的人幾乎都知道了。", device: "誇張", level: "p6" },
     { id: "kuazhang-8", sentence: "他讀書讀到廢寢忘餐，幾乎把整個圖書館都搬回家。", device: "誇張", level: "s1" },
-    { id: "kuazhang-9", sentence: "只是遲到五分鐘，媽媽卻好像等了一輩子那麼久。", device: "誇張", level: "p5" },
+    { id: "kuazhang-9", sentence: "只是遲到五分鐘，媽媽卻好像等了一輩子那麼久。", device: "誇張", level: "p5", alsoDevices: ["比喻"] },
 
     { id: "duiou-7", sentence: "近水樓台先得月，向陽花木易為春。", device: "對偶", level: "s1" },
     { id: "duiou-8", sentence: "寧靜致遠，淡泊明志。", device: "對偶", level: "s1" },
-    { id: "duiou-9", sentence: "台上一分鐘，台下十年功。", device: "對偶", level: "p6" },
+    { id: "duiou-9", sentence: "台上一分鐘，台下十年功。", device: "對偶", level: "p6", alsoDevices: ["對比"] },
 
     { id: "paibi-7", sentence: "他不因挫折而退縮，不因批評而氣餒，不因孤獨而放棄。", device: "排比", level: "s1" },
     { id: "paibi-8", sentence: "細心觀察，用心感受，耐心等待，成果自然會到來。", device: "排比", level: "s1" },
@@ -205,7 +205,7 @@ window.App.Content = window.App.Content || {};
     { id: "biyu-11", sentence: "他的字跡工整得像印刷出來的一樣。", device: "比喻", level: "p5" },
     { id: "biyu-12", sentence: "孩子的笑聲像一串銀鈴，清脆悅耳。", device: "比喻", level: "p6" },
     { id: "biyu-13", sentence: "圖書館是知識的海洋，我們都是在其中探索的小船。", device: "比喻", level: "p6" },
-    { id: "biyu-14", sentence: "人生就像一場馬拉松，比的不是誰跑得最快，而是誰堅持得最久。", device: "比喻", level: "s1" },
+    { id: "biyu-14", sentence: "人生就像一場馬拉松，比的不是誰跑得最快，而是誰堅持得最久。", device: "比喻", level: "s1", alsoDevices: ["對比"] },
     { id: "biyu-15", sentence: "謠言是一團無形的野火，一經點燃便難以撲滅。", device: "比喻", level: "s1" },
 
     { id: "niren-10", sentence: "太陽公公笑瞇瞇地探出頭來，向大地問好。", device: "擬人", level: "p5" },
@@ -218,7 +218,7 @@ window.App.Content = window.App.Content || {};
     { id: "kuazhang-10", sentence: "聽到這個好消息，他高興得幾乎要飛上天。", device: "誇張", level: "p5" },
     { id: "kuazhang-11", sentence: "弟弟餓得能吃下一頭牛。", device: "誇張", level: "p5" },
     { id: "kuazhang-12", sentence: "這道菜實在太辣了，我的嘴巴簡直要噴出火來。", device: "誇張", level: "p6" },
-    { id: "kuazhang-13", sentence: "一天沒見到你，就好像過了三年那麼長。", device: "誇張", level: "p6" },
+    { id: "kuazhang-13", sentence: "一天沒見到你，就好像過了三年那麼長。", device: "誇張", level: "p6", alsoDevices: ["比喻"] },
     { id: "kuazhang-14", sentence: "他的笑聲震得整幢大樓都在搖晃。", device: "誇張", level: "s1" },
     { id: "kuazhang-15", sentence: "作業堆得比山還高，我一輩子也做不完。", device: "誇張", level: "s1" },
 
@@ -226,7 +226,7 @@ window.App.Content = window.App.Content || {};
     { id: "duiou-11", sentence: "兩個黃鸝鳴翠柳，一行白鷺上青天。", device: "對偶", level: "p6" },
     { id: "duiou-12", sentence: "勿以善小而不為，勿以惡小而為之。", device: "對偶", level: "p6", alsoDevices: ["對比"] },
     { id: "duiou-13", sentence: "大漠孤煙直，長河落日圓。", device: "對偶", level: "s1" },
-    { id: "duiou-14", sentence: "海內存知己，天涯若比鄰。", device: "對偶", level: "s1" },
+    { id: "duiou-14", sentence: "海內存知己，天涯若比鄰。", device: "對偶", level: "s1", alsoDevices: ["比喻"] },
     { id: "duiou-15", sentence: "山不在高，有仙則名；水不在深，有龍則靈。", device: "對偶", level: "s1" },
 
     { id: "paibi-10", sentence: "春天的花是紅的，夏天的樹是綠的，秋天的果是黃的。", device: "排比", level: "p5" },
@@ -234,7 +234,7 @@ window.App.Content = window.App.Content || {};
     { id: "paibi-12", sentence: "讀書使人明智，讀書使人充實，讀書使人快樂。", device: "排比", level: "p6" },
     { id: "paibi-13", sentence: "我們要學會感恩：感恩父母的養育，感恩老師的教導，感恩朋友的陪伴。", device: "排比", level: "p6" },
     { id: "paibi-14", sentence: "人生需要勇氣去面對，需要智慧去選擇，需要毅力去堅持。", device: "排比", level: "s1" },
-    { id: "paibi-15", sentence: "他用勤勞耕耘土地，用汗水澆灌希望，用雙手創造未來。", device: "排比", level: "s1" },
+    { id: "paibi-15", sentence: "他用勤勞耕耘土地，用汗水澆灌希望，用雙手創造未來。", device: "排比", level: "s1", alsoDevices: ["比喻"] },
 
     { id: "fanwen-10", sentence: "難道你忍心看着朋友受苦而不伸出援手嗎？", device: "反問", level: "p5" },
     { id: "fanwen-11", sentence: "這麼簡單的道理，你怎麼會不明白呢？", device: "反問", level: "p6" },

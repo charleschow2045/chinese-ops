@@ -37,13 +37,17 @@ const uses = (s, name) => s.device === name || also(s).includes(name);
 const clash = (a, b) => CLASHES.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 const same = (a, b) => assert.deepStrictEqual(JSON.parse(JSON.stringify(a)), JSON.parse(JSON.stringify(b)));
 
-// The sentences the user approved as using a second device (階段 9a review). Anything else needs a new approval.
-const APPROVED_ALSO = { "paibi-4": ["比喻"], "duiou-4": ["對比"], "duiou-12": ["對比"] };
+// The 14 sentences the user approved as using a second device (階段 9a, two reviews). Anything else needs a new approval.
+const APPROVED_ALSO = {
+  "paibi-4": ["比喻"], "duiou-4": ["對比"], "duiou-12": ["對比"], // first review
+  "niren-6": ["比喻"], "niren-9": ["比喻"], "kuazhang-9": ["比喻"], "kuazhang-13": ["比喻"], "kuazhang-6": ["比喻"], "paibi-15": ["比喻"], // second review
+  "biyu-14": ["對比"], "duiou-9": ["對比"], "duiou-3": ["對比", "比喻"], "duiou-2": ["比喻"], "duiou-14": ["比喻"],
+};
 const LEVELS = [null, "p5", "p6", "s1"];
 const poolFor = (lv) => (lv ? SENTENCES.filter((s) => s.level === lv) : SENTENCES);
 
 // ---------------------------------------------------------------- content fields
-t("alsoDevices: exactly the approved sentences, each naming an existing, different device", () => {
+t("alsoDevices: exactly the 14 approved sentences, each naming an existing, different device", () => {
   const got = {};
   SENTENCES.forEach((s) => {
     if (s.alsoDevices === undefined) return;
@@ -237,7 +241,7 @@ t("effect-device: the effect belongs to the right option; no two options have cl
 
 // ---------------------------------------------------------------- generator, review sessions and small pools
 t("練習錯題 sessions (chooseFrom = a few sentences): only those sentences are asked about, every rule still holds", () => {
-  const cases = [["paibi-4"], ["duiou-4", "duiou-12"], ["biyu-1", "niren-1", "paibi-4"], ["paibi-4", "duiou-4", "duiou-12"]];
+  const cases = [["paibi-4"], ["duiou-4", "duiou-12"], ["biyu-1", "niren-1", "paibi-4"], ["paibi-4", "duiou-4", "duiou-12"], ["duiou-3"], ["duiou-3", "niren-6", "kuazhang-9"], ["biyu-14", "duiou-2", "duiou-14", "paibi-15", "niren-9", "kuazhang-13", "kuazhang-6", "duiou-9"]];
   cases.forEach((ids) => {
     const choose = ids.map((id) => byId[id]);
     for (let r = 0; r < 120; r++) {
@@ -270,6 +274,14 @@ t("a level-filtered pool (as small as 4 sentences) still gives 15 valid question
 });
 
 // ---------------------------------------------------------------- register (書面語) of the new text
+t("rhetoric content (sentences, tips, definitions, effects, examples) contains no colloquial Cantonese", () => {
+  const bad = /呢個|咩|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻|隔壁條|嗰|咁|好似|攞|畀|瞓|睇/;
+  SENTENCES.forEach((x) => assert.ok(!bad.test(x.sentence), `${x.id}: ${x.sentence}`));
+  DEVICES.forEach((d) => [d.definition, d.tip, d.effect, ...d.examples].forEach((x) => assert.ok(!bad.test(x), `${d.name}: ${x}`)));
+  assert.ok(byId["kuazhang-3"].sentence.includes("隔壁那條街"));
+  assert.ok(byName["設問"].tip.includes("立刻回答"));
+});
+
 t("new strings contain no colloquial Cantonese", () => {
   const files = ["rhetoricQuiz.jsx", "RhetoricModule.jsx"].map((f) => fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8"));
   const bad = /呢個|咩|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻/;
