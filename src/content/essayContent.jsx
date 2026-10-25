@@ -1370,11 +1370,45 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
+  // 階段 9c — groups of golden sentences whose `scenario` / `usage` are close enough that a student could fairly say either sentence fits
+  // the other's situation (e.g. two sentences about 黃昏, two about 感激父母). The essay quiz never puts two sentences of a common group
+  // together as the right answer and a wrong option (情境配金句 options, 用法配對 options, the wrong scenario of an 情境是非 question).
+  // A sentence may sit in several groups; groups are written by id and checked by tests/essay-quiz.test.js (every id exists, 2+ members).
+  // Hand-made on purpose: a text-similarity guard was tried and rejected — it flags pairs that are only worded alike (愛護公物 / 愛護動物)
+  // and misses close ones. Borderline pairs are NOT listed here — they are recorded in CLAUDE.md under 待確認.
+  const ESSAY_SIMILAR_GROUPS = [
+    ["parents-love", "parents-sacrifice", "mother-cold-towel"], // 感激父母（母親）的養育與照顧
+    ["gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study"], // 堅持不放棄
+    ["missing-family", "distant-friendship"], // 思念遠方的親友
+    ["missing-family", "hometown-longing"], // 思念遠方的親人／家鄉
+    ["grateful-teacher", "teacher-white-hair"], // 感激師恩
+    ["school-farewell", "transfer-school", "farewell-sorrow"], // 離別的不捨
+    ["farewell-sorrow", "first-trip-alone"], // 離開親人時的不捨
+    ["time-flies", "childhood-album", "corridor-memory"], // 懷念過去的時光
+    ["old-wine-friendship", "distant-friendship"], // 珍惜朋友的情誼
+    ["rain-pearls", "storm-wind"], // 描寫下雨
+    ["bustling-market", "playground-joy", "beach-play"], // 描寫熱鬧的場面
+    ["busy-city", "mtr-crowd"], // 描寫繁忙擁擠
+    ["nervous-heartbeat", "exam-nerves", "starting-line"], // 描寫緊張
+    ["autumn-leaves", "autumn-valley"], // 描寫秋景
+    ["mountain-dawn", "fishing-village-fog"], // 描寫寧靜的清晨景色
+    ["winter-snow", "winter-breath"], // 描寫寒冬
+    ["no-gain-without-effort", "drop-wears-stone"], // 論證努力、堅持
+    ["knowledge-ladder", "value-of-reading", "never-stop-learning"], // 論證學習、閱讀
+    ["time-management", "plan-ahead"], // 論證善用時間、做事有計劃
+    ["tolerance-wisdom", "respect-views", "empathy-bridge"], // 論證寬容、尊重、同理心
+    ["importance-of-exercise", "early-to-bed", "balanced-diet"], // 論證健康的生活習慣
+    ["frugality-virtue", "waste-food"], // 論證節儉、不浪費
+    ["power-of-words", "online-responsibility"], // 論證言語要謹慎、負責
+    ["finish-line-tears", "first-bike"], // 努力或克服困難後的喜悅
+  ];
+
   const ESSAY_THEMES = ["描寫", "抒情", "論說"];
   const ESSAY_THEME_EMOJI = { 描寫: "🎨", 抒情: "💭", 論說: "💡" };
   const ESSAY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
 
   window.App.Content.ESSAY_ITEMS = ESSAY_ITEMS;
+  window.App.Content.ESSAY_SIMILAR_GROUPS = ESSAY_SIMILAR_GROUPS;
   window.App.Content.ESSAY_THEMES = ESSAY_THEMES;
   window.App.Content.ESSAY_THEME_EMOJI = ESSAY_THEME_EMOJI;
   window.App.Content.ESSAY_LEVEL_LABEL = ESSAY_LEVEL_LABEL;

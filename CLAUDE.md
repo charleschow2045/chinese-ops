@@ -372,16 +372,17 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
     scrollable list, tap to open
   - **detail** — the sentence as a large quote, usage note, applicable
     scenario, "開始練習" button
-  - **practice** — an 8-question mixed quiz: fill-in-the-blank (the
+  - **practice** — a **15-question** mixed quiz (階段 9c: five kinds, 3 of each, built by `src/essayQuiz.jsx` — see "階段 9c" at the end of this
+    file; it was 16 questions of three kinds): fill-in-the-blank (the
     `keyPhrase` is blanked out of the sentence, 4 tap-to-select phrase
     options — correct + 3 sampled from other items' `keyPhrase`),
     scenario-match ("情境：...，以下哪一句金句最適合？", 4 whole-sentence options),
-    and theme classification (shows the sentence, asks 描寫/抒情/論說 — all
-    3 themes always shown, shuffled). Same score-screen/persistence pattern
+    theme classification (shows the sentence, asks 描寫/抒情/論說 — all
+    3 themes always shown, shuffled), plus 用法配對 and 情境是非. Same score-screen/persistence pattern
     as Module 1; results go to `moduleProgress.essay.practiceStats`.
-- **Practice question count doubled from 8 to 16** (`EssayModule.jsx`'s
-  `PracticeSession`) per user feedback ("double up the question") — a
-  plain constant change, no content/schema impact.
+- **Practice question count doubled from 8 to 16** per user feedback ("double up the question"); **階段 9c changed it to 15**
+  (`EssayQuiz.QUESTION_COUNT`; five kinds × 3). Nothing stored depends on the session length (no stage-based 稱號 here — 科舉稱號 and 徽章
+  count finished sessions), so no compatibility measure was needed.
 - Like Module 1, questions are generated at runtime from the content fields
   (no hand-authored "questions" array) — adding more golden sentences only
   requires the fields above (`theme`, `level`, `sentence`, `keyPhrase`,
@@ -1392,7 +1393,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 10 files, **168 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 11 files, **181 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1406,6 +1407,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
+  `essay-quiz.test.js` (13 — 階段 9c: runs `src/essayQuiz.jsx` thousands of times and checks one defensible answer per question, `ESSAY_SIMILAR_GROUPS`, same-theme wrong options, 情境是非 balance; see "階段 9c") ·
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
@@ -1649,3 +1651,53 @@ returns plain objects with `itemId`); the module files only draw them. `chooseFr
   sets, 0 violations of "exactly one defensible answer"**; omission-line poems; synthetic libraries (duplicate line, no annotations, unusable stems, < 4 dynasties); 書面語 scan (no 同). Mutation-checked (each made the file fail,
   then reverted): drop the duplicate-line rule, drop the same-work-lines rule, allow "……" options, fixed kind order, drop the annotation word-overlap rule, drop the 春秋/戰國 rule, drop the 陶淵明 border, drop the same-base-title rule,
   annotation kind without its eligibility repair, keep the closing 「。」 in annotation options.
+
+## 階段 9c — 作文金句：2 種新題型、每次 15 題 (Oct 2026) — 待審核 (built on `claude/elegant-volta-ihb51l`, NOT merged)
+Changes: `src/essayQuiz.jsx` (new, question generation only — plain JavaScript, same pattern as `idiomQuiz.jsx` / `poetryQuiz.jsx`; kinds dealt by `quizPlan.jsx`), `EssayModule.jsx` (renders the objects it returns),
+`essayContent.jsx` (new constant `ESSAY_SIMILAR_GROUPS`), `index.html` (one script tag after `essayContent.jsx`), `tests/essay-quiz.test.js` (new, 13 tests). No storage / backup change, no new stored field.
+- **A session is 15 questions: 3 of each of 5 kinds** in a random order (blocks of five, never the same kind twice in a row), was 16 questions of three kinds: `fill` 填空 · `scenario` 情境配金句 · `theme` 主題分類 ·
+  **`usage` 用法配對** (the sentence is shown, 「這句金句的用法是哪一項？」, options = 4 `usage` texts) · **`scenario-tf` 情境是非** (「情境『…』適合用這句金句：『…』。這個說法正確嗎？」 — 正確／不正確,
+  true ≈ half by the 9a rule; a false claim uses the scenario of an unrelated sentence). 練習錯題 (`chooseFrom`) uses all five kinds; wrong options always come from the whole library when the mistake set is small.
+  No compatibility measure was needed: nothing stored depends on the number of questions per session (no stage-based 稱號 in this module; 科舉稱號 / 徽章 count finished sessions).
+- **Wrong options** (`pickWrong`): never a sentence of a common `ESSAY_SIMILAR_GROUPS` group with the asked one; **same theme preferred**, then the asked pool, then a similar length (so the length of the right
+  phrase / sentence / usage does not give it away); never the same text twice; a wrong 填空 phrase never occurs inside the sentence itself (真實例子：「咬緊牙關」 is inside the 長跑 sentence). The existing 情境配金句 question
+  now uses the same rule (it used to take random other sentences of the pool).
+- **`ESSAY_SIMILAR_GROUPS`** (essayContent.jsx, written by id, **24 groups covering 56 of the 150 sentences**, a sentence may sit in several groups): sentences whose `scenario` / `usage` are close enough
+  that a student could fairly say either sentence fits the other's situation. Hand-made: a text-similarity guard was tried (bigram overlap of scenario / usage) and **rejected** — it flags pairs that are only
+  worded alike (愛護公物 / 愛護動物, 閱讀 / 自律「對個人成長的重要性」) and misses close ones, so it would have been noise. Keyword scans (堅持, 感激, 思念, 不捨, 友誼, …) were used to find pairs the first reading missed.
+  Scenarios, usages, keyPhrases and sentences are all unique (a test enforces it).
+1. parents-love、parents-sacrifice、mother-cold-towel  〔對父母的感激之情 ／ 對父母養育之恩的深切 ／ 生病時媽媽悉心照顧自〕
+2. gritting-teeth、unyielding-spirit、facing-setback、drop-wears-stone、chasing-dreams、late-study  〔面對逆境時堅持不放棄 ／ 身處逆境仍堅持到底的 ／ 遇到挫折仍要堅強面對 ／ 「堅持不懈」的重要 ／ 堅持夢想、勇敢追求目 ／ 深夜獨自溫習時的孤單〕
+3. missing-family、distant-friendship  〔對遠方親人的思念 ／ 對遠方朋友的思念與珍〕
+4. missing-family、hometown-longing  〔對遠方親人的思念 ／ 對家鄉的懷念之情〕
+5. grateful-teacher、teacher-white-hair  〔對老師的感激之情 ／ 看見老師白髮時的感動〕
+6. school-farewell、transfer-school、farewell-sorrow  〔對母校依依不捨的畢業 ／ 轉校時對舊同學的不捨 ／ 與親友離別時難捨難分〕
+7. farewell-sorrow、first-trip-alone  〔與親友離別時難捨難分 ／ 第一次離開家人獨自遠〕
+8. time-flies、childhood-album、corridor-memory  〔對時間流逝、懷念過去 ／ 對童年時光的懷念之情 ／ 想抒發對逝去校園時光〕
+9. old-wine-friendship、distant-friendship  〔珍惜與朋友的情誼 ／ 對遠方朋友的思念與珍〕
+10. rain-pearls、storm-wind  〔下大雨的情景 ／ 狂風暴雨的惡劣天氣〕
+11. bustling-market、playground-joy、beach-play  〔熱鬧的市場或節日場面 ／ 小息時操場上熱鬧的情 ／ 孩子們在沙灘上玩耍的〕
+12. busy-city、mtr-crowd  〔繁忙擁擠的城市街景 ／ 上班上學時段車廂擁擠〕
+13. nervous-heartbeat、exam-nerves、starting-line  〔角色感到十分緊張的時 ／ 考試前忐忑不安的心情 ／ 賽跑開始前緊張的氣氛〕
+14. autumn-leaves、autumn-valley  〔秋天樹葉飄落的情景 ／ 深秋山谷的色彩〕
+15. mountain-dawn、fishing-village-fog  〔山間清晨寧靜清新的景 ／ 晨霧籠罩的漁村景色〕
+16. winter-snow、winter-breath  〔冬天下雪的情景 ／ 寒冷冬日清晨的街頭〕
+17. no-gain-without-effort、drop-wears-stone  〔「努力才能成功」這個 ／ 「堅持不懈」的重要〕
+18. knowledge-ladder、value-of-reading、never-stop-learning  〔「學習知識」對成功的 ／ 「閱讀」對個人成長的 ／ 「要終身學習」〕
+19. time-management、plan-ahead  〔「善用時間」對成功的 ／ 「做事要有計劃」〕
+20. tolerance-wisdom、respect-views、empathy-bridge  〔「寬容待人」的重要性 ／ 「要尊重不同的意見」 ／ 「要有同理心」〕
+21. importance-of-exercise、early-to-bed、balanced-diet  〔「多做運動」的重要性 ／ 「早睡早起」對健康的 ／ 「不應該偏食」〕
+22. frugality-virtue、waste-food  〔「節儉」這種美德的重 ／ 「不應該浪費食物」〕
+23. power-of-words、online-responsibility  〔「說話要謹慎」 ／ 「在網上發言要負責任〕
+24. finish-line-tears、first-bike  〔經過長期努力後成功的 ／ 第一次學會騎單車的喜〕
+- **待確認 — close but NOT put in a group (the user decides):** 堅持 tired-runner (描寫) with the 堅持 group · 感激 grandma-cooking / quiet-support / kind-stranger / silent-father with the 感激父母 group · 母親 mother-hands /
+  mother-growing-old with mother-cold-towel · 思念 empty-rocking-chair (已離世親人) with missing-family; hometown-longing with distant-friendship · 友誼 old-wine-friendship / true-friendship / being-accepted /
+  friends-drift-apart · 挫折 facing-setback with failure-letting-go (釋懷) · 專注 details-decide / stay-focused / plan-ahead and library-mood / chess-elders / stay-focused · 責任 environmental-duty /
+  public-property / sense-of-duty · 學習 knowledge-ladder / apply-knowledge / practice-makes-perfect · 美德 humility-value / politeness-value / frugality-virtue · 寧靜 quiet-night / library-mood /
+  fishing-village-fog · 孤單 lonely-lane / city-night-train / late-study · 合作 teamwork-building / teammates-thanks · 夢想 chasing-dreams / dream-and-action · 成長 growing-cost / life-journey / peace-with-solitude.
+  They can still appear as wrong options next to each other (same-theme preference makes a same-theme neighbour likelier).
+- **Tests:** `tests/essay-quiz.test.js` (13): group ids exist / 2+ members / no duplicate group; unique scenario / usage / keyPhrase / sentence; 15 questions, 3 of each kind, no kind twice in a row (full pool, each level, each theme);
+  random kind order; unique `itemId`s; **5000 sessions over the full pool (also checking wrong options are from the same theme) + 1000 per level and per theme + 1500 練習錯題 sets + 4-sentence pools: every question has exactly one
+  defensible answer, 0 violations**; 情境是非 true share within ±0.05 over 5000 sessions (2 + 1 per session); the 填空 rule (checked on a patched copy of the content because the real library's same-theme pairs never trigger it);
+  書面語 scan. Mutation-checked (each made the file fail, then reverted): drop the group rule, all-true 情境是非, fixed kind order, usage options taking the asked sentence's own usage, scenario options taking the asked
+  sentence, 填空 without the "not inside the sentence" rule, no same-theme preference, a false 情境是非 using the sentence's own scenario.

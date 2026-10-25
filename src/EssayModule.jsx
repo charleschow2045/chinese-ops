@@ -1,7 +1,8 @@
 // Module 2: 作文金句 (Essay Golden Sentences)
 // Three views: list (filter by theme + level) -> detail (sentence, usage,
-// theme/level tags) -> practice (mixed quiz: fill-in-the-blank on the key
-// phrase, scenario-match, theme classification — all tap-to-select).
+// theme/level tags) -> practice (a 15-question mixed quiz of five kinds — fill-in-the-blank
+// on the key phrase, scenario-match, theme classification, usage-match, scenario true/false —
+// built by essayQuiz.jsx; all tap-to-select).
 window.App = window.App || {};
 
 (function () {
@@ -9,7 +10,7 @@ window.App = window.App || {};
   const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.essay;
   const { QuestionBlock } = window.App.QuizQuestion;
-  const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
+  const EssayQuiz = window.App.EssayQuiz;
   const { ESSAY_ITEMS, ESSAY_THEMES, ESSAY_THEME_EMOJI, ESSAY_LEVEL_LABEL } = window.App.Content;
 
   const THEME_FILTERS = [{ key: "all", label: "全部" }, ...ESSAY_THEMES.map((t) => ({ key: t, label: t }))];
@@ -20,57 +21,72 @@ window.App = window.App || {};
     { key: "s1", label: "中一" },
   ];
 
-  function buildFillBlankQuestion(pool, item) {
-    const parts = item.sentence.split(item.keyPhrase);
-    const distractors = sampleOthers(pool, item, 3, (it) => it.keyPhrase);
-    const options = shuffle([item.keyPhrase, ...distractors]);
-    const prompt = (
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" }}>
-          {ESSAY_THEME_EMOJI[item.theme]} {item.theme} — 哪一個詞語/短句才是正確的？
-        </p>
-        <p className="font-serif text-xl leading-relaxed" style={{ fontWeight: 700 }}>
-          {parts[0]}
-          <span className="inline-block mx-1 px-3 py-0.5 rounded-lg font-black align-middle" style={{ background: A2.segTrack, color: A2.accD }}>
-            ▁▁▁▁
-          </span>
-          {parts[1]}
-        </p>
-      </div>
-    );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.keyPhrase) };
-  }
-
-  function buildScenarioQuestion(pool, item) {
-    const distractors = sampleOthers(pool, item, 3, (it) => it.sentence);
-    const options = shuffle([item.sentence, ...distractors]);
-    const prompt = `情境：${item.scenario}，以下哪一句金句最適合？`;
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.sentence) };
-  }
-
-  function buildThemeQuestion(item) {
-    const options = shuffle(ESSAY_THEMES);
-    const prompt = (
-      <div>
-        <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{item.sentence}」</p>
-        <p style={{ fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 }}>這句金句屬於哪一個主題？</p>
-      </div>
-    );
-    return { itemId: item.id, prompt, options, correctIndex: options.indexOf(item.theme) };
+  // The questions themselves are built by essayQuiz.jsx (plain objects, no screen code); this turns one into what QuestionBlock draws:
+  // a small heading, the stem (blanked sentence / the sentence / scenario + sentence) and the question line, depending on the kind.
+  const headingStyle = { fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" };
+  const askStyle = { fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 };
+  function toQuestion(q) {
+    let prompt;
+    switch (q.kind) {
+      case "fill":
+        prompt = (
+          <div>
+            <p style={headingStyle}>
+              {ESSAY_THEME_EMOJI[q.theme]} {q.theme} — 哪一個詞語/短句才是正確的？
+            </p>
+            <p className="font-serif text-xl leading-relaxed" style={{ fontWeight: 700 }}>
+              {q.before}
+              <span className="inline-block mx-1 px-3 py-0.5 rounded-lg font-black align-middle" style={{ background: A2.segTrack, color: A2.accD }}>
+                ▁▁▁▁
+              </span>
+              {q.after}
+            </p>
+          </div>
+        );
+        break;
+      case "theme":
+        prompt = (
+          <div>
+            <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{q.sentence}」</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      case "usage":
+        prompt = (
+          <div>
+            <p style={headingStyle}>用法配對</p>
+            <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>「{q.sentence}」</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      case "scenario-tf":
+        prompt = (
+          <div>
+            <p style={headingStyle}>情境是非</p>
+            <p className="text-xl leading-relaxed" style={{ fontWeight: 700, margin: "0 0 4px" }}>情境『{q.scenario}』適合用這句金句：</p>
+            <p className="font-serif text-xl leading-relaxed mb-2" style={{ fontWeight: 700 }}>『{q.sentence}』{/[。！？]$/.test(q.sentence) ? "" : "。"}</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      default:
+        // scenario: one plain question line
+        prompt = q.ask;
+    }
+    return { itemId: q.itemId, prompt, options: q.options, correctIndex: q.correctIndex };
   }
 
   // `chooseFrom` restricts which sentences 練習錯題 asks about; `pool`
   // still supplies distractors — same pattern as the other runtime-generated
   // modules (see RhetoricModule for the fullest explanation).
   function buildQuestions(pool, count, chooseFrom) {
-    const builders = [buildFillBlankQuestion, buildScenarioQuestion, (p, item) => buildThemeQuestion(item)];
-    const chosen = sampleWithRepeats(chooseFrom || pool, count);
-    return chosen.map((item, i) => builders[i % builders.length](pool, item));
+    return EssayQuiz.buildQuestions(pool, count, chooseFrom).map(toQuestion);
   }
 
   function PracticeSession({ pool, chooseFrom, onBack, onFinish, onAnswerItem }) {
-    const QUESTION_COUNT = 16; // doubled per user feedback ("double up the question")
-    const [questions] = useState(() => buildQuestions(pool, QUESTION_COUNT, chooseFrom));
+    const [questions] = useState(() => buildQuestions(pool, EssayQuiz.QUESTION_COUNT, chooseFrom));
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);
     const [correctCount, setCorrectCount] = useState(0);
