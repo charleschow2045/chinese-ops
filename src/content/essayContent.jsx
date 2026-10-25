@@ -1378,7 +1378,7 @@ window.App.Content = window.App.Content || {};
   // and misses close ones. Borderline pairs are NOT listed here — they are recorded in CLAUDE.md under 待確認.
   const ESSAY_SIMILAR_GROUPS = [
     ["parents-love", "parents-sacrifice", "mother-cold-towel"], // 感激父母（母親）的養育與照顧
-    ["gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study"], // 堅持不放棄
+    ["gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study", "tired-runner"], // 堅持不放棄
     ["missing-family", "distant-friendship"], // 思念遠方的親友
     ["missing-family", "hometown-longing"], // 思念遠方的親人／家鄉
     ["grateful-teacher", "teacher-white-hair"], // 感激師恩
@@ -1401,6 +1401,18 @@ window.App.Content = window.App.Content || {};
     ["frugality-virtue", "waste-food"], // 論證節儉、不浪費
     ["power-of-words", "online-responsibility"], // 論證言語要謹慎、負責
     ["finish-line-tears", "first-bike"], // 努力或克服困難後的喜悅
+    ["grandma-cooking", "quiet-support", "kind-stranger", "silent-father"], // 感激身邊人的關愛與幫助
+    ["mother-hands", "mother-growing-old"], // 母親的辛勞與衰老
+    ["empty-rocking-chair", "hometown-longing", "distant-friendship"], // 思念
+    ["old-wine-friendship", "true-friendship", "being-accepted"], // 友誼
+    ["facing-setback", "failure-letting-go"], // 面對挫折與失敗
+    ["details-decide", "stay-focused", "plan-ahead"], // 做事的態度：細心、專心、有計劃
+    ["knowledge-ladder", "apply-knowledge", "practice-makes-perfect"], // 論證學習與練習
+    ["lonely-lane", "city-night-train", "late-study"], // 孤單
+    ["chasing-dreams", "dream-and-action"], // 夢想
+    ["environmental-duty", "public-property", "sense-of-duty"], // 論證責任
+    ["quiet-night", "library-mood", "fishing-village-fog"], // 描寫寧靜
+    ["teamwork-building", "teammates-thanks"], // 團結合作
   ];
 
   const ESSAY_THEMES = ["描寫", "抒情", "論說"];

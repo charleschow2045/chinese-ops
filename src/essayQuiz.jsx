@@ -97,7 +97,12 @@ window.App = window.App || {};
     const n = count || QUESTION_COUNT;
     const source = chooseFrom && chooseFrom.length ? chooseFrom : pool;
     const chosen = sampleWithRepeats(source, n);
-    const plan = planKinds(chosen, KINDS, () => true);
+    // A kind that cannot get enough unrelated wrong options for an item (never the case with the real library; kept as a safety net so a
+    // question never has fewer than 4 options or a defensible second answer) is moved to another slot or replaced by another kind.
+    const wrongNeeded = { fill: 3, scenario: 3, usage: 3, "scenario-tf": 1 };
+    const textOf = { fill: (c) => c.keyPhrase, scenario: (c) => c.sentence, usage: (c) => c.usage, "scenario-tf": (c) => c.scenario };
+    const enough = (kind, item) => !wrongNeeded[kind] || pickWrong(pool, item, wrongNeeded[kind], textOf[kind]).length >= wrongNeeded[kind];
+    const plan = planKinds(chosen, KINDS, enough);
     const flags = trueFalseFlags(plan.filter((p) => p.kind === "scenario-tf").length);
     let tf = 0;
     return plan.map(({ kind, item }) => {

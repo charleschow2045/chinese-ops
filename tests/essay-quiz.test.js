@@ -203,8 +203,9 @@ t("練習錯題 (chooseFrom a small set, pool = whole library): only those sente
 });
 
 t("a pool of only 4 sentences still gives 15 valid questions (wrong options topped up from the whole library)", () => {
-  for (let r = 0; r < 300; r++) {
-    const pool = ITEMS.slice(r % 100, (r % 100) + 4);
+  // every window of 4 consecutive sentences (147 pools) x 10 sessions; the groups added after the 階段 9c review are among them
+  for (let r = 0; r < 1470; r++) {
+    const pool = ITEMS.slice(r % 147, (r % 147) + 4);
     const qs = Q.buildQuestions(pool, 15);
     assert.strictEqual(qs.length, 15);
     assert.deepStrictEqual(sessionProblems(qs).filter((p) => !/same kind twice/.test(p)), []);
@@ -246,6 +247,7 @@ t("fill: a wrong phrase never occurs inside the sentence (checked with a patched
     const g = C.ESSAY_ITEMS.find((i) => i.id === "gritting-teeth");
     g.theme = "描寫";
     g.keyPhrase = "他咬緊牙關，汗水沿着"; // a phrase of the same length and theme that occurs inside the 長跑 sentence
+    C.ESSAY_SIMILAR_GROUPS.length = 0; // (the two sentences are in one group in the real content, which would hide the rule)
   });
   const runner = App2.Content.ESSAY_ITEMS.find((i) => i.id === "tired-runner");
   let fills = 0;
@@ -257,6 +259,59 @@ t("fill: a wrong phrase never occurs inside the sentence (checked with a patched
     });
   }
   assert.ok(fills >= 3000);
+});
+
+t("when a sentence has too few unrelated sentences to offer, kinds that need wrong options are replaced: still 15 valid questions, never fewer than 4 options", () => {
+  // patched copy of the content: every sentence is in one single group, so no kind that needs a wrong option can be built
+  const App3 = load(4242, (C) => {
+    C.ESSAY_SIMILAR_GROUPS.length = 0;
+    C.ESSAY_SIMILAR_GROUPS.push(C.ESSAY_ITEMS.map((i) => i.id));
+  });
+  for (let r = 0; r < 300; r++) {
+    const qs = App3.EssayQuiz.buildQuestions(App3.Content.ESSAY_ITEMS, 15);
+    assert.strictEqual(qs.length, 15);
+    qs.forEach((q) => {
+      assert.ok(q.kind === "theme", "only 主題分類 can be built, got " + q.kind);
+      assert.strictEqual(q.options.length, 3);
+      assert.ok(q.correctIndex >= 0);
+    });
+  }
+  // a group that leaves only a few unrelated sentences: whatever kinds are built still have 4 distinct options and one answer
+  const App4 = load(99, (C) => {
+    const ids = C.ESSAY_ITEMS.map((i) => i.id);
+    C.ESSAY_SIMILAR_GROUPS.length = 0;
+    C.ESSAY_SIMILAR_GROUPS.push(ids.slice(0, ids.length - 2)); // only 2 sentences outside the group
+  });
+  for (let r = 0; r < 500; r++) {
+    const qs = App4.EssayQuiz.buildQuestions(App4.Content.ESSAY_ITEMS, 15);
+    assert.strictEqual(qs.length, 15);
+    qs.forEach((q) => {
+      if (q.kind === "fill" || q.kind === "scenario" || q.kind === "usage") assert.strictEqual(new Set(q.options).size, 4);
+      assert.ok(q.options.length >= 2 && q.correctIndex >= 0 && q.correctIndex < q.options.length);
+    });
+  }
+});
+
+t("the groups the user approved after the review are present (階段 9c review)", () => {
+  const has = (...ids) => GROUPS.some((g) => ids.every((id) => g.includes(id)));
+  assert.ok(has("gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study", "tired-runner"));
+  assert.ok(has("grandma-cooking", "quiet-support", "kind-stranger", "silent-father"));
+  assert.ok(has("mother-hands", "mother-growing-old"));
+  assert.ok(has("empty-rocking-chair", "hometown-longing", "distant-friendship"));
+  assert.ok(has("old-wine-friendship", "true-friendship", "being-accepted"));
+  assert.ok(has("facing-setback", "failure-letting-go"));
+  assert.ok(has("details-decide", "stay-focused", "plan-ahead"));
+  assert.ok(has("knowledge-ladder", "apply-knowledge", "practice-makes-perfect"));
+  assert.ok(has("lonely-lane", "city-night-train", "late-study"));
+  assert.ok(has("chasing-dreams", "dream-and-action"));
+  assert.ok(has("environmental-duty", "public-property", "sense-of-duty"));
+  assert.ok(has("quiet-night", "library-mood", "fishing-village-fog"));
+  assert.ok(has("teamwork-building", "teammates-thanks"));
+  // deliberately NOT grouped (still 待確認)
+  const together = (a, b) => GROUPS.some((g) => g.includes(a) && g.includes(b));
+  assert.ok(!together("humility-value", "politeness-value") && !together("politeness-value", "frugality-virtue") && !together("humility-value", "frugality-virtue"));
+  assert.ok(!together("growing-cost", "life-journey") && !together("life-journey", "peace-with-solitude") && !together("growing-cost", "peace-with-solitude"));
+  GROUPS.forEach((g) => assert.ok(!g.includes("friends-drift-apart"), "friends-drift-apart must stay ungrouped"));
 });
 
 // ---------------------------------------------------------------- 書面語
