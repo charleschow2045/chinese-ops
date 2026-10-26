@@ -2,14 +2,16 @@
 // questions here are hand-authored per story (fixed, not generated at
 // runtime), since each story's facts are unique. Flow: list (tabbed by
 // 類別) -> read the story -> answer that story's own questions -> completion
-// summary.
+// summary. The list also offers a 綜合練習 (階段 9d): 15 generated questions of five
+// kinds over all stories, built by historyQuiz.jsx.
 window.App = window.App || {};
 
 (function () {
   const { useState } = React;
   const { PaperCard, InkButton, INK, MODULE_ACCENTS, A2, A2BackButton, MODULE_ICONS, useScrollToTop, A2Section, A2Header } = window.App.UI;
   const ACCENT = MODULE_ACCENTS.history;
-  const { FixedQuizFlow } = window.App.QuizQuestion;
+  const { FixedQuizFlow, QuestionBlock } = window.App.QuizQuestion;
+  const HistoryQuiz = window.App.HistoryQuiz;
   const { HISTORY_ITEMS, HISTORY_CATEGORIES, HISTORY_WAR_POEM_IDS, HISTORY_POEM_STORY_LINKS, POETRY_ITEMS } = window.App.Content;
   const { AudioButtons } = window.App;
 
@@ -206,10 +208,145 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ categories, category, setCategory, isWarPoems, mistakes, onlyMistakes, setOnlyMistakes, filtered, openItem, openPoem, onBack }) {
+  // ---------------------------------------------------------------------
+  // 綜合練習 (階段 9d). historyQuiz.jsx builds plain question objects; toQuestion turns one into what QuestionBlock draws.
+  // ---------------------------------------------------------------------
+  const headingStyle = { fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" };
+  const askStyle = { fontSize: 16, fontWeight: 700, color: A2.sub, margin: 0 };
+  const quoteStyle = { fontSize: 18, lineHeight: 1.8, fontWeight: 700, margin: "0 0 8px" };
+  function toQuestion(q) {
+    let prompt;
+    switch (q.kind) {
+      case "person":
+        prompt = (
+          <div>
+            <p style={headingStyle}>人物配故事</p>
+            <p className="font-serif" style={{ ...quoteStyle, marginBottom: 4 }}>《{q.title}》</p>
+            <p className="font-serif" style={quoteStyle}>{q.intro}</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      case "period":
+        prompt = (
+          <div>
+            <p style={headingStyle}>朝代配故事</p>
+            <p className="font-serif" style={quoteStyle}>《{q.title}》</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      case "order":
+        prompt = (
+          <div>
+            <p style={headingStyle}>事件先後</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      case "lesson":
+        prompt = (
+          <div>
+            <p style={headingStyle}>啟示配故事</p>
+            <p className="font-serif" style={quoteStyle}>「{q.lesson}」</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+        break;
+      default:
+        prompt = (
+          <div>
+            <p style={headingStyle}>故事猜標題</p>
+            <p className="font-serif" style={quoteStyle}>{q.passage}</p>
+            <p style={askStyle}>{q.ask}</p>
+          </div>
+        );
+    }
+    return { itemId: q.itemId, prompt, options: q.options, correctIndex: q.correctIndex };
+  }
+
+  // A wrong answer puts the story into 歷史錯題本 (story granularity, like the one-story flow). A RIGHT answer never takes it out: the
+  // mixed practice asks one question per story, which does not show that the whole story is understood — only a perfect run of the story's
+  // own questions (finishQuestions) clears a mistake. So onAnswerItem is called with `false` only.
+  function MixedPracticeSession({ onBack, onFinish, onAnswerItem }) {
+    const [questions] = useState(() => HistoryQuiz.buildQuestions(HISTORY_ITEMS, HistoryQuiz.QUESTION_COUNT).map(toQuestion));
+    const [qIndex, setQIndex] = useState(0);
+    const [selected, setSelected] = useState(null);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [done, setDone] = useState(false);
+
+    const q = questions[qIndex];
+    const answered = selected !== null;
+    const isLast = qIndex === questions.length - 1;
+
+    function selectOption(i) {
+      if (answered) return;
+      setSelected(i);
+      if (i === q.correctIndex) setCorrectCount((c) => c + 1);
+      else onAnswerItem(q.itemId, false);
+    }
+
+    function handleNext() {
+      if (isLast) {
+        setDone(true);
+      } else {
+        setQIndex((x) => x + 1);
+        setSelected(null);
+      }
+    }
+
+    if (done) {
+      return (
+        <PaperCard accent={ACCENT} className="text-center">
+          <p className="text-5xl mb-2">🎉</p>
+          <h2 className="text-xl mb-1" style={{ color: A2.ink, fontWeight: 900, fontFamily: A2.font }}>
+            練習完成！
+          </h2>
+          <p className="text-lg font-bold mb-4" style={{ color: A2.accD, fontFamily: A2.font }}>
+            答對了 {correctCount} / {questions.length} 題
+          </p>
+          <InkButton accent={ACCENT} className="w-full" onClick={() => onFinish(correctCount, questions.length)}>
+            完成
+          </InkButton>
+        </PaperCard>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <A2BackButton label="← 返回" onClick={onBack} />
+          <span style={{ color: A2.sub, fontSize: 14, fontWeight: 700, fontFamily: A2.font }}>
+            綜合練習 · 第 {qIndex + 1} / {questions.length} 題
+          </span>
+        </div>
+
+        <PaperCard accent={ACCENT}>
+          <QuestionBlock q={q} selected={selected} onSelect={selectOption} accent={ACCENT} />
+          {answered && (
+            <InkButton accent={ACCENT} className="w-full mt-4" onClick={handleNext}>
+              {isLast ? "完成 🎉" : "下一題 →"}
+            </InkButton>
+          )}
+        </PaperCard>
+      </div>
+    );
+  }
+
+  function ListViewA2({ categories, category, setCategory, isWarPoems, mistakes, onlyMistakes, setOnlyMistakes, filtered, openItem, openPoem, onBack, onStartMixed }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="history" title="中國歷史故事" onBack={onBack} />
+
+        <PaperCard>
+          <h2 style={{ ...A2_LABEL, marginBottom: 4 }}>綜合練習</h2>
+          <p style={{ fontSize: 14, color: A2.sub, margin: "0 0 10px", lineHeight: 1.7 }}>
+            從全部 {HISTORY_ITEMS.length} 個故事中混合出題，共 {HistoryQuiz.QUESTION_COUNT} 題：人物、朝代、先後、啟示和標題。
+          </p>
+          <InkButton accent={ACCENT} className="w-full" onClick={onStartMixed}>
+            開始綜合練習 🎯
+          </InkButton>
+        </PaperCard>
 
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>類別</h2>
@@ -296,7 +433,7 @@ window.App = window.App || {};
   // where the story page's back button returns to.
   function HistoryModule({ mistakes, onBack, onRecordPractice, onAnswerItem, nav, onNavigate }) {
     const navStory = nav && STORIES_BY_ID[nav.storyId] ? nav.storyId : null;
-    const [view, setView] = useState(navStory ? "story" : "list"); // list | story | questions
+    const [view, setView] = useState(navStory ? "story" : "list"); // list | story | questions | mixed
     useScrollToTop(view);
     // A tab per category that has stories; 戰爭詩詞 holds poems (by id), not stories.
     const categories = HISTORY_CATEGORIES.filter((c) =>
@@ -344,6 +481,15 @@ window.App = window.App || {};
       setView("list");
     }
 
+    function finishMixed(correctCount, total) {
+      onRecordPractice(correctCount, total);
+      setView("list");
+    }
+
+    if (view === "mixed") {
+      return <MixedPracticeSession onBack={() => setView("list")} onFinish={finishMixed} onAnswerItem={onAnswerItem} />;
+    }
+
     if (view === "story" && selectedItem) {
       return (
         <StoryDetailA2
@@ -380,6 +526,7 @@ window.App = window.App || {};
         openItem={openItem}
         openPoem={openPoem}
         onBack={onBack}
+        onStartMixed={() => setView("mixed")}
       />
     );
   }

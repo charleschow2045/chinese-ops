@@ -2980,10 +2980,163 @@ window.App.Content = window.App.Content || {};
   const HISTORY_SOURCES = ["史書記載", "小說演義", "筆記軼事", "神話與民間傳說"];
   const HISTORY_CATEGORIES = ["戰爭故事", "治國與時代發展", "計謀", "品德與勵志", "戰爭詩詞"];
 
+  // ---------------------------------------------------------------------
+  // 階段 9d — data used ONLY by the 綜合練習 question generator (src/historyQuiz.jsx). Nothing here is shown on a story page.
+  // ---------------------------------------------------------------------
+
+  // 朝代／時期 歸一對照: every distinct raw `period` string -> the label offered as an answer option, and `families` = the eras it
+  // belongs to or touches (one label = one family set: 戰國 touches 秦漢 because the last years of 戰國 are the 秦 conquest). Two options of one question must have DISJOINT families, so 春秋 and 戰國 (both "zhou"), 北宋 and 宋朝
+  // ("song"), 西漢 and 東漢 ("qinhan"), 南宋 and 元朝 ("yuan"), 東漢末年 and 三國 ("sanguo") … never appear together.
+  const HISTORY_PERIOD_NORM = {
+    神話傳說: { label: "神話傳說", families: ["myth"] },
+    夏朝: { label: "夏朝", families: ["xia", "myth"] },
+    商朝: { label: "商朝", families: ["shang"] },
+    西周: { label: "西周", families: ["zhou"] },
+    春秋: { label: "春秋時期", families: ["zhou"] },
+    春秋末年: { label: "春秋時期", families: ["zhou"] },
+    戰國: { label: "戰國時期", families: ["zhou", "qinhan"] },
+    "戰國（秦國）": { label: "戰國時期", families: ["zhou", "qinhan"] },
+    "戰國／秦": { label: "戰國時期", families: ["zhou", "qinhan"] },
+    秦: { label: "秦朝", families: ["qinhan"] },
+    秦末: { label: "秦朝末年", families: ["qinhan"] },
+    "秦末／楚漢相爭": { label: "秦末漢初", families: ["qinhan"] },
+    楚漢相爭: { label: "秦末漢初", families: ["qinhan"] },
+    西漢: { label: "西漢", families: ["qinhan"] },
+    漢朝: { label: "漢朝", families: ["qinhan"] },
+    東漢: { label: "東漢", families: ["qinhan"] },
+    東漢末年: { label: "東漢末年", families: ["qinhan", "sanguo"] },
+    "東漢末年／三國": { label: "東漢末年", families: ["qinhan", "sanguo"] },
+    三國: { label: "三國時期", families: ["sanguo"] },
+    晉朝: { label: "晉朝", families: ["jinnbc", "sanguo"] },
+    "東晉／十六國": { label: "東晉", families: ["jinnbc"] },
+    北魏: { label: "北魏", families: ["jinnbc"] },
+    南北朝: { label: "南北朝", families: ["jinnbc"] },
+    隋: { label: "隋朝", families: ["sui"] },
+    唐: { label: "唐朝", families: ["tang"] },
+    唐朝: { label: "唐朝", families: ["tang"] },
+    北宋: { label: "北宋", families: ["song"] },
+    北宋末年: { label: "北宋", families: ["song"] },
+    宋: { label: "宋朝", families: ["song"] },
+    宋朝: { label: "宋朝", families: ["song"] },
+    南宋: { label: "南宋", families: ["song", "yuan"] },
+    元朝: { label: "元朝", families: ["yuan"] },
+    元末明初: { label: "元末明初", families: ["yuan", "ming"] },
+    明: { label: "明朝", families: ["ming"] },
+    明朝: { label: "明朝", families: ["ming"] },
+    清朝: { label: "清朝", families: ["qing"] },
+    清末: { label: "清朝末年", families: ["qing"] },
+    清末民初: { label: "清末民初", families: ["qing", "minguo"] },
+  };
+
+  // Stories whose lessons (`lesson`) are close enough that a student could fairly say either story fits the other's lesson.
+  // A story of a common group is never a wrong option in 「這句啟示最適合哪一個故事？」. Written by id; a story may sit in several groups.
+  const HISTORY_SIMILAR_GROUPS = [
+    // 堅持不懈、有恆心
+    ["jingwei-tianhai", "da-yu-zhi-shui", "woxin-changdan", "tiechu-mocheng-zhen", "xuan-zang-xi-xing", "zhang-qian-chu-shi-xi-yu", "si-ma-qian-shi-ji"],
+    // 刻苦勤學
+    ["zaobi-toughuang", "nangying-yingxue", "fan-zhong-yan-duan-ji-hua-zhou", "song-lian-jie-shu", "chengmen-lixue"],
+    // 孝順、敬愛長輩
+    ["huang-xiang-wen-xi", "wobing-qiuli", "mulan-cong-jun", "kongrong-rangli"],
+    // 順應自然、疏導
+    ["da-yu-zhi-shui", "li-bing-du-jiang-yan"],
+    // 求賢、用人、納諫
+    ["yan-zhao-wang-qian-jin-mai-gu", "san-gu-mao-lu", "zhen-guan-zhi-zhi", "chu-zhuang-wang-yi-ming-jing-ren", "guan-bao-zhi-jiao", "kai-yuan-sheng-shi"],
+    // 變法、改革
+    ["shang-yang-bian-fa", "wang-anshi-bianfa", "zhang-ju-zheng-gai-ge", "wei-xiao-wen-di-qian-du", "zhao-wuling-wang-hufu-qishe", "guan-zhong-zhi-qi"],
+    // 善用計謀、抓住對方弱點，以弱勝強
+    ["tianji-saima", "wei-wei-jiu-zhao", "tian-dan-huo-niu-zhen", "guan-du-zhi-zhan", "chibi-zhizhan", "cao-chuan-jie-jian", "feishui-zhizhan", "gai-xia-zhi-zhan", "zeng-bing-jian-zao", "han-xin-bei-shui-yi-zhan"],
+    // 驕傲輕敵必敗
+    ["zeng-bing-jian-zao", "hongmen-yan", "chibi-zhizhan", "feishui-zhizhan"],
+    // 不留退路、背水一戰
+    ["ju-lu-zhi-zhan", "han-xin-bei-shui-yi-zhan"],
+    // 臨危冷靜、機智
+    ["sima-guang-za-gang", "kong-cheng-ji", "jiang-gan-dao-shu", "tian-dan-huo-niu-zhen", "guo-zi-yi-dan-qi-tui-hui-he"],
+    // 多動腦筋解難題、創意
+    ["cao-chong-cheng-xiang", "sima-guang-za-gang", "cao-chuan-jie-jian", "cai-lun-zao-zhi", "wangmei-zhike", "tianji-saima"],
+    // 誠信、守諾
+    ["tui-bi-san-she", "zeng-zi-sha-zhi", "song-lian-jie-shu", "feng-huo-xi-zhu-hou"],
+    // 為政愛民、休養生息
+    ["shang-tang-wang-kai-san-mian", "wen-jing-zhi-zhi", "guang-wu-zhong-xing", "zhen-guan-zhi-zhi"],
+    // 君主荒廢朝政、沉迷安逸而衰亡
+    ["feng-huo-xi-zhu-hou", "jingkang-zhinan", "anshi-zhiluan", "lebu-sishu", "kai-yuan-sheng-shi"],
+    // 濫用民力、失去民心
+    ["sui-da-yun-he", "qin-shihuang-tongyi"],
+    // 忠誠、氣節
+    ["su-wu-mu-yang", "yue-fei-jing-zhong-bao-guo", "wen-tian-xiang-kang-yuan", "jing-ke-ci-qin-wang", "wei-qing-huo-qu-bing-kang-xiongnu"],
+    // 民族、國家之間的友好往來
+    ["wang-zhao-jun-chu-sai", "wencheng-gongzhu-ruzang", "zhenghe-xiaxiyang", "zhang-qian-chu-shi-xi-yu", "guo-zi-yi-dan-qi-tui-hui-he"],
+    // 親身考察、嚴謹求證
+    ["li-shi-zhen-ben-cao-gang-mu", "xu-xia-ke"],
+    // 改良技術、創新
+    ["cai-lun-zao-zhi", "huang-dao-po", "zhan-tian-you-jing-zhang-tie-lu"],
+    // 教養孩子
+    ["meng-mu-san-qian", "zeng-zi-sha-zhi"],
+    // 軍紀嚴明
+    ["zhou-ya-fu-xi-liu-ying", "qi-jiguang-kang-wo"],
+    // 勇於承擔、為民除害
+    ["nvwa-butian", "houyi-sheri", "da-yu-zhi-shui"],
+    // 法制、制度
+    ["shang-yang-bian-fa", "zhang-ju-zheng-gai-ge", "bei-jiu-shi-bing-quan"],
+    // 以德服人、爭取人心
+    ["qi-qin-meng-huo", "kang-xi-ping-san-fan", "xue-rengui-san-jian-ding-tianshan", "guo-zi-yi-dan-qi-tui-hui-he", "shang-tang-wang-kai-san-mian"],
+  ];
+
+  // Stories about one and the same event (or one tight chain of events). In 「故事猜標題」 a story of the same group is never a wrong
+  // option. (Stories that share a named person are also excluded automatically by historyQuiz.jsx.)
+  const HISTORY_SAME_EVENT_GROUPS = [
+    ["ju-lu-zhi-zhan", "hongmen-yan", "an-du-chen-cang", "han-xin-bei-shui-yi-zhan", "gai-xia-zhi-zhan"],
+    ["chibi-zhizhan", "jiang-gan-dao-shu", "cao-chuan-jie-jian"],
+    ["tianji-saima", "wei-wei-jiu-zhao", "zeng-bing-jian-zao"],
+    ["wanbi-guizhao", "fujing-qingzui"],
+    ["guan-bao-zhi-jiao", "guan-zhong-zhi-qi"],
+    ["xuanwumen-zhibian", "zhen-guan-zhi-zhi", "wencheng-gongzhu-ruzang", "xuan-zang-xi-xing"],
+    ["kai-yuan-sheng-shi", "anshi-zhiluan", "guo-zi-yi-dan-qi-tui-hui-he"],
+    ["san-gu-mao-lu", "qi-qin-meng-huo", "kong-cheng-ji", "cao-chuan-jie-jian"],
+    ["jing-ke-ci-qin-wang", "qin-shihuang-tongyi"],
+    ["jingkang-zhinan", "yue-fei-jing-zhong-bao-guo"],
+    ["zhang-qian-chu-shi-xi-yu", "wei-qing-huo-qu-bing-kang-xiongnu", "su-wu-mu-yang", "si-ma-qian-shi-ji"],
+  ];
+
+  // 人物配故事 helpers. A `characters` entry is either a named person or a generic group / relative that can never be an option.
+  const HISTORY_GENERIC_CHARACTERS = [
+    "百姓", "各地諸侯", "六國君主", "革命黨人", "施工的工人", "寺院僧人", "黎族婦女", "農夫、漁夫、獵人", "跌進缸裏的小孩", "士兵", "老婆婆",
+    "鄰居", "父親", "兄長", "繼母", "秦王", "趙王", "齊王", "楚王", "匈奴單于", "回紇首領", "太子師傅", "戚家軍", "英國商人",
+    "黃香的父親", "曾子的妻子", "木蘭的父親", "徐霞客的母親",
+  ];
+  // Different names of one person: a name is "the same person" as every name in its group (and as its own （…） part).
+  const HISTORY_CHARACTER_ALIASES = [
+    ["秦始皇（嬴政）", "嬴政", "秦始皇"],
+    ["唐太宗", "李世民"],
+    ["唐玄宗", "李隆基"],
+    ["唐高祖", "李淵"],
+    ["宋太祖", "趙匡胤"],
+    ["孝文帝", "拓跋宏"],
+    ["漢武帝", "劉徹"],
+    ["劉秀", "光武帝"],
+    ["宋高宗（趙構）", "趙構"],
+    ["晉文公（重耳）", "重耳"],
+    ["女娃（精衛）", "精衛"],
+    ["漢文帝", "劉恆"],
+  ];
+  // A generic ruler ("秦王") may be one of these named rulers, which therefore must not be a wrong option for a story listing it.
+  const HISTORY_RULER_ALIASES = {
+    秦王: ["秦昭襄王", "秦始皇（嬴政）", "嬴政"],
+    趙王: ["趙武靈王"],
+    齊王: ["齊桓公"],
+    楚王: ["楚莊王", "楚成王"],
+    匈奴單于: ["呼韓邪單于"],
+  };
+
   window.App.Content.HISTORY_ITEMS = HISTORY_ITEMS;
   window.App.Content.HISTORY_LEVEL_LABEL = HISTORY_LEVEL_LABEL;
   window.App.Content.HISTORY_CATEGORIES = HISTORY_CATEGORIES;
   window.App.Content.HISTORY_SOURCES = HISTORY_SOURCES;
   window.App.Content.HISTORY_WAR_POEM_IDS = HISTORY_WAR_POEM_IDS;
   window.App.Content.HISTORY_POEM_STORY_LINKS = HISTORY_POEM_STORY_LINKS;
+  window.App.Content.HISTORY_PERIOD_NORM = HISTORY_PERIOD_NORM;
+  window.App.Content.HISTORY_SIMILAR_GROUPS = HISTORY_SIMILAR_GROUPS;
+  window.App.Content.HISTORY_SAME_EVENT_GROUPS = HISTORY_SAME_EVENT_GROUPS;
+  window.App.Content.HISTORY_GENERIC_CHARACTERS = HISTORY_GENERIC_CHARACTERS;
+  window.App.Content.HISTORY_CHARACTER_ALIASES = HISTORY_CHARACTER_ALIASES;
+  window.App.Content.HISTORY_RULER_ALIASES = HISTORY_RULER_ALIASES;
 })();
