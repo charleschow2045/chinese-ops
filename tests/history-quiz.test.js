@@ -472,13 +472,15 @@ t("人物配故事：干擾人物的最近故事與該故事相差 ≥100 年（
   assert.strictEqual(persons, 15000);
 });
 
-t("HISTORY_PERSON_NOT_OPTION：id 和人物都存在；排除表內的人物出現 0 次（每個故事 1500 輪；另外全庫 5000 輪也逐題檢查）", () => {
+t("HISTORY_PERSON_NOT_OPTION：id 和人物都存在；排除表內的人物出現 0 次（表內每個故事 5000 輪；另外全庫 5000 輪也逐題檢查）", () => {
   const T = C.HISTORY_PERSON_NOT_OPTION;
-  assert.deepStrictEqual(Object.keys(T).sort(), ["chang-ping-zhi-zhan", "chu-long-shuo-zhao-tai-hou", "xuanwumen-zhibian"]);
+  assert.deepStrictEqual(Object.keys(T).sort(), ["chang-ping-zhi-zhan", "chu-long-shuo-zhao-tai-hou", "guang-wu-zhong-xing", "shang-yang-bian-fa", "xuanwumen-zhibian"]);
+  assert.deepStrictEqual(JSON.stringify(T["shang-yang-bian-fa"]), JSON.stringify(["秦始皇（嬴政）"]));
+  assert.deepStrictEqual(JSON.stringify(T["guang-wu-zhong-xing"]), JSON.stringify(["漢景帝", "漢文帝", "漢武帝", "劉邦"]));
   const all = new Set(ITEMS.flatMap((i) => i.characters));
   Object.entries(T).forEach(([id, names]) => { assert(byId[id], id); names.forEach((n) => assert(all.has(n), "unknown person " + n)); });
   for (const [id, names] of Object.entries(T)) {
-    for (let r = 0; r < 1500; r++) {
+    for (let r = 0; r < 5000; r++) {
       Q.buildQuestions([byId[id]], 15).filter((q) => q.kind === "person").forEach((q) => q.options.forEach((o) => assert(!names.some((n) => sameP(n, o)) || q.options[q.correctIndex] === o, id + " offers " + o)));
     }
   }

@@ -3115,6 +3115,8 @@ window.App.Content = window.App.Content || {};
     "chu-long-shuo-zhao-tai-hou": ["秦昭襄王"], // 秦國當時的國君，故事中的秦國就是他的秦國
     "chang-ping-zhi-zhan": ["秦昭襄王"], // 長平之戰的秦軍是秦昭襄王所派
     "xuanwumen-zhibian": ["魏徵"], // 魏徵原是太子李建成的屬下，與玄武門之變有直接關係
+    "shang-yang-bian-fa": ["秦始皇（嬴政）"], // 商鞅變法使秦國強大，為日後秦始皇統一六國打下基礎
+    "guang-wu-zhong-xing": ["漢景帝", "漢文帝", "漢武帝", "劉邦"], // 劉秀是西漢皇室後裔，這些都是漢室先祖
   };
 
   // 人物配故事 helpers. A `characters` entry is either a named person or a generic group / relative that can never be an option.
