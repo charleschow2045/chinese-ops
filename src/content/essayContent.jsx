@@ -1417,7 +1417,7 @@ window.App.Content = window.App.Content || {};
 
   const ESSAY_THEMES = ["描寫", "抒情", "論說"];
   const ESSAY_THEME_EMOJI = { 描寫: "🎨", 抒情: "💭", 論說: "💡" };
-  const ESSAY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const ESSAY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.ESSAY_ITEMS = ESSAY_ITEMS;
   window.App.Content.ESSAY_SIMILAR_GROUPS = ESSAY_SIMILAR_GROUPS;

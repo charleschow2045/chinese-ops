@@ -2973,7 +2973,7 @@ window.App.Content = window.App.Content || {};
       note: "文天祥在五坡嶺兵敗被俘後，被元軍押過零丁洋；元將張弘範要他寫信招降宋軍，他不肯，寫下這首詩表明心志。",
     },
   ];
-  const HISTORY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const HISTORY_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
   // Tab order on the list screen. 戰爭詩詞 has no stories yet, so the module
   // hides any category with zero items.
   // 出處標籤 (see the `source` note in the header).

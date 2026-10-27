@@ -357,6 +357,19 @@ window.App = window.App || {};
     );
   }
 
+  // 階段 10: the level options every module's 程度 filter shows (全部 + every level of Storage.LEVELS) and the one-line note shown when the
+  // chosen level has no content yet (see QuizUtils.itemsForLevel).
+  const LEVEL_FILTERS = [{ key: "all", label: "全部" }].concat(window.App.Storage.LEVELS.map((l) => ({ key: l.key, label: l.label })));
+
+  function A2LevelNotice({ level }) {
+    const lv = window.App.Storage.LEVELS.find((l) => l.key === level);
+    return (
+      <p role="status" style={{ fontFamily: A2.font, fontSize: 14, lineHeight: 1.7, color: A2.sub, margin: "10px 0 0", borderRadius: 12, padding: "8px 12px", background: A2.row, border: `1px solid ${A2.rowBd}` }}>
+        {(lv ? lv.label : "此程度")}內容陸續加入，暫時顯示全部程度的內容
+      </p>
+    );
+  }
+
   function A2Section({ title, children }) {
     return (
       <PaperCard>
@@ -450,6 +463,8 @@ window.App = window.App || {};
     A2Background,
     useScrollToTop,
     A2SegControl,
+    LEVEL_FILTERS,
+    A2LevelNotice,
     A2Section,
     A2Header,
     A2ListRow,

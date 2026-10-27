@@ -1548,7 +1548,7 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
-  const CLASSICAL_PROSE_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const CLASSICAL_PROSE_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.CLASSICAL_PROSE_ITEMS = CLASSICAL_PROSE_ITEMS;
   window.App.Content.CLASSICAL_PROSE_LEVEL_LABEL = CLASSICAL_PROSE_LEVEL_LABEL;

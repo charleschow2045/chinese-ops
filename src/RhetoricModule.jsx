@@ -6,18 +6,12 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.rhetoric;
   const { QuestionBlock } = window.App.QuizQuestion;
   const RhetoricQuiz = window.App.RhetoricQuiz;
   const { RHETORIC_DEVICES, RHETORIC_PRACTICE_SENTENCES } = window.App.Content;
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   // The questions themselves are built by rhetoricQuiz.jsx (plain objects, no screen code); this turns one into what
   // QuestionBlock draws: the sentence (if the question shows one) in serif, then the question line.
@@ -149,7 +143,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filterLevel, setFilterLevel, mistakeItems, startPractice, filteredSentences, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, filterLevel, setFilterLevel, mistakeItems, startPractice, filteredSentences, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="rhetoric" title="修辭手法" onBack={onBack} />
@@ -157,6 +151,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度（影響練習例句）</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filteredSentences)}>
             開始練習 🎯
           </InkButton>
@@ -182,13 +177,9 @@ window.App = window.App || {};
     const [practiceScope, setPracticeScope] = useState(null);
     const [reviewScope, setReviewScope] = useState(null);
 
-    const filteredSentences = useMemo(
-      () =>
-        filterLevel === "all"
-          ? RHETORIC_PRACTICE_SENTENCES
-          : RHETORIC_PRACTICE_SENTENCES.filter((it) => it.level === filterLevel),
-      [filterLevel]
-    );
+    // 階段 10: a level with no practice sentence at all (中二 for now) practises every level instead, with a one-line note
+    const levelView = useMemo(() => itemsForLevel(RHETORIC_PRACTICE_SENTENCES, filterLevel), [filterLevel]);
+    const filteredSentences = levelView.items;
 
     const mistakeItems = useMemo(
       () => RHETORIC_PRACTICE_SENTENCES.filter((it) => (mistakes || []).includes(it.id)),
@@ -231,6 +222,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}
         mistakeItems={mistakeItems}

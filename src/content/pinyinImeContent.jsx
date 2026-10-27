@@ -177,7 +177,7 @@ window.App.Content = window.App.Content || {};
     { char: "狗", pinyin: "gǒu" }, { char: "飛", pinyin: "fēi" }, { char: "門", pinyin: "mén" },
     { char: "開", pinyin: "kāi" }, { char: "熱", pinyin: "rè" },
   ];
-  const PINYIN_IME_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const PINYIN_IME_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.PINYIN_IME_BASICS = BASICS;
   window.App.Content.PINYIN_IME_INTRO = INTRO;

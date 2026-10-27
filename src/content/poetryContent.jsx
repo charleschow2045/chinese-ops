@@ -2434,7 +2434,7 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
-  const LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.POETRY_ITEMS = POETRY_ITEMS;
   window.App.Content.POETRY_LEVEL_LABEL = LEVEL_LABEL;

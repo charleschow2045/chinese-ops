@@ -7,19 +7,13 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useEffect } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop, A2SegControl } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, MODULE_ICONS, useScrollToTop, A2SegControl, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.mandarin;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { SpeechUtils } = window.App;
   const { MANDARIN_ITEMS } = window.App.Content;
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   const ACTIVITIES = [
     { key: "listening", label: "聆聽練習", emoji: "🎧" },
@@ -645,6 +639,9 @@ window.App = window.App || {};
 
   function MandarinHome({ level, onBack, onOpenActivity }) {
     const [filterLevel, setFilterLevel] = useState(level || "all");
+    // 階段 10: a level with no word / sentence / homophone item at all (中二 for now) uses every level, with a one-line note
+    const { MANDARIN_ITEMS: ALL_WORDS, PINYIN_IME_HOMOPHONE_ITEMS: ALL_IME } = window.App.Content;
+    const levelEmpty = itemsForLevel(ALL_WORDS, filterLevel).empty && itemsForLevel(ALL_IME, filterLevel).empty;
 
     const m = MODULE_ICONS.mandarin;
     return (
@@ -660,6 +657,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
         </PaperCard>
 
         <div className="grid grid-cols-2 gap-3">
@@ -696,7 +694,7 @@ window.App = window.App || {};
       setView("home");
     }
 
-    const pool = filterLevel === "all" ? MANDARIN_ITEMS : MANDARIN_ITEMS.filter((it) => it.level === filterLevel);
+    const pool = itemsForLevel(MANDARIN_ITEMS, filterLevel).items;
 
     if (view === "listening") return <ListeningDrill pool={pool} onBack={() => setView("home")} onFinish={finish} />;
     if (view === "pinyin") return <PinyinDrill pool={pool} onBack={() => setView("home")} onFinish={finish} />;

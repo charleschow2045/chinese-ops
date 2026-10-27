@@ -7,20 +7,14 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.essay;
   const { QuestionBlock } = window.App.QuizQuestion;
   const EssayQuiz = window.App.EssayQuiz;
   const { ESSAY_ITEMS, ESSAY_THEMES, ESSAY_THEME_EMOJI, ESSAY_LEVEL_LABEL } = window.App.Content;
 
   const THEME_FILTERS = [{ key: "all", label: "全部" }, ...ESSAY_THEMES.map((t) => ({ key: t, label: t }))];
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
-
   // The questions themselves are built by essayQuiz.jsx (plain objects, no screen code); this turns one into what QuestionBlock draws:
   // a small heading, the stem (blanked sentence / the sentence / scenario + sentence) and the question line, depending on the kind.
   const headingStyle = { fontSize: 15, fontWeight: 700, color: A2.sub, margin: "0 0 8px" };
@@ -192,7 +186,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filterTheme, setFilterTheme, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, filterTheme, setFilterTheme, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="essay" title="作文金句" onBack={onBack} />
@@ -202,6 +196,7 @@ window.App = window.App || {};
           <A2SegControl options={THEME_FILTERS} value={filterTheme} onChange={setFilterTheme} label="主題" />
           <h2 style={{ ...A2_LABEL, margin: "14px 0 8px" }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
             開始隨機練習 🎲
           </InkButton>
@@ -234,12 +229,11 @@ window.App = window.App || {};
     const [practiceScope, setPracticeScope] = useState(null);
     const [reviewScope, setReviewScope] = useState(null);
 
+    // 階段 10: a level with no sentence at all (中二 for now) shows every level instead, with a one-line note
+    const levelView = useMemo(() => itemsForLevel(ESSAY_ITEMS, filterLevel), [filterLevel]);
     const filtered = useMemo(
-      () =>
-        ESSAY_ITEMS.filter(
-          (it) => (filterTheme === "all" || it.theme === filterTheme) && (filterLevel === "all" || it.level === filterLevel)
-        ),
-      [filterTheme, filterLevel]
+      () => levelView.items.filter((it) => filterTheme === "all" || it.theme === filterTheme),
+      [levelView, filterTheme]
     );
 
     const mistakeItems = useMemo(() => ESSAY_ITEMS.filter((it) => (mistakes || []).includes(it.id)), [mistakes]);
@@ -280,6 +274,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filterTheme={filterTheme}
         setFilterTheme={setFilterTheme}
         filterLevel={filterLevel}

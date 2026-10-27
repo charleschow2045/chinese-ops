@@ -26,7 +26,9 @@ const ESSAYS = E.ESSAY_ITEMS;
 const PROSE = P.CLASSICAL_PROSE_ITEMS;
 const READING = RD.READING_ITEMS;
 const PROSE_BATCH3 = ["yan-er-dao-ling", "hua-she-tian-zu", "yu-bang-xiang-zheng", "wang-rong-bu-qu-dao-pang-li", "zeng-zi-sha-zhi", "zao-bi-tou-guang", "lun-yu-lun-xue", "ai-lian-shuo", "lou-shi-ming", "yue-yang-lou-ji-jie-lu"];
-const LEVELS = ["p5", "p6", "s1"];
+// 階段 10: s2 (中二) is a valid level tag but has no content yet (0 items allowed); the "every level has items" checks use FILLED_LEVELS
+const LEVELS = ["p5", "p6", "s1", "s2"];
+const FILLED_LEVELS = ["p5", "p6", "s1"];
 const THEMES = ["描寫", "抒情", "論說"];
 const t = makeRunner("content");
 
@@ -57,7 +59,7 @@ t("rhetoric: practice sentences have unique ids and all required fields", () => 
   }
 });
 
-t("rhetoric: level is only p5 / p6 / s1", () => {
+t("rhetoric: level is only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
   for (const s of SENTENCES) assert.ok(LEVELS.includes(s.level), `${s.id}: level ${s.level}`);
 });
 
@@ -85,7 +87,7 @@ t("rhetoric: no duplicate sentences, and none repeats a device's own example sen
 
 t("rhetoric: every device has sentences at every level (the level filter never starves a device)", () => {
   const n = countBy(SENTENCES, (s) => s.device + "|" + s.level);
-  for (const d of DEVICES) for (const lv of LEVELS) assert.ok(n[d.name + "|" + lv] >= 1, `${d.name} has no ${lv} sentence`);
+  for (const d of DEVICES) for (const lv of FILLED_LEVELS) assert.ok(n[d.name + "|" + lv] >= 1, `${d.name} has no ${lv} sentence`);
 });
 
 t("rhetoric: the three new devices are split 6 / 7 / 7 over 小五 / 小六 / 中一", () => {
@@ -125,7 +127,7 @@ t("essay: 150 items, unique ids, all seven fields present", () => {
   }
 });
 
-t("essay: level is only p5 / p6 / s1 and theme is only 描寫 / 抒情 / 論說", () => {
+t("essay: level is only p5 / p6 / s1 / s2 (s2 may be empty) and theme is only 描寫 / 抒情 / 論說", () => {
   for (const x of ESSAYS) {
     assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
     assert.ok(THEMES.includes(x.theme), `${x.id}: theme ${x.theme}`);
@@ -139,7 +141,7 @@ t("essay: exactly 50 sentences per theme", () => {
 
 t("essay: every theme has sentences at every level", () => {
   const n = countBy(ESSAYS, (x) => x.theme + "|" + x.level);
-  for (const th of THEMES) for (const lv of LEVELS) assert.ok(n[th + "|" + lv] >= 1, `${th} has no ${lv} sentence`);
+  for (const th of THEMES) for (const lv of FILLED_LEVELS) assert.ok(n[th + "|" + lv] >= 1, `${th} has no ${lv} sentence`);
 });
 
 t("essay: keyPhrase occurs in its sentence exactly once (so the blank is drawn once)", () => {
@@ -156,7 +158,7 @@ t("essay: no duplicate sentences, keyPhrases or scenarios (they are quiz options
 });
 
 // ---------------------------------------------------------------- 文言文選讀
-t("prose: 27 passages, unique ids, 9 each of 小五 / 小六 / 中一, level only p5 / p6 / s1", () => {
+t("prose: 27 passages, unique ids, 9 each of 小五 / 小六 / 中一, level only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
   assert.equal(PROSE.length, 27);
   assert.deepEqual(dups(PROSE.map((x) => x.id)), []);
   for (const x of PROSE) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
@@ -237,7 +239,7 @@ const isNumberedPara = (p) => typeof p === "string" || (p && p.numbered !== fals
 const numberedCount = (x) => x.passage.filter(isNumberedPara).length;
 const readingTexts = (q) => [q.prompt, q.explanation, q.hint, q.scheme, q.modelAnswer, ...(q.points || []), ...(q.options || [])].filter(nonEmpty);
 
-t("reading: 34 passages, unique ids, 12 小五 / 10 小六 / 12 中一, level only p5 / p6 / s1", () => {
+t("reading: 34 passages, unique ids, 12 小五 / 10 小六 / 12 中一, level only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
   assert.equal(READING.length, 34);
   assert.deepEqual(dups(READING.map((x) => x.id)), []);
   for (const x of READING) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);

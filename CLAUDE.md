@@ -52,7 +52,7 @@ across multiple areas.
     dev-server-only issue; it doesn't affect the shipped static site.
 
 ## Difficulty levels
-Three levels spanning 小五至中一 (P5–S1): `p5` (小五), `p6` (小六), `s1` (中一).
+Four levels (階段 10a added the fourth): `p5` (小五), `p6` (小六), `s1` (中一), `s2` (中二 — covers 中二至中三, never split by year; see "階段 10").
 Each module has its own simple level selector/filter so difficulty can scale
 within the module; content items are individually tagged with a level.
 
@@ -1008,7 +1008,7 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
 ## Data model (localStorage key `chineseOps:v1`)
 ```
 {
-  level: "p5" | "p6" | "s1",
+  level: "p5" | "p6" | "s1" | "s2",   // Storage.LEVELS; an unknown value falls back to "p5"
   moduleProgress: {
     <moduleKey>: {
       practiceStats: { correct: number, attempts: number },
@@ -1393,13 +1393,13 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 12 files, **210 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **224 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
   `chineseOps:v1` and/or sets the URL query (`"?today=2026-10-12"` = 測試模式); `makeRunner(label)`
   gives the `t(name, fn)` / `t.done()` helpers. A failed `assert` makes the file exit non-zero.
-- **Files:** `storage.test.js` (23 — v1/v2 backup import, `loadState` migration, garbage input, dates,
+- **Files:** `storage.test.js` (28 — 階段 10a added 5: LEVELS, s2 save / backup round trip, unknown level → p5; v1/v2 backup import, `loadState` migration, garbage input, dates,
   `pickMissions`, `recordSession` streak / 保護符 / rollover / clock-went-back scenarios,
   `getStreakView`, `removeMistake` counting) · `badges.test.js` (12 — exact approved names/order,
   thresholds, retroactive 累計答對, module badges, backup round trip) · `notices.test.js` (13 —
@@ -1407,6 +1407,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
+  `level.test.js` (9 — 階段 10a: `QuizUtils.itemsForLevel` (the empty-level fallback) on the real and on patched content for the 8 levelled modules, every `*_LEVEL_LABEL` knows s2, the modules take their level options from `Storage.LEVELS`; see "階段 10") ·
   `history-quiz.test.js` (27 — 階段 9d: runs `src/historyQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the 朝代歸一 table, `HISTORY_SIMILAR_GROUPS`, the same-event / shared-person rule, 事件先後 and the tricky-people cases; see "階段 9d") ·
   `essay-quiz.test.js` (15 — 階段 9c: runs `src/essayQuiz.jsx` thousands of times and checks one defensible answer per question, `ESSAY_SIMILAR_GROUPS`, same-theme wrong options, 情境是非 balance; see "階段 9c") ·
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
@@ -1780,4 +1781,33 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
   HISTORY_PERSON_NOT_OPTION (5 stories, 5000 draws each, 0 offers); known tricky people (貞觀之治 never offers 李世民, 完璧歸趙 never offers 秦昭襄王); 書面語 scan incl. 同. Mutation-checked (each made the file fail, then reverted): no 朝代歸一, no 傳說／演義 exclusion in 事件先後, no 100-year rule, no similar-group exclusion, no same-event exclusion, no shared-person exclusion,
   wrong people taken from the story itself, fixed kind order, right person named in the stem, passage containing the title, wrong titles of other categories, no alias handling, no generic-name exclusion, no kind balancing, no ruler aliases, one-character names ignored, wrong titles named in the passage, wrong answer of 事件先後 reversed; after the review also: no 100-year gap, no HISTORY_PERSON_NOT_OPTION, no SIMILAR exclusion in 故事猜標題, relaxed gap of 0 instead of 50, no relaxation at all.
 - **Not verified:** a real iPad / the real CDN; whether 人物配故事 at 51/90 eligible is too few for a child to meet it often.
+
+## 階段 10 — 中二級別 (s2) — 階段 10a done (Oct 2026), 待審核 (built on `claude/elegant-volta-ihb51l`, NOT merged)
+**階段 10a only builds the level foundation; it adds NO content.** Content batches follow later, one module at a time (see the order and the rules below).
+- **What `s2` means:** the fourth level, label **「中二」**. In content terms it covers 中二 to 中三, but it is **not split by year**: on screen and in the data it is only ever called 「中二」 (never 「中三」), and no item may claim to be 中二 or 中三 specifically (the 教育局 junior-secondary
+  recommended passages are not graded by year). An item is simply tagged `level: "s2"`. **The level tags of all existing content stay as they are** (p5 / p6 / s1; nothing was re-tagged).
+- **Storage (`Storage.jsx`):** `LEVELS` gained `{ key: "s2", label: "中二", note: "中二內容涵蓋中二至中三" }` (after 中一); `LEVEL_KEYS` is derived from it, so `loadState` / `sanitizeState` accept s2 automatically; an unknown value still falls back to `p5`. **No backup change:** `BACKUP_VERSION` stays 2, no new field.
+  **An old app (before 10a) that reads a save or a backup with `level: "s2"`** does not error: its whitelist is p5 / p6 / s1, so the level falls back to `p5`, every other piece of progress is kept, and if that old app saves again the stored level becomes p5 (checked by loading the 8d94dfa `Storage.jsx`).
+- **Home (`Home.jsx` `LevelCard`):** four buttons (71 × 44 at 820, 74 × 44 at 390, one line, 16 px); while a level that has a `note` is selected the note is shown under the buttons in 14 px (中二: 「中二內容涵蓋中二至中三」). BackupSettings' restore screen and everything else that shows a level name read `Storage.LEVELS`, so nothing was hard-coded there.
+- **Every module's 程度 filter (8 modules: Poetry, Essay, Idiom, Rhetoric, Punctuation, Reading, ClassicalProse, Mandarin; History and Cangjie have no level filter and got none):** the options come from `theme.jsx` `LEVEL_FILTERS` (全部 + `Storage.LEVELS`), no module hard-codes the levels any more. How each filter worked before (unchanged except for the empty-level fallback):
+  | module | what the level filter does | pool too small |
+  |---|---|---|
+  | 詩詞 | filters the poem list; 開始隨機練習 and the detail's 開始練習 practise the filtered list | `startPractice`: pool < 4 → the whole library; 練習錯題 passes the whole library + the mistaken poems |
+  | 作文金句 | level AND theme filter the list; practice = the filtered list | pool < 4 → whole library; 練習錯題 as Poetry |
+  | 成語 | filters the list; practice = filtered list | pool < 4 → whole library; 練習錯題 as Poetry |
+  | 修辭手法 | the list always shows the 10 devices; the level only chooses the PRACTICE sentences | pool < 4 → all sentences; 練習錯題 as Poetry |
+  | 標點符號 | the list always shows the 10 marks; the level only chooses the PRACTICE items | pool < 4 → all items; 練習錯題 as Poetry |
+  | 閱讀理解 | filters the passage list (+ 只看錯題); one passage at a time, no pool | — |
+  | 文言文選讀 | filters the text list (+ 只看錯題); one text at a time, no pool | — |
+  | 普通話 | the hub's level picks the pool of the 5 drills (and the homophone drill) | `withFallback(pool, kind, min)`: too few of that kind → all items of the kind; the homophone drill: < 4 → all |
+- **Empty-level fallback (`QuizUtils.itemsForLevel(items, level)` → `{ items, empty }`, shared by the 8 modules; the note is `theme.jsx` `A2LevelNotice`):** when the chosen level has **no item at all** in that module (today: 中二 everywhere) the module shows / practises **all levels** instead of a blank list, and a one-line note sits under the level control:
+  「中二內容陸續加入，暫時顯示全部程度的內容」 (the level's own label is used, so it would read 「小五…」 if p5 were ever empty). The note appears **only** when the level really has no content in that module (Essay: the level is tested before the theme filter) and switches itself off as soon as the first item is tagged `s2` — no code change needed.
+  Practice and 練習錯題 always get a usable pool (the filtered list is all levels then). The 10 `*_LEVEL_LABEL` maps in `src/content/*.jsx` gained `s2: "中二"` so future s2 items render with a label (a display map only; no item was touched).
+- **Files changed:** `Storage.jsx`, `Home.jsx`, `theme.jsx` (`LEVEL_FILTERS`, `A2LevelNotice`), `quizUtils.jsx` (`itemsForLevel`), the 8 `*Module.jsx`, the 10 `content/*Content.jsx` label maps, `tests/storage.test.js` (+5), `tests/content.test.js` (level whitelist includes s2, "every level has items" checks use p5 / p6 / s1), new `tests/level.test.js` (9), this file.
+  Hard-coded level names found by a full-text search of the repo: only `Storage.LEVELS` (edited), `defaultState` / the `loadState` fallback (`"p5"`, kept), the 8 modules' local `LEVEL_FILTERS` (replaced) and the 10 label maps (s2 added); `BackupSettings.jsx` / `Home.jsx` read `Storage.LEVELS`; item tags in content, story text such as 「中一同學」 and `docs/idiom-audit.md`'s level column are data, not display code, and were not touched.
+- **Order and rules for adding 中二 content (later phases, one module at a time, each only when the user asks):** 文言文選讀 → 閱讀理解 → 修辭手法 → 作文金句 → 成語 → 詩詞 (歷史, 普通話 and 倉頡 are not levelled by content and need nothing).
+  Rules for every batch: 文言文 passages come **only from the 教育局 junior-secondary recommended list (第三學習階段)**; every 原文, 粵音 and answer is verified, and anything not certain is **not written but listed**; any uncertain edition difference (e.g. 《愚公移山》 — see Module 10 batch 3)
+  means **stop and tell the user first**. Tag every new item `level: "s2"` — never 「中三」, and never claim a passage belongs to 中二 or to 中三. When the first s2 item of a module lands, that module's 中二 list shows only s2 items and the fallback note disappears by itself; the tests that say
+  "every level has items" (`content.test.js` `FILLED_LEVELS`) and the per-level counts of that module need to be updated in the same batch.
+- **Verified (Playwright, test mode, 820 and 390):** home 中二 selected (note shown, buttons one line, ≥ 44 px, no horizontal overflow); each of the 8 modules opened at 中二: note shown, list / hub non-empty, 開始練習 (or the first passage's 開始問答, or 聆聽練習) works, 練習錯題 works, switching to 小五 inside the module removes the note and shows that level's items; essay patched so every item is s2: no note at 中二 (150 items), the note (「小五內容陸續加入…」) at 小五; console errors 0; the real key `chineseOps:v1` never written.
 

@@ -310,7 +310,7 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
-  const PUNCTUATION_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const PUNCTUATION_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.PUNCTUATION_MARKS = PUNCTUATION_MARKS;
   window.App.Content.PUNCTUATION_PRACTICE_ITEMS = PRACTICE_ITEMS;

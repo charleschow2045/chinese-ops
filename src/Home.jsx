@@ -392,6 +392,7 @@ window.App = window.App || {};
 
   // ---- 程度 ----
   function LevelCard({ level, onChangeLevel }) {
+    const current = Storage.LEVELS.find((l) => l.key === level);
     return (
       <section aria-label="程度" style={{ ...cardBox, borderRadius: 26, padding: "14px 16px", display: "grid", gap: 10, alignContent: "start" }}>
         <h3 style={{ fontSize: 17, fontWeight: 900, lineHeight: 1.2, margin: 0 }}>程度</h3>
@@ -420,6 +421,7 @@ window.App = window.App || {};
             );
           })}
         </div>
+        {current && current.note && <p style={{ fontSize: 14, lineHeight: 1.5, fontWeight: 700, color: A2.sub, margin: 0 }}>{current.note}</p>}
       </section>
     );
   }

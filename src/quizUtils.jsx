@@ -39,5 +39,14 @@ window.App = window.App || {};
     return shuffle(result).slice(0, count);
   }
 
-  window.App.QuizUtils = { shuffle, sampleOthers, sampleWithRepeats };
+  // 階段 10: the items of one level. When that level has no item at all (中二 before its first content batch) every level is returned
+  // instead and `empty` is true, so a list screen can say so — never a blank list, and practice always has a pool. It switches itself off
+  // as soon as the level has content.
+  function itemsForLevel(items, level) {
+    if (!level || level === "all") return { items, empty: false };
+    const own = items.filter((it) => it.level === level);
+    return own.length ? { items: own, empty: false } : { items, empty: true };
+  }
+
+  window.App.QuizUtils = { shuffle, sampleOthers, sampleWithRepeats, itemsForLevel };
 })();

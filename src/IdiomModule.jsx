@@ -7,19 +7,13 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.idiom;
   const { QuestionBlock } = window.App.QuizQuestion;
   const IdiomQuiz = window.App.IdiomQuiz;
   const { IDIOM_ITEMS, IDIOM_LEVEL_LABEL, getIdiomMasteryTier, getNextIdiomMasteryTier } = window.App.Content;
   const { AudioButtons } = window.App;
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   // The questions themselves are built by idiomQuiz.jsx (plain objects, no screen code); this turns one into what QuestionBlock draws:
   // a small label, the stem (clue / blanked idiom / origin story) and the question line, depending on the kind.
@@ -210,7 +204,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ priorAttempts, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, priorAttempts, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="idiom" title="成語學習" onBack={onBack} />
@@ -220,6 +214,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
             開始成語猜猜 🎲
           </InkButton>
@@ -252,10 +247,9 @@ window.App = window.App || {};
     const [reviewScope, setReviewScope] = useState(null);
     const priorAttempts = (practiceStats && practiceStats.attempts) || 0;
 
-    const filtered = useMemo(
-      () => (filterLevel === "all" ? IDIOM_ITEMS : IDIOM_ITEMS.filter((it) => it.level === filterLevel)),
-      [filterLevel]
-    );
+    // 階段 10: a level with no idiom at all (中二 for now) shows every level instead, with a one-line note
+    const levelView = useMemo(() => itemsForLevel(IDIOM_ITEMS, filterLevel), [filterLevel]);
+    const filtered = levelView.items;
 
     const mistakeItems = useMemo(() => IDIOM_ITEMS.filter((it) => (mistakes || []).includes(it.id)), [mistakes]);
 
@@ -296,6 +290,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         priorAttempts={priorAttempts}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}

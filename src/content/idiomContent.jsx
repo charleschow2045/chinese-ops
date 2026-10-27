@@ -1178,7 +1178,7 @@ window.App.Content = window.App.Content || {};
     ["刎頸之交", "生死與共"],
   ];
 
-  const IDIOM_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const IDIOM_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   // Scholarly-title mastery badges, based on the imperial civil examination
   // hierarchy (科舉制度) — a culturally-grounded alternative to a generic

@@ -6,18 +6,12 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.punctuation;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { shuffle, sampleOthers, sampleWithRepeats } = window.App.QuizUtils;
   const { PUNCTUATION_MARKS, PUNCTUATION_PRACTICE_ITEMS } = window.App.Content;
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   const FILL_ITEMS = PUNCTUATION_PRACTICE_ITEMS.filter((it) => it.kind === "fill");
 
@@ -183,7 +177,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filterLevel, setFilterLevel, mistakeItems, startPractice, filteredPractice, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, filterLevel, setFilterLevel, mistakeItems, startPractice, filteredPractice, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="punctuation" title="標點符號" onBack={onBack} />
@@ -191,6 +185,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度（影響練習例句）</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filteredPractice)}>
             開始練習 🎯
           </InkButton>
@@ -223,13 +218,9 @@ window.App = window.App || {};
     const [practiceScope, setPracticeScope] = useState(null);
     const [reviewScope, setReviewScope] = useState(null);
 
-    const filteredPractice = useMemo(
-      () =>
-        filterLevel === "all"
-          ? PUNCTUATION_PRACTICE_ITEMS
-          : PUNCTUATION_PRACTICE_ITEMS.filter((it) => it.level === filterLevel),
-      [filterLevel]
-    );
+    // 階段 10: a level with no practice item at all (中二 for now) practises every level instead, with a one-line note
+    const levelView = useMemo(() => itemsForLevel(PUNCTUATION_PRACTICE_ITEMS, filterLevel), [filterLevel]);
+    const filteredPractice = levelView.items;
 
     const mistakeItems = useMemo(
       () => PUNCTUATION_PRACTICE_ITEMS.filter((it) => (mistakes || []).includes(it.id)),
@@ -272,6 +263,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}
         mistakeItems={mistakeItems}

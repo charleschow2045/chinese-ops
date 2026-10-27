@@ -43,7 +43,7 @@ window.App.Content = window.App.Content || {};
     { id: "s-mingtian-jian", kind: "sentence", hanzi: "明天見。", pinyin: "Míngtiān jiàn.", meaning: "分別時的道別語", level: "s1" },
   ];
 
-  const MANDARIN_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const MANDARIN_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.MANDARIN_ITEMS = MANDARIN_ITEMS;
   window.App.Content.MANDARIN_LEVEL_LABEL = MANDARIN_LEVEL_LABEL;

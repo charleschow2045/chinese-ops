@@ -13,19 +13,13 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo, useRef, useLayoutEffect } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2SegControl, A2Section, A2Header, A2ListRow } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, A2SegControl, A2Section, A2Header, A2ListRow, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.reading;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { READING_ITEMS, READING_LEVEL_LABEL } = window.App.Content;
 
   const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   function isNewFormat(item) {
     return Array.isArray(item.comprehension);
@@ -400,7 +394,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filterLevel, setFilterLevel, liveMistakes, onlyMistakes, setOnlyMistakes, filtered, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, filterLevel, setFilterLevel, liveMistakes, onlyMistakes, setOnlyMistakes, filtered, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="reading" title="閱讀理解" onBack={onBack} />
@@ -408,6 +402,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           {liveMistakes.length > 0 && (
             <button
               aria-pressed={onlyMistakes}
@@ -456,9 +451,9 @@ window.App = window.App || {};
 
     // Ignore mistake ids from retired passages (the rebuild replaced the old ids).
     const liveMistakes = (mistakes || []).filter((id) => READING_ITEMS.some((it) => it.id === id));
-    const filtered = READING_ITEMS.filter(
-      (it) => (filterLevel === "all" || it.level === filterLevel) && (!onlyMistakes || liveMistakes.includes(it.id))
-    );
+    // 階段 10: a level with no passage at all (中二 for now) shows every level instead, with a one-line note
+    const levelView = itemsForLevel(READING_ITEMS, filterLevel);
+    const filtered = levelView.items.filter((it) => !onlyMistakes || liveMistakes.includes(it.id));
     const selectedItem = READING_ITEMS.find((it) => it.id === selectedId);
 
     function openItem(id) {
@@ -508,6 +503,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}
         liveMistakes={liveMistakes}

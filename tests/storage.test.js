@@ -152,4 +152,47 @@ t("removeMistake counts only real removals", () => {
 t("recordPracticeResult unchanged (idiom stage maths unaffected)", () => {
   let st = S.recordPracticeResult(base(), "idiom", 3, 8); assert.equal(st.moduleProgress.idiom.practiceStats.attempts, 16);
 });
+// ---- 階段 10: 中二 (s2) ----
+const levelsState = (level) => ({ level, moduleProgress: mp });
+t("LEVELS: p5 / p6 / s1 / s2 in that order, the label is only 「中二」 (never 中三), the note is on s2 only", () => {
+  assert.deepEqual(S.LEVELS.map((l) => l.key), ["p5", "p6", "s1", "s2"]);
+  assert.deepEqual(S.LEVELS.map((l) => l.label), ["小五", "小六", "中一", "中二"]);
+  S.LEVELS.forEach((l) => assert(!l.label.includes("中三")));
+  assert.equal(S.LEVELS.find((l) => l.key === "s2").note, "中二內容涵蓋中二至中三");
+  assert(S.LEVELS.filter((l) => l.key !== "s2").every((l) => !l.note));
+});
+t("level s2: a save with level s2 loads as s2 and survives save → load", () => {
+  const { S: S2, store } = load(levelsState("s2"));
+  assert.equal(S2.loadState().level, "s2");
+  S2.saveState({ ...S2.loadState(), level: "s2" });
+  assert.equal(JSON.parse(store["chineseOps:v1"]).level, "s2");
+  assert.equal(S2.loadState().level, "s2");
+});
+t("level s2: backup export → import keeps s2 (version stays 2, no new field)", () => {
+  const { S: S2 } = load(levelsState("s2"));
+  const file = S2.buildBackup(S2.loadState());
+  assert.equal(file.version, 2);
+  const r = S2.parseBackup(JSON.stringify(file));
+  assert(r.ok); assert.equal(r.state.level, "s2");
+  assert.deepEqual(Object.keys(r.state).sort(), Object.keys(S2.loadState()).sort());
+  // and a v1 file that says s2 is read the same way
+  assert.equal(S.parseBackup(JSON.stringify({ app: "chinese-ops", version: 1, data: { "chineseOps:v1": levelsState("s2") } })).state.level, "s2");
+});
+t("unknown level falls back to p5 (save, backup, junk types)", () => {
+  for (const bad of ["s3", "中二", "", null, undefined, 2, {}, ["s2"]]) {
+    const { S: S2 } = load(levelsState(bad));
+    assert.equal(S2.loadState().level, "p5", String(bad));
+    const r = S.parseBackup(JSON.stringify({ app: "chinese-ops", version: 2, data: { "chineseOps:v1": levelsState(bad) } }));
+    assert(r.ok); assert.equal(r.state.level, "p5", String(bad));
+  }
+});
+t("old saves and backups without s2 (p5 / p6 / s1, v1 and v2) are read exactly as before", () => {
+  for (const lv of ["p5", "p6", "s1"]) {
+    assert.equal(load(levelsState(lv)).S.loadState().level, lv);
+    for (const version of [1, 2]) {
+      const r = S.parseBackup(JSON.stringify({ app: "chinese-ops", version, data: { "chineseOps:v1": levelsState(lv) } }));
+      assert(r.ok); assert.equal(r.state.level, lv);
+    }
+  }
+});
 t.done();

@@ -7,7 +7,8 @@ window.App = window.App || {};
 
 (function () {
   const { useState, useMemo } = React;
-  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton } = window.App.UI;
+  const { PaperCard, InkButton, MODULE_ACCENTS, A2, A2BackButton, useScrollToTop, A2SegControl, A2Section, A2Header, A2ListRow, A2ReviewButton, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.poetry;
   const { QuestionBlock } = window.App.QuizQuestion;
   const { POETRY_ITEMS, POETRY_LEVEL_LABEL } = window.App.Content;
@@ -24,13 +25,6 @@ window.App = window.App || {};
     { match: (f) => f.includes("古詩"), bg: "#F1E7CF", text: "#7A5D20" },
     { match: (f) => f === "詞", bg: "#F6E4E1", text: "#7A211A" },
     { match: (f) => f === "文言短文", bg: "#EAE5DB", text: "#6B6355" },
-  ];
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
   ];
 
   // The questions themselves are built by poetryQuiz.jsx (plain objects, no screen code, 15 questions of seven kinds); this turns one into
@@ -343,7 +337,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
+  function ListViewA2({ levelEmpty, filterLevel, setFilterLevel, filtered, mistakeItems, startPractice, openItem, onBack }) {
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
         <A2Header moduleKey="poetry" title="詩詞學習" onBack={onBack} />
@@ -351,6 +345,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           <InkButton accent={ACCENT} className="w-full mt-3" onClick={() => startPractice(filtered)}>
             開始隨機練習 🎲
           </InkButton>
@@ -387,10 +382,9 @@ window.App = window.App || {};
     const [practiceScope, setPracticeScope] = useState(null); // pool used for a practice session
     const [reviewScope, setReviewScope] = useState(null);
 
-    const filtered = useMemo(
-      () => (filterLevel === "all" ? POETRY_ITEMS : POETRY_ITEMS.filter((it) => it.level === filterLevel)),
-      [filterLevel]
-    );
+    // 階段 10: a level with no poem at all (中二 for now) shows every level instead, with a one-line note
+    const levelView = useMemo(() => itemsForLevel(POETRY_ITEMS, filterLevel), [filterLevel]);
+    const filtered = levelView.items;
 
     const mistakeItems = useMemo(() => POETRY_ITEMS.filter((it) => (mistakes || []).includes(it.id)), [mistakes]);
 
@@ -458,6 +452,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}
         filtered={filtered}

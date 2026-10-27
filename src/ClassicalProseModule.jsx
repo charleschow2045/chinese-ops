@@ -11,7 +11,8 @@ window.App = window.App || {};
 
 (function () {
   const { useState } = React;
-  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop, A2SegControl } = window.App.UI;
+  const { PaperCard, InkButton, Seal, MODULE_ACCENTS, A2, A2BackButton, A2ModuleIcon, useScrollToTop, A2SegControl, LEVEL_FILTERS, A2LevelNotice } = window.App.UI;
+  const { itemsForLevel } = window.App.QuizUtils;
   const ACCENT = MODULE_ACCENTS.classicalProse;
   const { FixedQuizFlow } = window.App.QuizQuestion;
   const { CLASSICAL_PROSE_ITEMS, CLASSICAL_PROSE_LEVEL_LABEL } = window.App.Content;
@@ -23,13 +24,6 @@ window.App = window.App || {};
   function sourceAbbrev(source) {
     return (source || "").replace(/[《》]/g, "").slice(0, 2);
   }
-
-  const LEVEL_FILTERS = [
-    { key: "all", label: "全部" },
-    { key: "p5", label: "小五" },
-    { key: "p6", label: "小六" },
-    { key: "s1", label: "中一" },
-  ];
 
   // ---------------------------------------------------------------------
   // A2 screens. UI text uses A2.font; the classical 原文 lines stay in the serif face. Text >= 13 px (mostly 14-18),
@@ -149,7 +143,7 @@ window.App = window.App || {};
     );
   }
 
-  function ListViewA2({ filtered, filterLevel, setFilterLevel, mistakes, onlyMistakes, setOnlyMistakes, onBack, openItem }) {
+  function ListViewA2({ levelEmpty, filtered, filterLevel, setFilterLevel, mistakes, onlyMistakes, setOnlyMistakes, onBack, openItem }) {
     const mistakeCount = (mistakes || []).length;
     return (
       <div className="flex flex-col gap-4" style={{ fontFamily: A2.font }}>
@@ -164,6 +158,7 @@ window.App = window.App || {};
         <PaperCard>
           <h2 style={{ ...A2_LABEL, marginBottom: 8 }}>程度</h2>
           <A2SegControl options={LEVEL_FILTERS} value={filterLevel} onChange={setFilterLevel} label="程度" />
+          {levelEmpty && <A2LevelNotice level={filterLevel} />}
           {mistakeCount > 0 && (
             <button
               aria-pressed={onlyMistakes}
@@ -201,10 +196,9 @@ window.App = window.App || {};
     const [onlyMistakes, setOnlyMistakes] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
-    const filtered = CLASSICAL_PROSE_ITEMS.filter(
-      (it) =>
-        (filterLevel === "all" || it.level === filterLevel) && (!onlyMistakes || (mistakes || []).includes(it.id))
-    );
+    // 階段 10: a level with no text at all (中二 for now) shows every level instead, with a one-line note
+    const levelView = itemsForLevel(CLASSICAL_PROSE_ITEMS, filterLevel);
+    const filtered = levelView.items.filter((it) => !onlyMistakes || (mistakes || []).includes(it.id));
     const selectedItem = CLASSICAL_PROSE_ITEMS.find((it) => it.id === selectedId);
 
     function openItem(id) {
@@ -239,6 +233,7 @@ window.App = window.App || {};
 
     return (
       <ListViewA2
+        levelEmpty={levelView.empty}
         filtered={filtered}
         filterLevel={filterLevel}
         setFilterLevel={setFilterLevel}

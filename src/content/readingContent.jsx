@@ -3480,7 +3480,7 @@ window.App.Content = window.App.Content || {};
     },
   ];
 
-  const READING_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const READING_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   window.App.Content.READING_ITEMS = READING_ITEMS;
   window.App.Content.READING_LEVEL_LABEL = READING_LEVEL_LABEL;

@@ -359,7 +359,7 @@ window.App.Content = window.App.Content || {};
     { id: "duibi-20", sentence: "大家都羨慕他光鮮的外表，卻沒有人了解他背後的孤獨。", device: "對比", level: "s1" },
   ];
 
-  const RHETORIC_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一" };
+  const RHETORIC_LEVEL_LABEL = { p5: "小五", p6: "小六", s1: "中一", s2: "中二" };
 
   // 階段 9a. Pairs of devices whose `effect` texts are too close for a student to tell apart (they share the "加強語氣 /
   // 突出強調 / 引起思考 / 生動形象" kind of wording). The quiz never puts two devices of a pair into the same

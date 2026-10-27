@@ -21,10 +21,13 @@ window.App = window.App || {};
   const TEST_MODE = TEST_DATE_PARAM !== null;
   const STORAGE_KEY = TEST_MODE ? TEST_KEY : REAL_KEY;
 
+  // 階段 10: 中二 (s2) covers 中二 to 中三 but is never split by year — on screen and in the data it is only 「中二」. `note` (optional) is
+  // the small line the home 程度 card shows under the buttons while that level is selected.
   const LEVELS = [
     { key: "p5", label: "小五" },
     { key: "p6", label: "小六" },
     { key: "s1", label: "中一" },
+    { key: "s2", label: "中二", note: "中二內容涵蓋中二至中三" },
   ];
   const LEVEL_KEYS = LEVELS.map((l) => l.key);
 
