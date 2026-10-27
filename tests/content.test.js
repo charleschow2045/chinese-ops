@@ -313,7 +313,7 @@ t("prose 10b review fixes: 賣柑者言 asks about 「涉」 (not 「鬻」) and
   const gn = get("guan-ning-hua-xin-gong-yuan-zhong-chu-cai").background;
   assert.ok(gn.includes("兩人本是朋友") && !gn.includes("同窗"));
   const zj = get("zou-ji-feng-qi-wang-na-jian").background;
-  assert.ok(zj.includes("由西漢劉向整理編訂為《戰國策》") && !zj.includes("秦統一"));
+  assert.ok(zj.includes("大抵不是一時一人之作，後來由西漢劉向整理編訂成書") && !zj.includes("秦統一") && !zj.includes("整理編訂為《戰國策》"));
   const yx = get("yang-xiu-zhi-si").background;
   assert.ok(yx.includes("小說中另有楊修的其他故事，這裏沒有收錄") && !yx.includes("課文其餘部分"));
 });
