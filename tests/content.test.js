@@ -290,11 +290,32 @@ t("prose 10b: 原文 keeps the 教育局 / textbook wording that was settled (no
   assert.ok(text("shang-zhong-yong").includes("予聞之也久") && text("shang-zhong-yong").endsWith("得為眾人而已邪？"));
   assert.ok(text("zou-ji-feng-qi-wang-na-jian").includes("羣臣吏民") && text("zou-ji-feng-qi-wang-na-jian").includes("王之蔽甚矣"));
   assert.ok(text("mai-gan-zhe-yan").includes("剖之如有煙撲口鼻") && text("mai-gan-zhe-yan").includes("不知禦") && text("mai-gan-zhe-yan").includes("坐糜廩粟"));
+  assert.ok(text("mai-gan-zhe-yan").includes("吾售之，人取之，未聞有言，而獨不足於子乎？世之為欺者不寡矣") && !text("mai-gan-zhe-yan").includes("……"), "賣柑者言: the vendor's sentence is written out, no omission marker");
   assert.ok(text("yang-xiu-zhi-si").includes("正沈吟間") && text("yang-xiu-zhi-si").includes("臨時慌亂") && text("yang-xiu-zhi-si").includes("遂亦收拾行裝"));
   assert.ok(text("xi-guan-shuo").includes("蹴然以驚") && text("xi-guan-shuo").includes("何以天下國家為"));
   assert.ok(text("mao-bu-que").includes("噪而逐貓") && text("mao-bu-que").includes("烏虖"));
   assert.ok(text("guan-ning-hua-xin-gong-yuan-zhong-chu-cai").includes("寧讀如故"));
   assert.ok(text("xun-ju-bo-yuan-kan-you-ren-ji").includes("敗義以求生") && text("xun-ju-bo-yuan-kan-you-ren-ji").includes("遂班軍而還"));
+});
+
+// 階段 10b 審核後修正
+t("prose 10b review fixes: 賣柑者言 asks about 「涉」 (not 「鬻」) and glosses 鬻 as 本義是賣; the 背景 sentences the user corrected", () => {
+  const get = (id) => PROSE.find((x) => x.id === id);
+  const mg = get("mai-gan-zhe-yan");
+  const q4 = mg.questions[3];
+  assert.equal(q4.prompt, "字詞解釋：「涉寒暑不潰」的「涉」，在句中的意思是");
+  assert.deepEqual([...q4.options].sort(), ["涉水", "牽連", "經歷", "干預"].sort());
+  assert.equal(q4.options[q4.correctIndex], "經歷");
+  assert.equal(mg.glossary.find((g) => g.term === "鬻").meaning, "本義是賣，課文這裏解作買");
+  assert.ok(mg.lineExplanations.every((l) => !l.includes("省略")), "no 「省略」 note left in the 白話");
+  assert.ok(!mg.background.includes("各版本用字不同") && mg.background.includes("最後一段"));
+  assert.ok(!get("xi-guan-shuo").background.includes("篇幅比原文簡短") && get("xi-guan-shuo").background.includes("〈習說〉"));
+  const gn = get("guan-ning-hua-xin-gong-yuan-zhong-chu-cai").background;
+  assert.ok(gn.includes("兩人本是朋友") && !gn.includes("同窗"));
+  const zj = get("zou-ji-feng-qi-wang-na-jian").background;
+  assert.ok(zj.includes("由西漢劉向整理編訂為《戰國策》") && !zj.includes("秦統一"));
+  const yx = get("yang-xiu-zhi-si").background;
+  assert.ok(yx.includes("小說中另有楊修的其他故事，這裏沒有收錄") && !yx.includes("課文其餘部分"));
 });
 
 // ---------------------------------------------------------------- 閱讀理解
