@@ -26,7 +26,8 @@ const ESSAYS = E.ESSAY_ITEMS;
 const PROSE = P.CLASSICAL_PROSE_ITEMS;
 const READING = RD.READING_ITEMS;
 const PROSE_BATCH3 = ["yan-er-dao-ling", "hua-she-tian-zu", "yu-bang-xiang-zheng", "wang-rong-bu-qu-dao-pang-li", "zeng-zi-sha-zhi", "zao-bi-tou-guang", "lun-yu-lun-xue", "ai-lian-shuo", "lou-shi-ming", "yue-yang-lou-ji-jie-lu"];
-// 階段 10: s2 (中二) is a valid level tag but has no content yet (0 items allowed); the "every level has items" checks use FILLED_LEVELS
+// 階段 10: s2 (中二) is a valid level tag. Only 文言文選讀 has s2 content so far (階段 10b); the other modules may still have 0 s2 items,
+// so their "every level has items" checks use FILLED_LEVELS
 const LEVELS = ["p5", "p6", "s1", "s2"];
 const FILLED_LEVELS = ["p5", "p6", "s1"];
 const THEMES = ["描寫", "抒情", "論說"];
@@ -158,12 +159,17 @@ t("essay: no duplicate sentences, keyPhrases or scenarios (they are quiz options
 });
 
 // ---------------------------------------------------------------- 文言文選讀
-t("prose: 27 passages, unique ids, 9 each of 小五 / 小六 / 中一, level only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
-  assert.equal(PROSE.length, 27);
+t("prose: 35 passages, unique ids, 9 / 9 / 9 / 8 of 小五 / 小六 / 中一 / 中二, level only p5 / p6 / s1 / s2", () => {
+  assert.equal(PROSE.length, 35);
   assert.deepEqual(dups(PROSE.map((x) => x.id)), []);
   for (const x of PROSE) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
   const n = countBy(PROSE, (x) => x.level);
-  assert.deepEqual([n.p5, n.p6, n.s1], [9, 9, 9]);
+  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [9, 9, 9, 8]);
+});
+
+// 階段 10b: 文言文選讀 is the only module that has content at every level (the other modules still have none at s2, see FILLED_LEVELS)
+t("prose: every one of the four levels has passages (only 文言文選讀 is checked against s2)", () => {
+  for (const lv of LEVELS) assert.ok(PROSE.some((x) => x.level === lv), `文言文選讀 has no ${lv} passage`);
 });
 
 t("prose: every passage has all its fields and lines / lineExplanations of the same length", () => {
@@ -217,6 +223,78 @@ t("prose: the ten passages of 階段 7 B 批 are all present and spread their co
 
 t("prose: no passage repeats another's 原文 line", () => {
   assert.deepEqual(dups(PROSE.flatMap((x) => x.lines)), []);
+});
+
+// ---- 階段 10b: the 8 中二 passages
+const PROSE_10B = ["shang-zhong-yong", "zou-ji-feng-qi-wang-na-jian", "mai-gan-zhe-yan", "yang-xiu-zhi-si", "xi-guan-shuo", "mao-bu-que", "guan-ning-hua-xin-gong-yuan-zhong-chu-cai", "xun-ju-bo-yuan-kan-you-ren-ji"];
+const batch10b = () => PROSE_10B.map((id) => PROSE.find((x) => x.id === id));
+// every string a child sees besides the 原文 itself (lines are classical text and may contain 同 / 邪 …)
+const shown10b = (x) => [x.title, x.source, x.dynasty, x.background, ...x.lineExplanations, ...x.glossary.flatMap((g) => [g.term, g.meaning]), ...x.questions.flatMap((q) => [q.prompt, ...q.options])];
+// the only 粵拼 that was checked against a dictionary page for this batch (see CLAUDE.md, 階段 10b); everything else is left out on purpose
+const JYUTPING_10B_CHECKED = { 泯: "man5", 蔽: "bai3", 謗: "bong3", 柑: "gam1", 庖: "paau4", 雞肋: "gai1 laak6", 噬: "sai6", 噪: "cou3" };
+
+t("prose 10b: the 8 passages exist, are all level s2 and spread their correct answers (10 per position, at least 3 positions each)", () => {
+  const batch = batch10b();
+  batch.forEach((x, i) => assert.ok(x, `missing ${PROSE_10B[i]}`));
+  assert.ok(batch.every((x) => x.level === "s2"));
+  assert.equal(PROSE.filter((x) => x.level === "s2").length, 8);
+  const n = [0, 0, 0, 0];
+  for (const x of batch) {
+    const idx = x.questions.map((q) => q.correctIndex);
+    assert.ok(new Set(idx).size >= 3, `${x.id}: correct answers sit in only ${new Set(idx).size} positions`);
+    idx.forEach((i) => n[i]++);
+    assert.ok(x.lines.length >= 3 && x.glossary.length >= 3, `${x.id}`);
+  }
+  assert.deepEqual(n, [10, 10, 10, 10]);
+});
+
+t("prose 10b: 愚公移山 was not used (edition differences could not be settled); 荀巨伯遠看友人疾 stands in", () => {
+  assert.ok(!PROSE.some((x) => /愚公/.test(x.title)));
+  assert.ok(PROSE.some((x) => x.id === "xun-ju-bo-yuan-kan-you-ren-ji" && x.source === "《世說新語．德行》"));
+});
+
+t("prose 10b: a 節錄 title says so in the 背景; the 楊修之死 background says it is a novel and that 史書 (《後漢書》) is the reference", () => {
+  for (const x of batch10b()) if (/節錄/.test(x.title)) assert.ok(/節錄/.test(x.background), `${x.id}: background does not describe the excerpt`);
+  const yx = PROSE.find((x) => x.id === "yang-xiu-zhi-si");
+  for (const w of ["《三國演義》", "小說", "《後漢書》", "史實"]) assert.ok(yx.background.includes(w), `楊修之死 background lacks ${w}`);
+  assert.ok(/^《三國演義》/.test(yx.source));
+});
+
+t("prose 10b: no 粵拼 except the ones checked against a dictionary page", () => {
+  for (const x of batch10b()) {
+    for (const g of x.glossary) {
+      if (g.jyutping === undefined) continue;
+      assert.equal(JYUTPING_10B_CHECKED[g.term], g.jyutping, `${x.id}: unchecked jyutping for 「${g.term}」`);
+    }
+  }
+});
+
+t("prose 10b: never 「中三」, never claims a passage is 中二 / 中三; 書面語 (no colloquial words; 同 only in ordinary written compounds)", () => {
+  const colloquial = ["呢個", "呢度", "呢啲", "呢次", "咩", "嘅", "咗", "唔", "喺", "哋", "嘢", "啲", "佢", "冇", "乜", "嚟", "點解", "邊個", "而家", "即刻", "嗰", "咁", "好似"];
+  const okTong = ["同學", "同時", "相同", "共同", "同情", "不同", "同一", "同樣", "同鄉", "同窗", "同類", "同宗族"];
+  for (const x of batch10b()) {
+    const all = [x.id, ...x.lines, ...shown10b(x)].join("");
+    assert.ok(!all.includes("中三") && !all.includes("中二"), `${x.id}: mentions a school year`);
+    for (const s of shown10b(x)) {
+      for (const w of colloquial) assert.ok(!s.includes(w), `${x.id}: colloquial 「${w}」 in 「${s}」`);
+      let rest = s;
+      for (const ok of okTong) rest = rest.split(ok).join("");
+      assert.ok(!rest.includes("同"), `${x.id}: 「同」 used outside an ordinary compound in 「${s}」`);
+    }
+  }
+});
+
+t("prose 10b: 原文 keeps the 教育局 / textbook wording that was settled (no variant slipped in)", () => {
+  const text = (id) => PROSE.find((x) => x.id === id).lines.join("");
+  // 傷仲永: 予 (not 余) and 邪 (not 耶), as in the 教育局 text; 鄒忌: 羣臣, 蔽; 賣柑者言: 剖之如有煙撲口鼻, 禦, 糜; 楊修之死: 沈吟, 臨時慌亂, 遂亦收拾行裝
+  assert.ok(text("shang-zhong-yong").includes("予聞之也久") && text("shang-zhong-yong").endsWith("得為眾人而已邪？"));
+  assert.ok(text("zou-ji-feng-qi-wang-na-jian").includes("羣臣吏民") && text("zou-ji-feng-qi-wang-na-jian").includes("王之蔽甚矣"));
+  assert.ok(text("mai-gan-zhe-yan").includes("剖之如有煙撲口鼻") && text("mai-gan-zhe-yan").includes("不知禦") && text("mai-gan-zhe-yan").includes("坐糜廩粟"));
+  assert.ok(text("yang-xiu-zhi-si").includes("正沈吟間") && text("yang-xiu-zhi-si").includes("臨時慌亂") && text("yang-xiu-zhi-si").includes("遂亦收拾行裝"));
+  assert.ok(text("xi-guan-shuo").includes("蹴然以驚") && text("xi-guan-shuo").includes("何以天下國家為"));
+  assert.ok(text("mao-bu-que").includes("噪而逐貓") && text("mao-bu-que").includes("烏虖"));
+  assert.ok(text("guan-ning-hua-xin-gong-yuan-zhong-chu-cai").includes("寧讀如故"));
+  assert.ok(text("xun-ju-bo-yuan-kan-you-ren-ji").includes("敗義以求生") && text("xun-ju-bo-yuan-kan-you-ren-ji").includes("遂班軍而還"));
 });
 
 // ---------------------------------------------------------------- 閱讀理解

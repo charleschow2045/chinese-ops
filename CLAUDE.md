@@ -66,8 +66,8 @@ within the module; content items are individually tagged with a level.
 7. **閱讀理解 (Reading Comprehension)** — ✅ built
 8. **修辭手法 (Rhetorical Devices)** — ✅ built
 9. **標點符號練習 (Punctuation Practice)** — ✅ built
-10. **文言文選讀 (Classical Chinese Reading)** — ✅ built, standalone, 27
-    texts across 3 batches (see Module 10 details below) — added after the
+10. **文言文選讀 (Classical Chinese Reading)** — ✅ built, standalone, 35
+    texts across 4 batches (27 + 8 中二 in 階段 10b; see Module 10 details below) — added after the
     original 9 modules, per explicit user feedback that none of them
     actually present original classical-Chinese text with translation +
     glossary + comprehension questions together
@@ -1096,7 +1096,7 @@ correctly since, and lets them specifically re-practice just those.
     inside the review session cleared the mistake — with no console errors
     on any of the three points per module.
 
-## Module 10 details — 文言文選讀 (new module, 27 texts across 3 batches)
+## Module 10 details — 文言文選讀 (new module, 35 texts across 4 batches)
 - Added after the original 9 modules, following explicit user feedback
   ("修改要求5") that neither `poetryContent.jsx` (poems + a handful of prose
   excerpts folded into Module 1's generated MC-quiz flow) nor
@@ -1105,7 +1105,7 @@ correctly since, and lets them specifically re-practice just those.
   translation + glossary + comprehension questions" as its own standalone
   experience — hence a dedicated new module rather than extending either.
 - Content: `src/content/classicalProseContent.jsx` — `CLASSICAL_PROSE_ITEMS`,
-  27 entries (9×p5, 9×p6, 9×s1) with fixed fields: `id`, `title`, `source`
+  35 entries (9×p5, 9×p6, 9×s1, 8×s2 — 階段 10b) with fixed fields: `id`, `title`, `source`
   (出處，e.g. "《韓非子．五蠹》"), `dynasty`, `level`, `lines` (原文, split
   into sentence-level chunks — same "one array entry per rendered
   paragraph" convention as the `prose`-type entries in `poetryContent.jsx`),
@@ -1191,8 +1191,8 @@ correctly since, and lets them specifically re-practice just those.
   錯題 (1)" chip appeared, confirming the mistake was written to
   `localStorage` correctly.
 - **Per the user's original scope-limiting instruction, expansion beyond
-  this 27-text state should still wait for the user to ask again** — each
-  batch was an explicit request; don't add a batch 4 to `CLASSICAL_PROSE_ITEMS` unprompted.
+  this state should still wait for the user to ask again** — each
+  batch was an explicit request; don't add a batch 5 to `CLASSICAL_PROSE_ITEMS` unprompted.
 - **Batch 3 (階段 7 B 批, 27 texts total, 9×p5 / 9×p6 / 9×s1)** — +3 p5 (掩耳盜鈴《呂氏春秋．自知》, 畫蛇添足《戰國策．齊策二》,
   鷸蚌相爭（節錄）《戰國策．燕策二》), +3 p6 (王戎不取道旁李《世說新語．雅量》, 曾子殺彘《韓非子．外儲說左上》, 鑿壁偷光《西京雜記》),
   +4 s1 (論語選章（論學）, 愛蓮說 周敦頤, 陋室銘 劉禹錫, 岳陽樓記（節錄）范仲淹). Same schema; 5 questions each (3 comprehension,
@@ -1213,6 +1213,36 @@ correctly since, and lets them specifically re-practice just those.
   - **Glossary rule (tests/content.test.js):** every glossary term must occur in the passage's `lines` **or its `title`** (狐假虎威's 「假」
     is only in the title); nothing else was relaxed.
 
+### 階段 10b — 文言文選讀 +8 中二 (s2) passages (Oct 2026) — 35 texts, 9 / 9 / 9 / 8 (小五 / 小六 / 中一 / 中二) — awaiting the user's review (not merged)
+Content-only change (`classicalProseContent.jsx`, `tests/content.test.js`, this file; `ClassicalProseModule.jsx` untouched — list, detail, seal, quiz and 錯題 chip are all driven by the data). Every item is `level: "s2"`
+(shown as 「中二」; nothing says 中三 and no field claims a passage belongs to 中二 or 中三). Same schema as the other 27 (`lines` / `lineExplanations` equal length, `glossary` terms occur in `lines` or `title`, 5 questions each:
+3 理解 + 1 字詞解釋 + 1 語譯填空, 4 different options, `correctIndex` 10 / 10 / 10 / 10 over the 40 questions, ≥ 3 positions per passage).
+- **The 8 (all on the 教育局 junior-secondary recommended list, 第三學習階段; ids in `tests/content.test.js` `PROSE_10B`):** 傷仲永 (王安石, 北宋, whole text, 11 lines) · 鄒忌諷齊王納諫（節錄）(《戰國策．齊策一》, 戰國, 4 lines) · 賣柑者言（節錄）(劉基, 元末明初, 8 lines) ·
+  楊修之死（節錄）(《三國演義》第七十二回, 元末明初, 8 lines) · 習慣說 (劉蓉, 清, 6 lines) · 貓捕雀 (薛福成, 清, 10 lines, whole text) · 管寧、華歆共園中鋤菜 (《世說新語．德行》, 南朝宋, 3 lines) · 荀巨伯遠看友人疾 (《世說新語．德行》, 南朝宋, 5 lines).
+  Seals follow the existing rule (《世說新語．德行》 → 世說, 《戰國策．齊策一》 → 戰國, 《三國演義》第七十二回 → 三國, a single-author source → the author's first two characters: 王安 / 劉基 / 劉蓉 / 薛福).
+- **愚公移山 was NOT added; 荀巨伯遠看友人疾 stands in (as the user's rule said).** The 教育局 text (KS3_03) writes 「太形、王屋二山」 where most textbooks write 「太行」, and printed editions also differ in 厝/措, 隴/陵 and other characters; the 教育局 PDF could not be opened, so the edition could not be settled.
+  荀巨伯 is itself a 教育局 passage (KS3_07, 《世說新語》兩則 together with 管寧、華歆).
+- **VERIFICATION LEVEL (be honest about it):** the sandbox cannot open edb.gov.hk, zh.wikisource.org, ctext.org or words.hk (egress policy, HTTP 403 / DNS), so **no 原文 was compared with a page character by character.** What was done: WebSearch only (its answers are summaries, and page titles
+  show the first ~60–120 characters of the 教育局 KS3_xx PDFs). Each passage was checked (a) against the opening of the 教育局 PDF as shown in search results and (b) by asking, per paragraph, whether a draft differs from the 教育局 text / 維基文庫 / other sites; where the summaries reported the 教育局 wording it was followed.
+  The drafts of 賣柑者言, 楊修之死 and 習慣說 were first written from memory and then corrected after the summaries showed differences (e.g. 楊修之死 opening, 賣柑者言 「予貿得其一」, 習慣說 first lines); **a human must still compare all 8 with the 教育局 PDFs**.
+  Per passage: 傷仲永 — opening and first half reported identical to the 教育局 text; second half reported with 予 (not 余) and 邪 (not 耶), which were adopted (punctuation also followed the 教育局 text: 「問焉。曰：「泯然眾人矣。」」). 鄒忌 — only the second half is used (see 不肯定). 賣柑者言 — opening lines as in the 教育局 PDF title (「涉寒暑不潰；出之燁然…剖之如有煙撲口鼻」); the rest agrees with the summaries of 古文觀止 versions.
+  楊修之死 — wording of the 教育局 text (沈吟, 食之無肉，棄之有味, 臨時慌亂, 遂亦收拾行裝) adopted over the 毛本 snippets (食之無味，棄之可惜, 遂亦收拾行裝 without 自 …); the second half was compared only partially. 習慣說 — opening line is quoted in the 教育局 PDF title; lines 2–6 rest on search summaries (one source for lines 4–6).
+  貓捕雀 — the whole text was reported identical in the 教育局 text and 維基文庫 (two HK worksheets also show the first paragraph). 管寧、華歆 — 《世說新語》 text found on several sites; the 教育局 07b text was not seen. 荀巨伯 — reported identical to the 教育局 KS3_07 text (punctuation too).
+- **粵拼 (jyutping): only 8 entries have one — each found on a dictionary page via search; everything else is deliberately left without `jyutping`** (the test `JYUTPING_10B_CHECKED` fails if another one is added):
+  泯 man5 (泯滅 man5 mit6, Jyut Dictionary) · 蔽 bai3 (jyut.net table, words.hk) · 謗 bong3 (誹謗 fei2 bong3, Jyut Dictionary) · 柑 gam1 (柑桔 gam1 gat1, Jyut Dictionary) · 庖 paau4 (越俎代庖 … doi6 paau4, Jyut Dictionary) · 雞肋 gai1 laak6 (Jyut Dictionary) · 噬 sai6 (吞噬 tan1 sai6; the same site lists a different sai4 for another sense) · 噪 cou3 (噪音 cou3 jam1).
+  Left out (no dictionary page found): 隸 扳 謁 諫 刺 鬻 貿 籩 瞽 衒 斁 糜 躓 窪 俛 輒 蹴 窒 雛 攫 啁啾 眈 歆 荀 軒冕 惇 …
+- **楊修之死 is a novel:** the `background` says it is from 《三國演義》 (小說, 虛構和藝術加工), that the historical 楊修 is to be read from 《後漢書》 and other histories, and that the two differ; no historical detail is written (the 《後漢書》 text was not compared). The excerpt is only the 雞肋 incident (the 教育局 text's paragraphs 1–3 plus the end of that scene);
+  the rest of the 教育局 text (other episodes) is not included. Test: the `background` must contain 《三國演義》, 小說, 《後漢書》 and 史實.
+- **Excerpts (marked in the title and in `background`):** 鄒忌 = from 「於是入朝見威王」 to 「無可進者」 (the opening comparison with 徐公 and the closing 「燕、趙、韓、魏聞之，皆朝於齊」 are described in the `background`). 賣柑者言 = from the start to 「而以察吾柑」; the author's last paragraph is left out, and one sentence of the vendor's speech is replaced by a literal 「……」 inside the line
+  (editions differ: 未嘗有言 / 未聞有言 and 而獨不足於子乎 / 子所乎 / 於子所乎). 楊修之死 = the 雞肋 scene.
+- **Edition choices to check (列入「不肯定」):** 傷仲永 予 / 余, 邪 / 耶, 金溪 / 金谿 (金溪 kept). 鄒忌: 羣臣 (the 教育局 teaching design writes 羣) and 蔽 (維基文庫 shows 敝); one other HK file reads 「臣吏民」 — 「羣臣吏民」 kept. **鄒忌 first half NOT used because the wife's reply is 「徐公何能及公也」 in some sources and 「及君也」 in others and it could not be settled.**
+  賣柑者言: 禦 / 御 and 糜 / 縻 (禦, 糜 kept); 「鬻」 glossed as 買 (textbook habit; original sense 賣); the source book (《誠意伯文集》 / 《郁離子》) is not written; dynasty written 「元末明初」. 楊修之死: 楊修 / 楊脩; 羅貫中's dynasty written 「元末明初」 (his dates are unknown); 《三國演義》's edition is not named; the claim that the earliest 嘉靖本 has no 雞肋 episode (from a social-media post) is not written.
+  習慣說: the text is the textbook version (整理自 《養晦堂文集》 〈習說〉, about a third of the length); 父 (not 先君子), 蹴然 (not 蹶然), 天下國家 (not 家國), 貴慎始 (not 貴乎慎始), 足苦躓焉 (not 足若躓焉) follow the 教育局 text as reported. 貓捕雀: the volume of 《庸盦文編》 and whether the title was added later are not written (some sites misprint 噪 as 嗓). 管寧、華歆: 寧讀如故 (some sites 寧讀書如故), 割席分坐 (some 分座).
+  荀巨伯: 維基百科 shows 「敗義而求生」 against the 教育局 「敗義以求生」 (教育局 kept); his dates are not written. 傷仲永's date of writing and the 《王臨川集》 volume are not written (the book name is from an RTHK handout).
+- **Tests (`content.test.js` 48 → 55; whole suite 13 files, 231 tests):** 35 passages, 9 / 9 / 9 / 8; every one of the four levels has a 文言文選讀 passage (only this module is checked against s2 — `FILLED_LEVELS` for the other modules still excludes it); the 8 ids are present, all s2, correct answers spread 10 / 10 / 10 / 10; 愚公移山 absent;
+  a 節錄 title is explained in the `background`; 楊修之死 background words; no jyutping except the 8 checked ones; no 「中二」 / 「中三」 anywhere in the new items; a colloquial-word scan (呢個 咩 嘅 咗 唔 喺 …) and **「同」 only inside ordinary compounds (同學 同時 相同 共同 同情 不同 同一 同樣 同鄉 同窗 同類 同宗族)** over everything a child sees except the 原文 (the 原文 keeps 「又嘗同席讀書」);
+  the settled wording of each 原文 (予…邪, 羣臣, 剖之如有煙撲口鼻, 沈吟…臨時慌亂…遂亦收拾行裝, 蹴然以驚 …) so a variant cannot slip in unnoticed.
+
 ## Build status
 - [x] Project scaffold — theme, storage, Home dashboard (see 每日任務 notes for the current layout), hub-and-spoke nav
 - [x] Module 1 — 詩詞學習 (Classical Poetry + 文言文)
@@ -1224,7 +1254,7 @@ correctly since, and lets them specifically re-practice just those.
 - [x] Module 7 — 閱讀理解
 - [x] Module 8 — 修辭手法
 - [x] Module 9 — 標點符號練習
-- [x] Module 10 — 文言文選讀 (27 texts across 3 batches; see Module 10 notes)
+- [x] Module 10 — 文言文選讀 (35 texts across 4 batches; see Module 10 notes)
 
 **All 10 modules are built.** Remaining known gaps (content depth, not
 missing features):
@@ -1240,7 +1270,7 @@ missing features):
 - [ ] Expand reading passage library further beyond the current 34 curated items (new 理解/語文 question format — see Module 7 REBUILD and 階段 7 C 批)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
-- [ ] Classical prose library at 27 texts (3 batches so far, 9 / 9 / 9) — expand
+- [ ] Classical prose library at 35 texts (4 batches so far: 9 / 9 / 9 / 8 at 小五 / 小六 / 中一 / 中二) — expand
       further only if the user asks again, per Module 10 notes
 - [ ] Composing arbitrary multi-root Cangjie characters (currently scoped to
       the 24 basic roots + 5 verified compound examples — see Module 3 notes)
@@ -1393,7 +1423,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **224 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **231 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1413,7 +1443,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
-  `content.test.js` (48 — rhetoric, essay, 文言文選讀, 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (55 — rhetoric, essay, 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
@@ -1811,3 +1841,4 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
   "every level has items" (`content.test.js` `FILLED_LEVELS`) and the per-level counts of that module need to be updated in the same batch.
 - **Verified (Playwright, test mode, 820 and 390):** home 中二 selected (note shown, buttons one line, ≥ 44 px, no horizontal overflow); each of the 8 modules opened at 中二: note shown, list / hub non-empty, 開始練習 (or the first passage's 開始問答, or 聆聽練習) works, 練習錯題 works, switching to 小五 inside the module removes the note and shows that level's items; essay patched so every item is s2: no note at 中二 (150 items), the note (「小五內容陸續加入…」) at 小五; console errors 0; the real key `chineseOps:v1` never written.
 
+- **階段 10b (done, awaiting review):** 文言文選讀 now has 8 中二 passages (see "Module 10 details → 階段 10b"); its 中二 list shows them and the fallback note is gone for that module only. The other 7 levelled modules still show the note at 中二 (verified in the browser). `tests/content.test.js` `FILLED_LEVELS` is unchanged on purpose; a separate test checks that 文言文選讀 has all four levels.
