@@ -12,14 +12,15 @@
 //
 // Rules that keep an answer unambiguous (all checked again, independently, by the tests):
 //  - person: the right person is a named person of `characters` who is NOT already named in the title / first sentence shown; a wrong person
-//    is a named person of another story who is not (an alias of) any person of this story, is never named in this story's title or text, and
-//    two options are never the same person under different names (HISTORY_CHARACTER_ALIASES, HISTORY_RULER_ALIASES, generic entries such
+//    is a named person of another story who is not (an alias of) any person of this story, is never named in this story's title or text,
+//    comes from a story at least 100 years away (50 if too few people qualify, otherwise the story is asked another kind), is not in
+//    HISTORY_PERSON_NOT_OPTION for this story, and two options are never the same person under different names (HISTORY_CHARACTER_ALIASES, HISTORY_RULER_ALIASES, generic entries such
 //    as 百姓 / 秦王 are never options).
 //  - period: the four options have pairwise disjoint `families` (HISTORY_PERIOD_NORM): 春秋 and 戰國, 北宋 and 宋朝, 西漢 and 東漢 …
 //    are never offered together.
 //  - lesson: a wrong story is never in a common HISTORY_SIMILAR_GROUPS group with the right one.
 //  - title: wrong titles come from the same 類別, never share a named person with the right story, never belong to a common
-//    HISTORY_SAME_EVENT_GROUPS group, and are not named in the passage; the passage never contains the right title.
+//    HISTORY_SAME_EVENT_GROUPS or HISTORY_SIMILAR_GROUPS group, and are not named in the passage; the passage never contains the right title.
 // 答錯 -> the HistoryModule puts `itemId` into the history 錯題本; a correct answer deliberately never removes it (see HistoryModule.jsx).
 window.App = window.App || {};
 
@@ -34,7 +35,11 @@ window.App = window.App || {};
   const GENERIC = new Set(C.HISTORY_GENERIC_CHARACTERS || []);
   const ALIASES = C.HISTORY_CHARACTER_ALIASES || [];
   const RULERS = C.HISTORY_RULER_ALIASES || {};
+  const NOT_OPTION = C.HISTORY_PERSON_NOT_OPTION || {};
 
+  // 人物配故事: a wrong person's nearest story must be at least this many years from the asked story (relaxed only if too few people qualify)
+  const PERSON_YEAR_GAP = 100;
+  const PERSON_YEAR_GAP_RELAXED = 50;
   const QUESTION_COUNT = 15;
   const KINDS = ["person", "period", "order", "lesson", "title"];
   const NOT_FOR_ORDER = ["神話與民間傳說", "小說演義"];
@@ -127,6 +132,15 @@ window.App = window.App || {};
 
   // person: the deterministic part (the random part picks from these)
   const personCache = {};
+  const nearYear = (p, item) => Math.min(...p.years.map((y) => Math.abs(y - (item.sortYear || 0))));
+  // up to three pairwise different persons exist in `list`?
+  const enoughPeople = (list) => {
+    const chosen = [];
+    list.forEach((p) => {
+      if (chosen.length < 3 && !chosen.some((q) => samePerson(q.name, p.name))) chosen.push(p);
+    });
+    return chosen.length >= 3;
+  };
   function preparePerson(item) {
     if (personCache[item.id] !== undefined) return personCache[item.id];
     let out = null;
@@ -135,13 +149,17 @@ window.App = window.App || {};
     if (right.length) {
       const all = item.characters || [];
       const text = item.title + item.story;
-      const wrong = PEOPLE.filter((p) => !all.some((c) => samePerson(c, p.name)) && !mentions(p.name, text));
-      // at least three wrong people who are pairwise different persons
-      const chosen = [];
-      wrong.forEach((p) => {
-        if (chosen.length < 3 && !chosen.some((q) => samePerson(q.name, p.name))) chosen.push(p);
-      });
-      if (chosen.length >= 3) out = { right, wrong };
+      const banned = NOT_OPTION[item.id] || [];
+      const wrong = PEOPLE.filter((p) => !all.some((c) => samePerson(c, p.name)) && !mentions(p.name, text) && !banned.some((b) => samePerson(b, p.name)));
+      // a wrong person must come from a story at least 100 years away (so he cannot be a contemporary of the story); only when fewer than
+      // three different people qualify is the gap relaxed to 50 years, and when even that is not enough the story is not asked this kind
+      for (const gap of [PERSON_YEAR_GAP, PERSON_YEAR_GAP_RELAXED]) {
+        const far = wrong.filter((p) => nearYear(p, item) >= gap);
+        if (enoughPeople(far)) {
+          out = { right, wrong: far, gap };
+          break;
+        }
+      }
     }
     personCache[item.id] = out;
     return out;
@@ -150,8 +168,7 @@ window.App = window.App || {};
     const prep = preparePerson(item);
     if (!prep) return null;
     const correct = shuffle(prep.right)[0];
-    const near = (p) => Math.min(...p.years.map((y) => Math.abs(y - (item.sortYear || 0))));
-    const ranked = prep.wrong.map((p) => ({ p, s: near(p) / 10 + Math.random() * 200 })).sort((a, b) => a.s - b.s);
+    const ranked = prep.wrong.map((p) => ({ p, s: nearYear(p, item) / 10 + Math.random() * 200 })).sort((a, b) => a.s - b.s);
     const wrong = [];
     for (const { p } of ranked) {
       if (wrong.length >= 3) break;
@@ -248,6 +265,7 @@ window.App = window.App || {};
         c.id !== item.id &&
         c.category === item.category &&
         !inCommonGroup(SAME_EVENT, item, c) &&
+        !inCommonGroup(SIMILAR, item, c) &&
         !nameds(item).some((a) => (c.characters || []).some((b) => samePerson(a, b)))
     );
   }
@@ -335,5 +353,11 @@ window.App = window.App || {};
     return out;
   }
 
-  window.App.HistoryQuiz = { QUESTION_COUNT, KINDS, buildQuestions, eligible, samePerson, mentions, sentencesOf, titleParts, firstSentence };
+  // the year gap that 人物配故事 uses for this story (100, 50 when relaxed) or null when the story is not asked this kind
+  const personGap = (item) => {
+    const prep = preparePerson(item);
+    return prep ? prep.gap : null;
+  };
+
+  window.App.HistoryQuiz = { QUESTION_COUNT, KINDS, buildQuestions, eligible, personGap, samePerson, mentions, sentencesOf, titleParts, firstSentence };
 })();

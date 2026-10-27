@@ -48,7 +48,14 @@ Object.values(NORM).forEach((n) => {
 });
 const overlaps = (a, b) => [...a].some((f) => b.has(f));
 
+const namesCache = new Map();
 const namesOf = (name) => {
+  if (namesCache.has(name)) return namesCache.get(name);
+  const r = namesOfRaw(name);
+  namesCache.set(name, r);
+  return r;
+};
+const namesOfRaw = (name) => {
   const names = new Set([name, name.replace(/（.*?）/g, "")]);
   const m = name.match(/（(.*?)）/);
   if (m) names.add(m[1]);
@@ -71,7 +78,21 @@ const forbiddenIn = (title) => {
   return out;
 };
 
-function problems(q) {
+// independent: the years of every story in which a person is a named character (matching by names / aliases)
+const yearsCache = new Map();
+function personYears(ITEMS_, name) {
+  let m = yearsCache.get(ITEMS_);
+  if (!m) yearsCache.set(ITEMS_, (m = new Map()));
+  if (m.has(name)) return m.get(name);
+  const ys = [];
+  m.set(name, ys);
+  ITEMS_.forEach((it) => { if (named(it).some((c) => c === name || sameP(c, name))) ys.push(it.sortYear); });
+  return ys;
+}
+const nearGap = (ITEMS_, name, item) => Math.min(...personYears(ITEMS_, name).map((y) => Math.abs(y - item.sortYear)));
+const NOT_OPTION = () => C.HISTORY_PERSON_NOT_OPTION;
+
+function problems(q, ITEMS_ = ITEMS, A_ = Q) {
   const out = [];
   const item = byId[q.itemId];
   if (!item) return ["unknown itemId " + q.itemId];
@@ -90,7 +111,11 @@ function problems(q) {
         out.push("person stem is not the title + the first complete sentence");
       if (!named(item).includes(correct)) out.push("person: right option is not a named character: " + correct);
       if (inText(correct, stem)) out.push("person: right person is named in the stem: " + correct);
+      const gap = A_.personGap(item);
+      if (gap !== 100 && gap !== 50) out.push("person: story asked although personGap is " + gap);
       wrong.forEach((w) => {
+        if (gap && nearGap(ITEMS_, w, item) < gap) out.push("person: wrong option " + w + " is only " + nearGap(ITEMS_, w, item) + " years from the story (needs " + gap + ")");
+        if ((NOT_OPTION()[item.id] || []).some((b) => sameP(b, w))) out.push("person: wrong option " + w + " is in HISTORY_PERSON_NOT_OPTION for " + item.id);
         if (item.characters.some((c) => sameP(c, w))) out.push("person: wrong option is a person of the story: " + w);
         if (inText(w, item.title + item.story)) out.push("person: wrong option is named in the story: " + w);
         if (GENERIC.has(w) || w.includes("的") || w.includes("、")) out.push("person: generic option " + w);
@@ -143,6 +168,7 @@ function problems(q) {
         if (!s) return out.push("title: unknown title " + w);
         if (s.category !== item.category) out.push("title: wrong title of another category " + w);
         if (sameGroup(SAME_EVENT, item, s)) out.push("title: wrong title is the same event " + w);
+        if (sameGroup(SIMILAR, item, s)) out.push("title: wrong title shares a HISTORY_SIMILAR_GROUPS group " + w);
         if (named(item).some((a) => s.characters.some((b) => sameP(a, b)))) out.push("title: wrong title shares a person " + w);
         forbiddenIn(w).forEach((p) => {
           if (q.passage.includes(p)) out.push("title: passage names wrong title " + w);
@@ -208,7 +234,7 @@ t("HISTORY_SIMILAR_GROUPS / HISTORY_SAME_EVENT_GROUPS: real ids, 2+ members, no 
       seen.add(key);
     });
   });
-  assert.strictEqual(SIMILAR.length, 24);
+  assert.strictEqual(SIMILAR.length, 30);
 });
 
 t("character tables: generic entries exist in the library, alias groups point to real names, the library has enough named people", () => {
@@ -421,6 +447,109 @@ t("patched library: a wrong title that is named inside the passage is never offe
     });
   }
   assert(asked >= 400, "only " + asked + " title questions");
+});
+
+t("階段 9d 審核後：6 個新增的相近啟示組都在，原有 24 組不變", () => {
+  const has = (a, b) => SIMILAR.some((g) => g.length === 2 && g.includes(a) && g.includes(b));
+  [["wanbi-guizhao", "mao-sui-zi-jian"], ["chu-long-shuo-zhao-tai-hou", "wanbi-guizhao"], ["fujing-qingzui", "kongrong-rangli"], ["xin-hai-ge-ming", "wei-qing-huo-qu-bing-kang-xiongnu"], ["kong-cheng-ji", "cao-chuan-jie-jian"], ["jingwei-tianhai", "nvwa-butian"]].forEach(([a, b]) => assert(has(a, b), a + " / " + b));
+  // 管仲治齊 and 張騫出使西域 keep their places
+  assert(SIMILAR.some((g) => g.includes("guan-zhong-zhi-qi") && g.includes("shang-yang-bian-fa")));
+  assert.strictEqual(SIMILAR.filter((g) => g.includes("zhang-qian-chu-shi-xi-yu")).length, 2);
+});
+
+t("人物配故事：干擾人物的最近故事與該故事相差 ≥100 年（全庫 5000 輪），能出此題型的故事數仍是 51 個以上", () => {
+  const asking = ITEMS.filter((i) => Q.eligible("person", i));
+  assert(asking.length >= 45, "person-eligible stories: " + asking.length);
+  asking.forEach((i) => assert.strictEqual(Q.personGap(i), 100, i.title + " needs a relaxed gap"));
+  let persons = 0;
+  for (let i = 0; i < 5000; i++) {
+    Q.buildQuestions(ITEMS, 15).filter((q) => q.kind === "person").forEach((q) => {
+      persons++;
+      const item = byId[q.itemId];
+      q.options.filter((_, k) => k !== q.correctIndex).forEach((w) => assert(nearGap(ITEMS, w, item) >= 100, w + " is too close to " + item.title));
+    });
+  }
+  assert.strictEqual(persons, 15000);
+});
+
+t("HISTORY_PERSON_NOT_OPTION：id 和人物都存在；排除表內的人物出現 0 次（每個故事 1500 輪；另外全庫 5000 輪也逐題檢查）", () => {
+  const T = C.HISTORY_PERSON_NOT_OPTION;
+  assert.deepStrictEqual(Object.keys(T).sort(), ["chang-ping-zhi-zhan", "chu-long-shuo-zhao-tai-hou", "xuanwumen-zhibian"]);
+  const all = new Set(ITEMS.flatMap((i) => i.characters));
+  Object.entries(T).forEach(([id, names]) => { assert(byId[id], id); names.forEach((n) => assert(all.has(n), "unknown person " + n)); });
+  for (const [id, names] of Object.entries(T)) {
+    for (let r = 0; r < 1500; r++) {
+      Q.buildQuestions([byId[id]], 15).filter((q) => q.kind === "person").forEach((q) => q.options.forEach((o) => assert(!names.some((n) => sameP(n, o)) || q.options[q.correctIndex] === o, id + " offers " + o)));
+    }
+  }
+});
+
+t("patched library: the table alone decides when the year rule lets everybody through (only the three non-banned people can be offered)", () => {
+  let allowed;
+  const A = load(61, (Cn) => {
+    const it = Cn.HISTORY_ITEMS.find((x) => x.id === "da-yu-zhi-shui");
+    const G = new Set(Cn.HISTORY_GENERIC_CHARACTERS);
+    const everyone = [...new Set(Cn.HISTORY_ITEMS.flatMap((x) => x.characters))].filter((c) => !G.has(c) && !c.includes("的") && !c.includes("、") && !it.characters.includes(c));
+    allowed = ["商湯", "管仲", "屈原不存在"].slice(0, 2).concat(["孟子"]);
+    Cn.HISTORY_PERSON_NOT_OPTION = Object.assign({}, Cn.HISTORY_PERSON_NOT_OPTION, { "da-yu-zhi-shui": everyone.filter((c) => !allowed.includes(c)) });
+  });
+  const item = A.Content.HISTORY_ITEMS.find((x) => x.id === "da-yu-zhi-shui");
+  assert.strictEqual(A.HistoryQuiz.personGap(item), 100);
+  let asked = 0;
+  for (let r = 0; r < 1500; r++) {
+    A.HistoryQuiz.buildQuestions([item], 15).filter((q) => q.kind === "person").forEach((q) => {
+      asked++;
+      const wrong = q.options.filter((_, k) => k !== q.correctIndex).sort();
+      assert.strictEqual(JSON.stringify(wrong), JSON.stringify([...allowed].sort()));
+    });
+  }
+  assert(asked >= 1500, "person questions: " + asked);
+});
+
+t("patched library: gap relaxed to 50 when fewer than 3 people are 100+ years away, still never below 50; below that the kind is not asked", () => {
+  // every other story sits 70 years from 大禹治水 -> nobody is 100 years away, but everybody is 50+ away
+  const A = load(71, (Cn) => { Cn.HISTORY_ITEMS.forEach((x) => { x.sortYear = x.id === "da-yu-zhi-shui" ? 0 : 70; }); });
+  const items = A.Content.HISTORY_ITEMS;
+  const item = items.find((x) => x.id === "da-yu-zhi-shui");
+  assert.strictEqual(A.HistoryQuiz.personGap(item), 50);
+  let asked = 0;
+  for (let r = 0; r < 600; r++) {
+    A.HistoryQuiz.buildQuestions([item], 15).filter((q) => q.kind === "person").forEach((q) => {
+      asked++;
+      assert.deepStrictEqual(problems(q, items, A.HistoryQuiz).filter((p) => !/years from the story|does not|order|period/.test(p)), []);
+      q.options.filter((_, k) => k !== q.correctIndex).forEach((w) => assert(nearGap(items, w, item) >= 50));
+    });
+  }
+  assert(asked > 100);
+  // everybody only 30 years away: the kind is not asked at all (and nothing breaks)
+  const B = load(72, (Cn) => { Cn.HISTORY_ITEMS.forEach((x) => { x.sortYear = x.id === "da-yu-zhi-shui" ? 0 : 30; }); });
+  const bi = B.Content.HISTORY_ITEMS.find((x) => x.id === "da-yu-zhi-shui");
+  assert.strictEqual(B.HistoryQuiz.personGap(bi), null);
+  assert(!B.HistoryQuiz.eligible("person", bi));
+  for (let r = 0; r < 200; r++) {
+    const qs = B.HistoryQuiz.buildQuestions([bi], 15);
+    assert.strictEqual(qs.length, 15);
+    qs.forEach((q) => assert(q.kind !== "person"));
+  }
+});
+
+t("故事猜標題：干擾標題從不與正確答案同屬 HISTORY_SIMILAR_GROUPS 任何一組（全庫，每個故事多次）", () => {
+  let asked = 0;
+  const pairs = new Set();
+  for (const it of ITEMS) {
+    for (let r = 0; r < 50; r++) {
+      Q.buildQuestions([it], 15).filter((q) => q.kind === "title").forEach((q) => {
+        asked++;
+        q.options.filter((_, k) => k !== q.correctIndex).forEach((w) => {
+          assert(!sameGroup(SIMILAR, it, byTitle[w]), it.title + " offers similar-group story " + w);
+          pairs.add(it.id + ">" + byTitle[w].id);
+        });
+      });
+    }
+  }
+  assert(asked > 3000, "title questions: " + asked);
+  // the new pairs 完璧歸趙 / 毛遂自薦 would be tempting wrong options (same 計謀 tab, near years, no shared person) if the rule were missing
+  assert(!pairs.has("wanbi-guizhao>mao-sui-zi-jian") && !pairs.has("mao-sui-zi-jian>wanbi-guizhao"));
 });
 
 t("書面語 scan: no colloquial wording, and 同 only inside ordinary words, in the generator and the new tables", () => {

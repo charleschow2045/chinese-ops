@@ -3079,6 +3079,18 @@ window.App.Content = window.App.Content || {};
     ["shang-yang-bian-fa", "zhang-ju-zheng-gai-ge", "bei-jiu-shi-bing-quan"],
     // 以德服人、爭取人心
     ["qi-qin-meng-huo", "kang-xi-ping-san-fan", "xue-rengui-san-jian-ding-tianshan", "guo-zi-yi-dan-qi-tui-hui-he", "shang-tang-wang-kai-san-mian"],
+    // 階段 9d 審核後新增 (6 組)
+    // 面對強權／強國，以智慧和勇氣（或實力）維護國家利益
+    ["wanbi-guizhao", "mao-sui-zi-jian"],
+    ["chu-long-shuo-zhao-tai-hou", "wanbi-guizhao"],
+    // 知錯認錯、謙讓
+    ["fujing-qingzui", "kongrong-rangli"],
+    // 胸懷大志、為國家的命運行動
+    ["xin-hai-ge-ming", "wei-qing-huo-qu-bing-kang-xiongnu"],
+    // 臨危冷靜、運用智謀
+    ["kong-cheng-ji", "cao-chuan-jie-jian"],
+    // 堅持不懈
+    ["jingwei-tianhai", "nvwa-butian"],
   ];
 
   // Stories about one and the same event (or one tight chain of events). In 「故事猜標題」 a story of the same group is never a wrong
@@ -3096,6 +3108,14 @@ window.App.Content = window.App.Content || {};
     ["jingkang-zhinan", "yue-fei-jing-zhong-bao-guo"],
     ["zhang-qian-chu-shi-xi-yu", "wei-qing-huo-qu-bing-kang-xiongnu", "su-wu-mu-yang", "si-ma-qian-shi-ji"],
   ];
+
+  // 人物配故事: persons who must never be a wrong option for a given story (by story id), although the 100-year rule alone might let them through.
+  // Written by hand after review; a new entry needs the user's approval.
+  const HISTORY_PERSON_NOT_OPTION = {
+    "chu-long-shuo-zhao-tai-hou": ["秦昭襄王"], // 秦國當時的國君，故事中的秦國就是他的秦國
+    "chang-ping-zhi-zhan": ["秦昭襄王"], // 長平之戰的秦軍是秦昭襄王所派
+    "xuanwumen-zhibian": ["魏徵"], // 魏徵原是太子李建成的屬下，與玄武門之變有直接關係
+  };
 
   // 人物配故事 helpers. A `characters` entry is either a named person or a generic group / relative that can never be an option.
   const HISTORY_GENERIC_CHARACTERS = [
@@ -3137,6 +3157,7 @@ window.App.Content = window.App.Content || {};
   window.App.Content.HISTORY_SIMILAR_GROUPS = HISTORY_SIMILAR_GROUPS;
   window.App.Content.HISTORY_SAME_EVENT_GROUPS = HISTORY_SAME_EVENT_GROUPS;
   window.App.Content.HISTORY_GENERIC_CHARACTERS = HISTORY_GENERIC_CHARACTERS;
+  window.App.Content.HISTORY_PERSON_NOT_OPTION = HISTORY_PERSON_NOT_OPTION;
   window.App.Content.HISTORY_CHARACTER_ALIASES = HISTORY_CHARACTER_ALIASES;
   window.App.Content.HISTORY_RULER_ALIASES = HISTORY_RULER_ALIASES;
 })();
