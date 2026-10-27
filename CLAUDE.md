@@ -1782,7 +1782,7 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
   wrong people taken from the story itself, fixed kind order, right person named in the stem, passage containing the title, wrong titles of other categories, no alias handling, no generic-name exclusion, no kind balancing, no ruler aliases, one-character names ignored, wrong titles named in the passage, wrong answer of 事件先後 reversed; after the review also: no 100-year gap, no HISTORY_PERSON_NOT_OPTION, no SIMILAR exclusion in 故事猜標題, relaxed gap of 0 instead of 50, no relaxation at all.
 - **Not verified:** a real iPad / the real CDN; whether 人物配故事 at 51/90 eligible is too few for a child to meet it often.
 
-## 階段 10 — 中二級別 (s2) — 階段 10a done (Oct 2026), 待審核 (built on `claude/elegant-volta-ihb51l`, NOT merged)
+## 階段 10 — 中二級別 (s2) — 階段 10a done (Oct 2026) — 已審核並已合併 (reviewed by the user and MERGED into master)
 **階段 10a only builds the level foundation; it adds NO content.** Content batches follow later, one module at a time (see the order and the rules below).
 - **What `s2` means:** the fourth level, label **「中二」**. In content terms it covers 中二 to 中三, but it is **not split by year**: on screen and in the data it is only ever called 「中二」 (never 「中三」), and no item may claim to be 中二 or 中三 specifically (the 教育局 junior-secondary
   recommended passages are not graded by year). An item is simply tagged `level: "s2"`. **The level tags of all existing content stay as they are** (p5 / p6 / s1; nothing was re-tagged).
