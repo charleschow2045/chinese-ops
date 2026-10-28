@@ -279,6 +279,7 @@ t("prose 10b: never 「中三」, never claims a passage is 中二 / 中三; 書
       for (const w of colloquial) assert.ok(!s.includes(w), `${x.id}: colloquial 「${w}」 in 「${s}」`);
       let rest = s;
       for (const ok of okTong) rest = rest.split(ok).join("");
+      rest = rest.split("同「").join(""); // 字詞註釋 「同「繞」」 (= 通「繞」)
       assert.ok(!rest.includes("同"), `${x.id}: 「同」 used outside an ordinary compound in 「${s}」`);
     }
   }
@@ -286,16 +287,54 @@ t("prose 10b: never 「中三」, never claims a passage is 中二 / 中三; 書
 
 t("prose 10b: 原文 keeps the 教育局 / textbook wording that was settled (no variant slipped in)", () => {
   const text = (id) => PROSE.find((x) => x.id === id).lines.join("");
-  // 傷仲永: 予 (not 余) and 邪 (not 耶), as in the 教育局 text; 鄒忌: 羣臣, 蔽; 賣柑者言: 剖之如有煙撲口鼻, 禦, 糜; 楊修之死: 沈吟, 臨時慌亂, 遂亦收拾行裝
+  // 傷仲永: 予 (not 余) and 邪 (not 耶), as in the 教育局 text; 鄒忌: 羣臣, 蔽; 賣柑者言: 剖之如有煙撲口鼻, 御 (not 禦, per the 教育局 PDF check), 糜; 楊修之死: 沈吟, 臨時慌亂, 遂亦收拾行裝
   assert.ok(text("shang-zhong-yong").includes("予聞之也久") && text("shang-zhong-yong").endsWith("得為眾人而已邪？"));
   assert.ok(text("zou-ji-feng-qi-wang-na-jian").includes("羣臣吏民") && text("zou-ji-feng-qi-wang-na-jian").includes("王之蔽甚矣"));
-  assert.ok(text("mai-gan-zhe-yan").includes("剖之如有煙撲口鼻") && text("mai-gan-zhe-yan").includes("不知禦") && text("mai-gan-zhe-yan").includes("坐糜廩粟"));
-  assert.ok(text("mai-gan-zhe-yan").includes("吾售之，人取之，未聞有言，而獨不足於子乎？世之為欺者不寡矣") && !text("mai-gan-zhe-yan").includes("……"), "賣柑者言: the vendor's sentence is written out, no omission marker");
+  assert.ok(text("mai-gan-zhe-yan").includes("剖之如有煙撲口鼻") && text("mai-gan-zhe-yan").includes("不知御") && text("mai-gan-zhe-yan").includes("坐糜廩粟"));
+  assert.ok(text("mai-gan-zhe-yan").includes("吾售之，人取之，未聞有言，而獨不足於子乎？世之為欺者，不寡矣") && !text("mai-gan-zhe-yan").includes("……"), "賣柑者言: the vendor's sentence is written out, no omission marker");
   assert.ok(text("yang-xiu-zhi-si").includes("正沈吟間") && text("yang-xiu-zhi-si").includes("臨時慌亂") && text("yang-xiu-zhi-si").includes("遂亦收拾行裝"));
   assert.ok(text("xi-guan-shuo").includes("蹴然以驚") && text("xi-guan-shuo").includes("何以天下國家為"));
   assert.ok(text("mao-bu-que").includes("噪而逐貓") && text("mao-bu-que").includes("烏虖"));
   assert.ok(text("guan-ning-hua-xin-gong-yuan-zhong-chu-cai").includes("寧讀如故"));
   assert.ok(text("xun-ju-bo-yuan-kan-you-ren-ji").includes("敗義以求生") && text("xun-ju-bo-yuan-kan-you-ren-ji").includes("遂班軍而還"));
+});
+
+// 階段 10b: 對照教育局《初中建議學習篇章》PDF 逐字核對後，用字及標點全部跟教育局版（傷仲永、貓捕雀完全一致，未改）
+t("prose 10b 教育局 PDF 對照: 3 處用字 (御 / 噫 / 遶) 及逐句標點已跟教育局版，舊寫法沒有殘留", () => {
+  const get = (id) => PROSE.find((x) => x.id === id);
+  const lines = (id) => get(id).lines.join("");
+  const every = (id) => JSON.stringify([get(id).lines, get(id).lineExplanations, get(id).glossary, get(id).questions, get(id).background]);
+  // 用字
+  assert.ok(lines("mai-gan-zhe-yan").includes("盜起而不知御") && !lines("mai-gan-zhe-yan").includes("不知禦"));
+  assert.ok(!every("mai-gan-zhe-yan").includes("不知禦"), "賣柑者言: no 「不知禦」 left in any field");
+  assert.ok(get("mai-gan-zhe-yan").questions[4].prompt.includes("盜起而不知御，民困而不知救"));
+  assert.deepEqual(get("mai-gan-zhe-yan").glossary.find((g) => g.term === "御"), { term: "御", meaning: "通「禦」，抵禦" });
+  assert.ok(lines("xi-guan-shuo").includes("噫！習之中人甚矣哉") && !lines("xi-guan-shuo").includes("嗚呼") && !every("xi-guan-shuo").includes("嗚呼"));
+  assert.ok(lines("yang-xiu-zhi-si").includes("遶寨私行") && !every("yang-xiu-zhi-si").includes("繞寨私行"));
+  assert.deepEqual(get("yang-xiu-zhi-si").glossary.find((g) => g.term === "遶"), { term: "遶", meaning: "同「繞」，繞着" });
+  // 貓捕雀: 「烏虖」 的註釋 「相當於「嗚呼」」 是正確的，不改
+  assert.ok(get("mao-bu-que").glossary.some((g) => g.term === "烏虖" && g.meaning.includes("嗚呼")));
+  // 標點: [id, 新寫法 (必須在 lines)], [id, 舊寫法 (所有欄位都不得出現)]
+  const NEW = [
+    ["zou-ji-feng-qi-wang-na-jian", "宮婦左右，莫不私王；朝廷之臣，莫不畏王，四境之內，莫不有求於王。由此觀之，王之蔽甚矣。"],
+    ["mai-gan-zhe-yan", "將以實籩豆、奉祭祀、供賓客乎"], ["mai-gan-zhe-yan", "甚矣哉，為欺也！"], ["mai-gan-zhe-yan", "吾業是有年矣。吾賴是以食吾軀"], ["mai-gan-zhe-yan", "世之為欺者，不寡矣"],
+    ["mai-gan-zhe-yan", "授孫吳之略耶"], ["mai-gan-zhe-yan", "建伊皋之業耶"], ["mai-gan-zhe-yan", "坐糜廩粟而不知恥；"], ["mai-gan-zhe-yan", "敗絮其中也哉！"],
+    ["yang-xiu-zhi-si", "適庖官進雞湯，操見碗中有雞肋"], ["yang-xiu-zhi-si", "稟請夜間口號，操隨口曰：「雞肋，雞肋。」"], ["yang-xiu-zhi-si", "行軍主簿楊修見傳"], ["yang-xiu-zhi-si", "有人報知夏侯惇，惇大驚"],
+    ["yang-xiu-zhi-si", "不日將退兵歸也。雞肋者"], ["yang-xiu-zhi-si", "必班師矣，故先收拾行裝"], ["yang-xiu-zhi-si", "公真知魏王肺腑也。"], ["yang-xiu-zhi-si", "遂亦收拾行裝，於是寨中諸將"],
+    ["yang-xiu-zhi-si", "主簿楊德祖，先知大王欲歸之意"], ["yang-xiu-zhi-si", "造言亂我軍心"],
+    ["xi-guan-shuo", "何以天下國家為？"], ["xi-guan-shuo", "坦然則既平矣！已而復然"],
+    ["guan-ning-hua-xin-gong-yuan-zhong-chu-cai", "寧割席分坐曰：「子非吾友也。」"],
+    ["xun-ju-bo-yuan-kan-you-ren-ji", "子令吾去；敗義以求生"],
+  ];
+  for (const [id, str] of NEW) assert.ok(lines(id).includes(str), `${id}: 「${str}」 is not in lines`);
+  const OLD = [
+    ["zou-ji-feng-qi-wang-na-jian", "宮婦左右莫不私王"], ["mai-gan-zhe-yan", "將以實籩豆，奉祭祀"], ["mai-gan-zhe-yan", "甚矣哉為欺也"], ["mai-gan-zhe-yan", "吾業是有年矣，吾賴是"], ["mai-gan-zhe-yan", "世之為欺者不寡矣"],
+    ["mai-gan-zhe-yan", "孫、吳"], ["mai-gan-zhe-yan", "伊、皋"], ["mai-gan-zhe-yan", "而不知恥。"], ["mai-gan-zhe-yan", "敗絮其中也哉？"],
+    ["yang-xiu-zhi-si", "適庖官進雞湯。"], ["yang-xiu-zhi-si", "雞肋！"], ["yang-xiu-zhi-si", "楊修，見傳"], ["yang-xiu-zhi-si", "夏侯惇。惇大驚"], ["yang-xiu-zhi-si", "歸也：雞肋"], ["yang-xiu-zhi-si", "矣。故先"],
+    ["yang-xiu-zhi-si", "肺腑也！"], ["yang-xiu-zhi-si", "行裝。於是"], ["yang-xiu-zhi-si", "楊德祖先知"], ["yang-xiu-zhi-si", "造言，亂"],
+    ["xi-guan-shuo", "國家為！"], ["xi-guan-shuo", "平矣。已而"], ["guan-ning-hua-xin-gong-yuan-zhong-chu-cai", "分坐，曰"], ["guan-ning-hua-xin-gong-yuan-zhong-chu-cai", "吾友也！"], ["xun-ju-bo-yuan-kan-you-ren-ji", "吾去，敗義"],
+  ];
+  for (const [id, str] of OLD) assert.ok(!every(id).includes(str), `${id}: old wording 「${str}」 is still somewhere`);
 });
 
 // 階段 10b 審核後修正
