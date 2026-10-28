@@ -1860,7 +1860,7 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
 
 - **階段 10b (done, 已審核並已合併):** 文言文選讀 now has 8 中二 passages (see "Module 10 details → 階段 10b"); its 中二 list shows them and the fallback note is gone for that module only. The other 7 levelled modules still show the note at 中二 (verified in the browser). `tests/content.test.js` `FILLED_LEVELS` is unchanged on purpose; a separate test checks that 文言文選讀 has all four levels.
 
-## 階段 10c-1 — 閱讀理解新增中二（s2）第一批 8 篇 (Oct 2026) — 已審核 (審核後修正 3 項已套用，見下)
+## 階段 10c-1 — 閱讀理解新增中二（s2）第一批 8 篇 (Oct 2026) — 已審核並已合併 (reviewed by the user and MERGED into master at `92e47df`, Pages run #57 success; the 3 審核後修正 below are applied; 10c-2 not started)
 Content-only change (`readingContent.jsx`, `tests/content.test.js`, this file; `ReadingModule.jsx` and every other file untouched). 閱讀理解 34 → **42 passages: 小五 12 / 小六 10 / 中一 12 / 中二 8**. The target is 16 中二 passages in total; the second batch (10c-2) comes later and only when the user asks.
 Format is exactly the one of "Module 7 — REBUILD" / "階段 7 C 批" (ids end `-v2`, `level: "s2"`, 3 `vocab`, 7 `comprehension` [4 mc + 1 multi 「哪兩項」(5 options, 2 answers) + 2 open] and 3 `language` [all mc], skills only from the existing names, no 「文言句意」 anywhere because no 原文 is used, explanations never refer to option letters and cite 「第 N 段」, every open question has `hint` / `points` / `scheme` (「共 N 分」) / `modelAnswer`). Total marks 14 for seven passages, 15 for 颱風.
 - **The 8 (genre shown as 「中二 · …」):**
