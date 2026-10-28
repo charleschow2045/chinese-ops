@@ -597,6 +597,37 @@ t("reading 10c-1: the two 說明文 facts — the 警告信號 wording and numbe
   for (const s of ["十二小時二十五分", "約五十分鐘", "新月和滿月", "上弦月和下弦月", "大潮", "小潮", "約為月球的一半"]) assert.ok(cx.includes(s), `潮汐: missing 「${s}」`);
 });
 
+// 階段 10c-1 審核後修正: options are shuffled on every attempt, so an explanation must never point to an option by its position.
+t("reading (all levels): no explanation points to an option by position (「第 N 句 / 項 / 個選項」, 「選項一」, 「最後一項」 …); 「第 N 段」 is a paragraph and is fine", () => {
+  const byPosition = /第[一二三四五六七八九十\d]+(句|項|個選項|個答案|個選擇|選)|選項[一二三四五1-5]|最後一項|首項|上一項|下一項/;
+  for (const x of READING) for (const q of readingQuestions(x)) {
+    if (nonEmpty(q.explanation)) assert.ok(!byPosition.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 points to an option by position`);
+  }
+});
+
+t("reading 10c-1 review fixes: 小潮 is 「部分互相抵消」 everywhere; the two 詞語運用 explanations quote the right sentence; 拐杖 (not 柺杖)", () => {
+  const cx = READING.find((y) => y.id === "chaoxi-weishenme-meitian-dou-you-zhangluo-v2");
+  const cxAll = [...cx.passage, ...readingQuestions(cx).flatMap(readingTexts)].join("\n");
+  assert.ok(cxAll.includes("兩者的引力部分互相抵消，漲落的幅度最小"), "passage 4: 小潮 sentence");
+  assert.ok(!cxAll.includes("引力互相抵消") && (cxAll.match(/互相抵消/g) || []).length === 4 && (cxAll.match(/部分互相抵消/g) || []).length === 4, "every 互相抵消 in the tide passage is 部分互相抵消");
+  const q3 = cx.language[2];
+  assert.equal(q3.prompt, "第四段「兩者的引力部分互相抵消」中，「抵消」的意思是");
+  assert.ok(q3.explanation.includes("作用有一部分互相消去") && !q3.explanation.includes("作用互相消去"));
+  const wrong = cx.comprehension[3].options;
+  assert.ok(wrong.includes("太陽、月球和地球成直角，引力部分互相抵消") && wrong.includes("太陽、月球和地球大致排成一直線，兩者的引力互相配合"));
+  assert.equal(cx.comprehension[3].options[cx.comprehension[3].answer], "太陽、月球和地球大致排成一直線，兩者的引力互相配合");
+  assert.ok(cx.comprehension[4].explanation.includes("這時兩者的引力部分互相抵消，漲落的幅度最小"));
+  const dl = READING.find((y) => y.id === "duli-sikao-yu-renyun-yiyun-v2").language[2];
+  assert.ok(dl.explanation.includes("只有「大家都說這部電影好看，他沒有看過，也隨聲附和地稱讚了一番」的情況，符合這個意思。"));
+  assert.equal(dl.options[dl.answer], "大家都說這部電影好看，他沒有看過，也隨聲附和地稱讚了一番。");
+  const sq = READING.find((y) => y.id === "shenqing-tushuguan-dashi-xin-v2").language[1];
+  assert.ok(sq.explanation.includes("只有「得悉學校將舉辦書展，我立即向老師查詢詳情」的用法正確。"));
+  assert.equal(sq.options[sq.answer], "得悉學校將舉辦書展，我立即向老師查詢詳情。");
+  const tb = READING.find((y) => y.id === "tibu-qiuyuan-v2").passage.join("");
+  assert.ok(tb.includes("阿傑拄着拐杖") && !tb.includes("柺"));
+  for (const x of s2Reading()) assert.ok(!s2ReadingStrings(x).some((s) => s.includes("柺")), `${x.id}: 柺`);
+});
+
 // ---- 成語學習 (idiomContent.jsx), 階段 8b ----
 const ID = loadContent("idiomContent.jsx");
 const IDIOMS = ID.IDIOM_ITEMS;
