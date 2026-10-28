@@ -1284,7 +1284,7 @@ missing features):
       `origin` added back to the other ~440 lighter-schema entries if depth matters
       more than volume later
 - [ ] Expand history story library further beyond the current 90 curated items (see 歷史故事改版 and 階段 8c)
-- [ ] Expand reading passage library further beyond the current 34 curated items (new 理解/語文 question format — see Module 7 REBUILD and 階段 7 C 批)
+- [ ] Expand reading passage library further beyond the current 42 curated items (34 + 8 中二 from 階段 10c-1; the second 中二 batch is planned — new 理解/語文 question format — see Module 7 REBUILD, 階段 7 C 批 and 階段 10c-1)
 - [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
 - [ ] Classical prose library at 35 texts (4 batches so far: 9 / 9 / 9 / 8 at 小五 / 小六 / 中一 / 中二) — expand
@@ -1440,7 +1440,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **233 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **240 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1460,7 +1460,7 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
-  `content.test.js` (57 — rhetoric, essay, 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解, 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (64 — rhetoric, essay, 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解 (incl. the 8 中二 passages of 階段 10c-1), 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
@@ -1859,3 +1859,32 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
 - **Verified (Playwright, test mode, 820 and 390):** home 中二 selected (note shown, buttons one line, ≥ 44 px, no horizontal overflow); each of the 8 modules opened at 中二: note shown, list / hub non-empty, 開始練習 (or the first passage's 開始問答, or 聆聽練習) works, 練習錯題 works, switching to 小五 inside the module removes the note and shows that level's items; essay patched so every item is s2: no note at 中二 (150 items), the note (「小五內容陸續加入…」) at 小五; console errors 0; the real key `chineseOps:v1` never written.
 
 - **階段 10b (done, 已審核並已合併):** 文言文選讀 now has 8 中二 passages (see "Module 10 details → 階段 10b"); its 中二 list shows them and the fallback note is gone for that module only. The other 7 levelled modules still show the note at 中二 (verified in the browser). `tests/content.test.js` `FILLED_LEVELS` is unchanged on purpose; a separate test checks that 文言文選讀 has all four levels.
+
+## 階段 10c-1 — 閱讀理解新增中二（s2）第一批 8 篇 (Oct 2026) — 待審核 (built on the dev branch, NOT merged, NOT pushed)
+Content-only change (`readingContent.jsx`, `tests/content.test.js`, this file; `ReadingModule.jsx` and every other file untouched). 閱讀理解 34 → **42 passages: 小五 12 / 小六 10 / 中一 12 / 中二 8**. The target is 16 中二 passages in total; the second batch (10c-2) comes later and only when the user asks.
+Format is exactly the one of "Module 7 — REBUILD" / "階段 7 C 批" (ids end `-v2`, `level: "s2"`, 3 `vocab`, 7 `comprehension` [4 mc + 1 multi 「哪兩項」(5 options, 2 answers) + 2 open] and 3 `language` [all mc], skills only from the existing names, no 「文言句意」 anywhere because no 原文 is used, explanations never refer to option letters and cite 「第 N 段」, every open question has `hint` / `points` / `scheme` (「共 N 分」) / `modelAnswer`). Total marks 14 for seven passages, 15 for 颱風.
+- **The 8 (genre shown as 「中二 · …」):**
+  | id | title | genre | 字數 | 題數 | 總分 |
+  |---|---|---|---|---|---|
+  | `tibu-qiuyuan-v2` | 替補球員 | 記敘文 | 887 | 7 + 3 | 14 |
+  | `waipo-de-jiu-xiangbu-v2` | 外婆的舊相簿 | 記敘文 | 889 | 7 + 3 | 14 |
+  | `yi-ba-jiechu-de-yusan-v2` | 一把借出的雨傘 | 記敘文（兼議論） | 937 | 7 + 3 | 14 |
+  | `taifeng-shi-zenyang-xingcheng-de-v2` | 颱風是怎樣形成的 | 說明文 | 929 | 7 + 3 | 15 |
+  | `chaoxi-weishenme-meitian-dou-you-zhangluo-v2` | 潮汐為甚麼每天都有漲落 | 說明文 | 796 | 7 + 3 | 14 |
+  | `duli-sikao-yu-renyun-yiyun-v2` | 獨立思考與人云亦云 | 議論文 | 865 | 7 + 3 | 14 |
+  | `zhiben-shu-yu-dianzishu-v2` | 紙本書與電子書，各有所長 | 議論文 | 881 | 7 + 3 | 14 |
+  | `shenqing-tushuguan-dashi-xin-v2` | 申請擔任圖書館大使 | 實用文（申請信） | 441 | 7 + 3 | 14 |
+  Ranges used: 記敘文 / 說明文 / 議論文 750–950 漢字, 實用文 400–600 (word count = 漢字 only). The three 記敘文 and the 實用文 are fictional (all people — 梁志軒, 文俊, 嘉琪, 黎思朗, 吳主任 … — and the class / 學會 are invented; 實用文 has 稱呼, 4 body paragraphs, 結語 「此致　敬禮！」 numbered, then 署名 and 日期 as `{ text, align: "right", numbered: false }`;
+  its date 二〇二六年十一月九日 is a Monday but no weekday is written, and the only weekdays in any passage — 星期三 / 星期一 in 一把借出的雨傘, 星期六 in 外婆的舊相簿, 逢星期二和星期四 in the letter — are relative or generic, so no calendar check is needed). 「中二丙班」 appears only as the applicant's fictional class; the word 「中三」 appears in no s2 text. No theme repeats the existing 34 (the 失敗 / 堅持 / 團隊 passages are about experiments and practice, not a dropped team player; 外公的算盤 is about a skill taught, not an album; the 網絡 passages are about online risks, 獨立思考 uses a fairy tale and daily choices, not 網上資訊).
+- **Fact-check (WebSearch only — the search tool returns summaries; the 香港天文台 pages themselves were not opened by me):**
+  - **熱帶氣旋警告信號 (HKO, English table of warning criteria `tc2017`–`tc2024`, `warnlegend`, plus Chinese pages):** 一號戒備 = a tropical cyclone centred within about 800 km of Hong Kong that may affect it (HKO's own blog says it does not issue it for every cyclone entering the range → the passage says 「考慮發出」 and 「並非所有進入這個範圍的熱帶氣旋都會令天文台發出信號」); 三號強風 = sustained 41–62 km/h, 八號烈風或暴風 = sustained 63–117 km/h, 九號烈風或暴風風力增強 = gale or storm wind increasing (or expected to increase) significantly, 十號颶風 = sustained 118 km/h or above.
+    **The results matched the expectation in the request (戒備 / 強風 / 烈風或暴風 / 烈風或暴風風力增強 / 颶風) and no revision of the system in 2025–2026 was found, so nothing was stopped.** Written: only the official names, the 800 km criterion, and the three sustained-wind ranges. Deliberately NOT written: gust figures (110 / 180 / 220 km/h), the four directions of the 八號信號, the history or numbers of other (unused) signals, any 2026 typhoon (search snippets disagree on its name).
+  - **形成條件:** sea surface about 26.5 °C or above (but ~5 % of formations occur over cooler water, hence 「一般來說…約需」), enough Coriolis force (HKO education article: negligible near the equator, hardly any formation within about 5° of it), low-level disturbance / convergence (輻合), plenty of moisture / instability (latent heat released when vapour condenses). The passage names four conditions (海溫, 科氏力, 輻合, 水汽). Not written: low vertical wind shear (listed by other sources but not asked), the size of the eye, the naming thresholds of 熱帶低氣壓 / 熱帶風暴 / 強烈熱帶風暴 / 颱風 (not re-checked), 颶風 naming only by region (大西洋 / 東太平洋) was dropped for length.
+  - **潮汐 (HKO 「潮汐」 education page, 日本國立天文台 暦Wiki, JMA, Tokyo University notes):** the Moon is the main cause and the Sun the smaller one (written 「約為月球的一半」 — the 暦Wiki figure, not an exact ratio); 大潮 at 新月 / 滿月 (朔望, 農曆初一和十五前後), 小潮 at 上弦 / 下弦; the Earth must turn about 50 minutes more to face the Moon again, so two successive high tides are about 12 h 25 min apart and the tide is about 50 minutes later each day; many places have two highs and two lows a day.
+    Not written because not certain / not needed: the delay between 朔望 and the biggest spring tide (潮齡, 1–2 days in Japan — place-dependent), exact dates of 上弦 / 下弦 in the lunar month, Hong Kong's mixed-tide inequality (the two highs differ in height), any figure for the tidal range of a named place, tidal power.
+    **Two statements rest on general knowledge, not on a quoted source — please check them:** 「有些地方一天大約只有一次」(diurnal tides, e.g. in some gulfs) and 「大潮期間若遇上颱風，海水更容易漫上岸邊，造成水浸」 (spring tide + storm surge; written softly, no place or figure).
+  - 獨立思考 quotes only 《論語．為政》 「學而不思則罔，思而不學則殆」 (the wording used in textbooks) and 《皇帝的新衣》 (安徒生, public tale). The explanation of 罔 / 殆 is a paraphrase (「迷惘而無所得」/「思考也沒有穩固的基礎」), not a gloss of 殆 — editions differ on that word.
+- **Tests (`content.test.js` 57 → 64; whole suite 13 files, 240 tests):** the level test now expects 42 with 12 / 10 / 12 / 8; new `READING_FILLED_LEVELS = [...FILLED_LEVELS, "s2"]` (reading only — essay / rhetoric still use `FILLED_LEVELS`) and a test that all four levels have a passage, the s2 ids are exactly the 8 above, unique and end `-v2`; genres; 7 + 3 questions, 3 vocab, kinds, explanations cite a paragraph and name no option letter, 「共 N 分」, 11–15 marks; length ranges; the 實用文's last two entries, 稱呼 first and 結語 before them; never 「中三」, no 「文言句意」, colloquial scan (incl. 什麼 / 裡) and **「同」 only in ordinary compounds (同學 同時 相同 共同 同情 不同 同一 同樣 同桌 陪同 同意)**; the agreed 警告信號 wording / numbers and tide numbers are in the text (and no 二號 / 四號 … in the 颱風 passage).
+  One false positive was fixed on the way: the prompt 「請寫出其中三項」 contains the characters 中三 by accident, so it now reads 「請寫出三項」; an older, non-s2 passage (about an online friend) legitimately says 中三學生 and is not checked.
+- **Answer positions of the 56 new mc questions:** 15 / 13 / 15 / 13 over the four slots (the module shuffles options anyway).
+- **Verified (Playwright, test mode, 820 and 390):** at 中二 the 閱讀理解 list shows exactly the 8 titles and no 「中二內容陸續加入」 note; 全部 = 42, 小五 12, 小六 10, 中一 12, 中二 8; all 8 passages opened (every paragraph, vocab, focus, genre label 「中二 · …」, circled numbers ①–⑧ only on numbered paragraphs, 署名 / 日期 right-aligned), and a full session of each run with wrong answers on some mc / multi questions and open questions rated 全部答到 / 答到一部分: the score on the result page matched the expected marks every time; sessions.reading +8, 8 mistakes flagged, backup export → import identical (version 2); no horizontal overflow, text ≥ 13 px, taps ≥ 44 px, 0 console errors. Not verified on a real iPad / the real CDN.

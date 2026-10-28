@@ -30,6 +30,8 @@ const PROSE_BATCH3 = ["yan-er-dao-ling", "hua-she-tian-zu", "yu-bang-xiang-zheng
 // so their "every level has items" checks use FILLED_LEVELS
 const LEVELS = ["p5", "p6", "s1", "s2"];
 const FILLED_LEVELS = ["p5", "p6", "s1"];
+// 階段 10c-1: 閱讀理解 now has s2 passages too (reading part only; the other modules still use FILLED_LEVELS)
+const READING_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
 const THEMES = ["描寫", "抒情", "論說"];
 const t = makeRunner("content");
 
@@ -365,7 +367,12 @@ const READING_C_BATCH = [
   "canguan-huishou-zhongxin-dianyou-v2", "waigong-de-suanpan-v2", "haishui-weishenme-shi-xian-de-v2", "zhi-de-gushi-v2",
   "jianyi-jiuwu-jiaohuanri-xin-v2", "moca-li-de-liang-mian-v2", "zhinanzhen-yu-cipianjiao-v2", "kuanrong-bushi-ruanruo-v2",
 ];
-const READING_VOCAB_EXCEPTIONS = ["wangluo-xianjing-v2", "chengshi-de-xuanze-v2"]; // vocab term written differently from the passage text
+// 階段 10c-1: the first 8 中二 (s2) passages.
+const READING_S2 = [
+  "tibu-qiuyuan-v2", "waipo-de-jiu-xiangbu-v2", "yi-ba-jiechu-de-yusan-v2", "taifeng-shi-zenyang-xingcheng-de-v2",
+  "chaoxi-weishenme-meitian-dou-you-zhangluo-v2", "duli-sikao-yu-renyun-yiyun-v2", "zhiben-shu-yu-dianzishu-v2", "shenqing-tushuguan-dashi-xin-v2",
+];
+const READING_VOCAB_EXCEPTIONS =["wangluo-xianjing-v2", "chengshi-de-xuanze-v2"]; // vocab term written differently from the passage text
 const READING_OPEN_MARKS_EXCEPTIONS = ["baoyu-wenhua-yichan-v2"]; // a 3-mark open question with 2 reference points
 const READING_SKILLS = ["重整", "解釋", "伸展", "評鑑", "成語／詞語解釋", "修辭手法", "詞語運用", "詞語解釋", "語文運用", "說明方法", "成語解釋", "成語運用", "文言句意"];
 const NUM_CN = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
@@ -377,13 +384,22 @@ const isNumberedPara = (p) => typeof p === "string" || (p && p.numbered !== fals
 const numberedCount = (x) => x.passage.filter(isNumberedPara).length;
 const readingTexts = (q) => [q.prompt, q.explanation, q.hint, q.scheme, q.modelAnswer, ...(q.points || []), ...(q.options || [])].filter(nonEmpty);
 
-t("reading: 34 passages, unique ids, 12 小五 / 10 小六 / 12 中一, level only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
-  assert.equal(READING.length, 34);
+t("reading: 42 passages, unique ids, 12 小五 / 10 小六 / 12 中一 / 8 中二, level only p5 / p6 / s1 / s2", () => {
+  assert.equal(READING.length, 42);
   assert.deepEqual(dups(READING.map((x) => x.id)), []);
   for (const x of READING) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
   const n = countBy(READING, (x) => x.level);
-  assert.deepEqual([n.p5, n.p6, n.s1], [12, 10, 12]);
+  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [12, 10, 12, 8]);
   for (const id of READING_C_BATCH) assert.ok(READING.some((x) => x.id === id), `missing ${id}`);
+});
+
+// 階段 10c-1: 閱讀理解 is checked against all four levels (only this module and 文言文選讀 have s2 content so far).
+t("reading 10c-1: every one of the four levels has passages; the s2 ids are exactly the 8 agreed ones, unique, all ending -v2", () => {
+  for (const lv of READING_FILLED_LEVELS) assert.ok(READING.some((x) => x.level === lv), `閱讀理解 has no ${lv} passage`);
+  const s2 = READING.filter((x) => x.level === "s2").map((x) => x.id);
+  assert.deepEqual([...s2].sort(), [...READING_S2].sort());
+  assert.deepEqual(dups(s2), []);
+  for (const id of s2) assert.ok(id.endsWith("-v2"), `${id} does not end with -v2`);
 });
 
 t("reading: passage is a non-empty array of non-empty strings; every vocab term occurs in the passage", () => {
@@ -509,6 +525,76 @@ t("reading C 批: passage length in 漢字 — 實用文 300–500, 小五 450�
     const [lo, hi] = x.genre.startsWith("實用文") ? [300, 500] : range[x.level];
     assert.ok(n >= lo && n <= hi, `${id}: ${n} 漢字, expected ${lo}–${hi}`);
   }
+});
+
+const s2Reading = () => READING_S2.map((id) => READING.find((y) => y.id === id));
+const s2ReadingStrings = (x) => [x.title, x.genre, x.focus, ...x.passage.map(paraText), ...x.vocab.flatMap((v) => [v.term, v.meaning]), ...readingQuestions(x).flatMap(readingTexts)];
+
+t("reading 10c-1: the genres — 3 × 記敘文 (one 兼議論), 2 × 說明文, 2 × 議論文, 1 × 實用文（申請信）", () => {
+  const genres = s2Reading().map((x) => x.genre).sort();
+  assert.deepEqual(genres, ["實用文（申請信）", "記敘文", "記敘文", "記敘文（兼議論）", "說明文", "說明文", "議論文", "議論文"].sort());
+});
+
+t("reading 10c-1: 7 理解 + 3 語文 questions, 3 vocab terms, mc + multi + open present, language all mc, explanations cite 「第 N 段」, scheme states 共 N 分, total 11–15 marks", () => {
+  for (const x of s2Reading()) {
+    assert.equal(x.comprehension.length, 7, `${x.id}: ${x.comprehension.length} comprehension questions`);
+    assert.equal(x.language.length, 3, `${x.id}: ${x.language.length} language questions`);
+    assert.equal(x.vocab.length, 3, `${x.id}: ${x.vocab.length} vocab terms`);
+    const kinds = new Set(x.comprehension.map((q) => q.kind));
+    for (const k of ["mc", "multi", "open"]) assert.ok(kinds.has(k), `${x.id}: no ${k} question`);
+    assert.ok(x.language.every((q) => q.kind === "mc"), `${x.id}: language questions must all be mc`);
+    for (const q of readingQuestions(x)) {
+      if (q.kind !== "open") {
+        assert.ok(/第([一二三四五六七八九十]+|\d+)段/.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 cites no paragraph`);
+        assert.ok(!/[ABCD][項.．、)）]|選項[ABCD]|\b[ABCD]\b/.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 refers to an option letter`);
+      } else assert.ok(q.scheme.includes(`共 ${q.marks} 分`), `${x.id}: scheme of 「${q.prompt}」 does not state 共 ${q.marks} 分`);
+    }
+    const total = readingQuestions(x).reduce((s, q) => s + q.marks, 0);
+    assert.ok(total >= 11 && total <= 15, `${x.id}: total ${total} marks`);
+    assert.ok(x.comprehension.filter((q) => q.kind === "open").length >= 1 && x.comprehension.some((q) => q.kind === "multi" && /哪兩項/.test(q.prompt)), `${x.id}: needs an open question and a 「哪兩項」 multi question`);
+  }
+});
+
+t("reading 10c-1: passage length in 漢字 — 記敘文 / 說明文 / 議論文 750–950, 實用文 400–600", () => {
+  const han = (s) => (s.match(/[一-鿿]/g) || []).length;
+  for (const x of s2Reading()) {
+    const n = x.passage.reduce((s, p) => s + han(paraText(p)), 0);
+    const [lo, hi] = x.genre.startsWith("實用文") ? [400, 600] : [750, 950];
+    assert.ok(n >= lo && n <= hi, `${x.id}: ${n} 漢字, expected ${lo}–${hi}`);
+  }
+});
+
+t("reading 10c-1: the 實用文 ends with 署名 and 日期 as un-numbered right-aligned entries, keeps 稱呼 first and 結語 before them", () => {
+  const x = READING.find((y) => y.id === "shenqing-tushuguan-dashi-xin-v2");
+  const n = x.passage.length;
+  assert.deepEqual(x.passage[n - 2], { text: "申請人　中二丙班　黎思朗　謹上", align: "right", numbered: false });
+  assert.deepEqual(x.passage[n - 1], { text: "二〇二六年十一月九日", align: "right", numbered: false });
+  assert.ok(x.passage[0].endsWith("：") && typeof x.passage[0] === "string", "稱呼 should come first");
+  assert.ok(typeof x.passage[n - 3] === "string" && x.passage[n - 3].includes("敬禮"), "結語 should come right before the 署名");
+  for (const q of readingQuestions(x)) for (const text of readingTexts(q)) for (const m of text.matchAll(/第([一二三四五六七八九十]+|\d+)段/g)) assert.ok(paraNo(m[1]) <= numberedCount(x), `${x.id}: ${m[0]} is beyond the numbered paragraphs`);
+});
+
+t("reading 10c-1: never 「中三」; no skill 「文言句意」 (no 原文 is used); 書面語 (no colloquial words; 同 only in ordinary written compounds; 甚麼 not 什麼)", () => {
+  const colloquial = ["呢個", "呢度", "呢啲", "呢次", "咩", "嘅", "咗", "唔", "喺", "哋", "嘢", "啲", "佢", "冇", "乜", "嚟", "點解", "邊個", "而家", "即刻", "嗰", "咁", "好似", "什麼", "裡"];
+  const okTong = ["同學", "同時", "相同", "共同", "同情", "不同", "同一", "同樣", "同桌", "陪同", "同意"];
+  for (const x of s2Reading()) {
+    for (const s of s2ReadingStrings(x)) {
+      assert.ok(!s.includes("中三"), `${x.id}: 「中三」 in 「${s.slice(0, 20)}」`);
+      for (const w of colloquial) assert.ok(!s.includes(w), `${x.id}: colloquial 「${w}」 in 「${s.slice(0, 30)}」`);
+      let rest = s;
+      for (const ok of okTong) rest = rest.split(ok).join("");
+      assert.ok(!rest.includes("同"), `${x.id}: 「同」 used outside an ordinary compound in 「${s.slice(0, 30)}」`);
+    }
+    assert.ok(readingQuestions(x).every((q) => q.skill !== "文言句意"), `${x.id}: uses 文言句意`);
+  }
+});
+
+t("reading 10c-1: the two 說明文 facts — the 警告信號 wording and numbers, and the tide numbers, are the ones agreed with the 天文台 / HKO sources", () => {
+  const tf = READING.find((y) => y.id === "taifeng-shi-zenyang-xingcheng-de-v2").passage.join("");
+  for (const s of ["一號戒備信號", "三號強風信號", "八號烈風或暴風信號", "九號烈風或暴風風力增強信號", "十號颶風信號", "每小時四十一至六十二公里", "每小時六十三至一百一十七公里", "每小時一百一十八公里或以上", "約八百公里", "攝氏二十六點五度或以上"]) assert.ok(tf.includes(s), `颱風: missing 「${s}」`);
+  assert.ok(!/二號|四號|五號|六號|七號/.test(tf), "颱風: only the signals 1 / 3 / 8 / 9 / 10 are named");
+  const cx = READING.find((y) => y.id === "chaoxi-weishenme-meitian-dou-you-zhangluo-v2").passage.join("");
+  for (const s of ["十二小時二十五分", "約五十分鐘", "新月和滿月", "上弦月和下弦月", "大潮", "小潮", "約為月球的一半"]) assert.ok(cx.includes(s), `潮汐: missing 「${s}」`);
 });
 
 // ---- 成語學習 (idiomContent.jsx), 階段 8b ----
