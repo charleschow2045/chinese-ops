@@ -287,7 +287,8 @@ t("new strings contain no colloquial Cantonese", () => {
   const bad = /呢個|咩|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻/;
   files.forEach((src) => assert.ok(!bad.test(src), "colloquial wording found"));
   // 「同」 used as 「和」 between two nouns: none of the new question texts uses 同 at all
-  Q.buildQuestions(SENTENCES, 15).forEach((q) => assert.ok(!/同/.test(q.ask), q.ask));
+  // (the effect-device question prints a device's own 效果 text, e.g. 引用's 「…同時增添文句的文采…」, so the ordinary compound 同時 is allowed)
+  Q.buildQuestions(SENTENCES, 15).forEach((q) => assert.ok(!/同/.test(q.ask.replace(/同時/g, "")), q.ask));
 });
 
 t.done();

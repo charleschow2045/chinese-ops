@@ -948,7 +948,7 @@ the `genre` string, it is only displayed). Ids end `-v2`. Format identical to th
   second expansion) `effect` — a one-sentence explanation of *why* a writer
   would use this device, used by the new effect-question type below; this
   is the reference material, studied via list → detail) and
-  `RHETORIC_PRACTICE_SENTENCES` (**200 sentences, 20 per device** — expanded
+  `RHETORIC_PRACTICE_SENTENCES` (**280 sentences, 28 per device since 階段 10d (200 / 20 before; 8 中二 per device added)** — expanded
   from 21 → 42 → 63 → 105 → 200 across rounds of "too easy" feedback, tagged
   `device` + `level`, **deliberately distinct from `DEVICES`' own example
   sentences** so practice isn't just rote memorization of what was just
@@ -1285,7 +1285,7 @@ missing features):
       more than volume later
 - [ ] Expand history story library further beyond the current 90 curated items (see 歷史故事改版 and 階段 8c)
 - [ ] Expand reading passage library further beyond the current 50 curated items (34 + 8 中二 from 階段 10c-1 + 8 中二 from 階段 10c-2 — new 理解/語文 question format — see Module 7 REBUILD, 階段 7 C 批, 階段 10c-1 and 階段 10c-2)
-- [ ] Expand rhetoric practice sentences further beyond the current 200 curated items
+- [ ] Expand rhetoric practice sentences further beyond the current 280 curated items (200 + 80 中二 from 階段 10d)
 - [ ] Expand punctuation practice items further beyond the current 30 curated items
 - [ ] Classical prose library at 35 texts (4 batches so far: 9 / 9 / 9 / 8 at 小五 / 小六 / 中一 / 中二) — expand
       further only if the user asks again, per Module 10 notes
@@ -1440,7 +1440,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **248 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **255 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1454,13 +1454,13 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
-  `level.test.js` (9 — 階段 10a: `QuizUtils.itemsForLevel` (the empty-level fallback) on the real and on patched content for the 8 levelled modules, every `*_LEVEL_LABEL` knows s2, the modules take their level options from `Storage.LEVELS`; see "階段 10") ·
+  `level.test.js` (10 — 階段 10a (+1 in 階段 10d: 修辭手法 中二 = 80 sentences, no fallback note): `QuizUtils.itemsForLevel` (the empty-level fallback) on the real and on patched content for the 8 levelled modules, every `*_LEVEL_LABEL` knows s2, the modules take their level options from `Storage.LEVELS`; see "階段 10") ·
   `history-quiz.test.js` (27 — 階段 9d: runs `src/historyQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the 朝代歸一 table, `HISTORY_SIMILAR_GROUPS`, the same-event / shared-person rule, 事件先後 and the tricky-people cases; see "階段 9d") ·
   `essay-quiz.test.js` (15 — 階段 9c: runs `src/essayQuiz.jsx` thousands of times and checks one defensible answer per question, `ESSAY_SIMILAR_GROUPS`, same-theme wrong options, 情境是非 balance; see "階段 9c") ·
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
-  `content.test.js` (72 — rhetoric, essay, 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解 (incl. the 16 中二 passages of 階段 10c-1 / 10c-2), 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (78 — rhetoric (incl. the 80 中二 sentences of 階段 10d), essay, 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解 (incl. the 16 中二 passages of 階段 10c-1 / 10c-2), 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
@@ -1859,6 +1859,7 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
 - **Verified (Playwright, test mode, 820 and 390):** home 中二 selected (note shown, buttons one line, ≥ 44 px, no horizontal overflow); each of the 8 modules opened at 中二: note shown, list / hub non-empty, 開始練習 (or the first passage's 開始問答, or 聆聽練習) works, 練習錯題 works, switching to 小五 inside the module removes the note and shows that level's items; essay patched so every item is s2: no note at 中二 (150 items), the note (「小五內容陸續加入…」) at 小五; console errors 0; the real key `chineseOps:v1` never written.
 
 - **階段 10b (done, 已審核並已合併):** 文言文選讀 now has 8 中二 passages (see "Module 10 details → 階段 10b"); its 中二 list shows them and the fallback note is gone for that module only. The other 7 levelled modules still show the note at 中二 (verified in the browser). `tests/content.test.js` `FILLED_LEVELS` is unchanged on purpose; a separate test checks that 文言文選讀 has all four levels.
+- **階段 10d (待審核):** 修辭手法 now has 80 中二 sentences (see "階段 10d" at the end of this file); its 中二 list / practice no longer shows the fallback note. 閱讀理解 (階段 10c-1 / 10c-2) and 文言文選讀 already have 中二 content; the remaining levelled modules (詩詞, 作文金句, 成語, 標點符號, 普通話) still show the note at 中二.
 
 ## 階段 10c-1 — 閱讀理解新增中二（s2）第一批 8 篇 (Oct 2026) — 已審核並已合併 (reviewed by the user and MERGED into master at `92e47df`, Pages run #57 success; the 3 審核後修正 below are applied; the second batch is 階段 10c-2 below)
 Content-only change (`readingContent.jsx`, `tests/content.test.js`, this file; `ReadingModule.jsx` and every other file untouched). 閱讀理解 34 → **42 passages: 小五 12 / 小六 10 / 中一 12 / 中二 8**. The target is 16 中二 passages in total; the second batch (10c-2) comes later and only when the user asks.
@@ -1928,3 +1929,18 @@ Format, fields and rules are exactly those of 10c-1 (ids end `-v2`, `level: "s2"
   2. **香港米埔的候鳥** paragraph ⑧ — 「橫跨數千公里、從不間斷的旅程」 → 「橫跨數千公里的漫長旅程」 (migrating birds do stop over, so 「從不間斷」 was wrong). No other passage contains 「從不間斷」.
   - **New test (`content.test.js` 71 → 72; whole suite 13 files, 248 tests):** `reading 10c-2 review fixes` checks the new paragraph ③ and Q1 explanation wording, that no 「號碼牌」 is left in the 搭車 passage, that Q1's correct option is unchanged and unique, and that 米埔 ⑧ has 「漫長旅程」 and no 「從不間斷」.
   - 10c-1 和 10c-2 合共 16 篇中二閱讀理解，閱讀理解總數 50 篇 (小五 12 / 小六 10 / 中一 12 / 中二 16).
+
+## 階段 10d — 修辭手法新增中二（s2）練習句 (Oct 2026) — 待審核 (built on the dev branch `claude/elegant-volta-ihb51l`, pushed for review, NOT merged into master)
+Content-only change (`rhetoricContent.jsx`, `tests/content.test.js`, `tests/level.test.js`, this file; plus a one-line fix in `tests/rhetoric-quiz.test.js`, see Tests). `RhetoricModule.jsx` and `rhetoricQuiz.jsx` are untouched — the 10 devices, the five question kinds, the 15-question session, `confusableWith` and `RHETORIC_EFFECT_CLASHES` all work on the new sentences as they are.
+修辭手法 practice sentences 200 → **280: 小五 58 / 小六 70 / 中一 72 / 中二 80** (the 192 older ones keep ids `-1…-20`, the 80 new ones are `<device id>-21 … -28`, 8 per device).
+- **Rules the 80 follow (keep them for any later s2 batch):** `level: "s2"` (shown 「中二」; the word 「中三」 appears nowhere, no sentence claims to be 中二 or 中三); a little deeper than 中一 and longer (non-對偶 sentences 20–50 字, more abstract content); **one clear main device per sentence and NO `alsoDevices`** (`rhetoric-quiz.test.js` would fail on an unapproved one) — a sentence that also truly used a second device was not written; no sentence repeats an existing one or a DEVICES example.
+  Self-written text is 書面語 on campus / reading / society / nature / character themes, no politics or religion, no real person or institution described negatively.
+  - **比喻** — 明喻 and 暗喻 (好比 / 像 / 如同 / 「是」), none personified or exaggerated. **擬人** — no 像 / 彷彿 marker (so no 比喻 reading). **誇張** — no 像 / 好像 comparison. **對偶** — famous couplets only in the 通行 wording (verified by search, not quoted with an author): 海上生明月，天涯共此時（張九齡《望月懷遠》）and 國破山河在，城春草木深（杜甫《春望》）; the other six are self-written pairs of equal length and the same structure with related (never opposite) meaning, no metaphor — so they cannot be read as 對比 / 比喻.
+  **排比** — three or four items whose openings all differ (so it can never be read as 反覆; the 反覆 tip says same-opening items are 排比, but that overlap was the 待確認 of 階段 9a and is avoided here). **反問** — no answer follows; not all start with 難道. **設問** — a question and its own answer straight after. **反覆** — a word or phrase truly repeated (連續 or 間隔), never two equal-length parallel clauses (that would be 對偶).
+  **引用** — every sentence names the speaker (孔子 / 孟子 / 荀子 / 老子 / 曾子 / 韓愈) in 「」 form; the quoted line is not itself a 對偶 / 反問 / 反覆 / 比喻 line: 人而無信，不知其可也 · 巧言令色，鮮矣仁 · 見義不為，無勇也 · 不以規矩，不能成方圓 · 學不可以已（《勸學》）· 知足者富 · 師者，所以傳道受業解惑也（《師說》）· 吾日三省吾身. **對比** — opposition in meaning, written so that the two halves are NOT equal in length (otherwise 對偶).
+- **Verification level:** the sandbox cannot open ctext / wikisource, so every quotation was checked through `WebSearch` summaries only (論語 雍也 / 為政 / 學而, 孟子 離婁上, 老子 三十三章, 荀子 勸學, 韓愈 師說, 張九齡 望月懷遠, 杜甫 春望). Points to look at: 「不以規矩，不能成方圓」 — printed editions differ (方圓 / 方員); 「師者，所以傳道受業解惑也」 — written without 頓號 as in the 古文觀止 text (some textbooks write 傳道、受業、解惑); 「見義不為，無勇也」 — its chapter (《為政》) was not confirmed by the search, so no chapter is named in the sentence; 「吾日三省吾身」 is quoted as a clause (the original continues with a colon).
+- **Tests:** `content.test.js` 72 → 78: the 200-sentence test became **28 per device / 280** and the every-level test now covers **p5 / p6 / s1 / s2** (`RHETORIC_FILLED_LEVELS`); new: the level counts 58 / 70 / 72 / 80; exactly 8 s2 per device with ids -21…-28 and no `alsoDevices` (the older 192 stay at ids ≤ 20); no 「中三」 / 「中二」 inside any sentence and no 「中三」 in the device texts; every s2 引用 has 「」 and a named speaker while no other s2 sentence has 「」; s2 對偶 halves of equal length, s2 排比 last-three items open differently, question marks only in 反問 / 設問 (反問 ends with its question, 設問 has an answer after it), no simile marker outside 比喻; s2 sentence length and 「同」 only in 同學 / 如同.
+  `level.test.js` 9 → 10: 修辭手法 at 中二 = 80 items, not flagged (no fallback note), the other levels 58 / 70 / 72 and not flagged. Whole suite 13 files, **255 tests**.
+  **One line in `tests/rhetoric-quiz.test.js` had to change (outside the agreed files):** its last test says no question text may contain 「同」, but the 效果-to-device question prints 引用's own effect text, which contains the ordinary compound 「同時」; adding sentences shifted the seeded random draw so that this question came up and the (older, fragile) check failed. It now ignores 「同時」.
+  Not added to the committed tests: s2 pools in `rhetoric-quiz.test.js` — a temporary copy with 中二 pools mixed in (5000-session / per-level / 練習錯題 checks) passed 14 of 14 session-level tests (its 15th test is the register check above).
+- **Verified (Playwright, test mode `?today=2026-10-12`, 820 and 390; only `chineseOps:test` written):** 修辭手法 at 中二 — no 「中二內容陸續加入…」 note, the control shows 中二, the 10 devices listed; three full 15-question sessions (5 kinds × 3 each, no kind twice in a row, 2 options for 是非題, 4 otherwise, only s2 sentences met), 練習錯題 (21 stored ids, all s2) runs a 15-question session with all five kinds; switching to 小五 → only p5 sentences; no horizontal overflow, text ≥ 13 px, taps ≥ 44 px, back buttons ≥ 96 × 48, console errors 0. Not verified on a real iPad / the real CDN.

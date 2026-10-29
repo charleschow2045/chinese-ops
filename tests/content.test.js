@@ -32,6 +32,8 @@ const LEVELS = ["p5", "p6", "s1", "s2"];
 const FILLED_LEVELS = ["p5", "p6", "s1"];
 // 階段 10c-1: 閱讀理解 now has s2 passages too (reading part only; the other modules still use FILLED_LEVELS)
 const READING_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
+// 階段 10d: 修辭手法 has s2 practice sentences too (rhetoric only)
+const RHETORIC_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
 const THEMES = ["描寫", "抒情", "論說"];
 const t = makeRunner("content");
 
@@ -62,7 +64,7 @@ t("rhetoric: practice sentences have unique ids and all required fields", () => 
   }
 });
 
-t("rhetoric: level is only p5 / p6 / s1 / s2 (s2 may be empty)", () => {
+t("rhetoric: level is only p5 / p6 / s1 / s2", () => {
   for (const s of SENTENCES) assert.ok(LEVELS.includes(s.level), `${s.id}: level ${s.level}`);
 });
 
@@ -71,10 +73,10 @@ t("rhetoric: every sentence's device exists in RHETORIC_DEVICES", () => {
   for (const s of SENTENCES) assert.ok(names.has(s.device), `${s.id}: unknown device ${s.device}`);
 });
 
-t("rhetoric: exactly 20 sentences per device (200 in total)", () => {
+t("rhetoric: exactly 28 sentences per device (280 in total; 階段 10d added 8 中二 per device)", () => {
   const n = countBy(SENTENCES, (s) => s.device);
-  for (const d of DEVICES) assert.equal(n[d.name], 20, `${d.name}: ${n[d.name]} sentences`);
-  assert.equal(SENTENCES.length, 200);
+  for (const d of DEVICES) assert.equal(n[d.name], 28, `${d.name}: ${n[d.name]} sentences`);
+  assert.equal(SENTENCES.length, 280);
 });
 
 t("rhetoric: ids follow <device id>-<number> and match the sentence's device", () => {
@@ -88,9 +90,14 @@ t("rhetoric: no duplicate sentences, and none repeats a device's own example sen
   for (const s of SENTENCES) assert.ok(!examples.has(s.sentence), `${s.id} repeats a reference example`);
 });
 
-t("rhetoric: every device has sentences at every level (the level filter never starves a device)", () => {
+t("rhetoric: every device has sentences at every one of the four levels (the level filter never starves a device)", () => {
   const n = countBy(SENTENCES, (s) => s.device + "|" + s.level);
-  for (const d of DEVICES) for (const lv of FILLED_LEVELS) assert.ok(n[d.name + "|" + lv] >= 1, `${d.name} has no ${lv} sentence`);
+  for (const d of DEVICES) for (const lv of RHETORIC_FILLED_LEVELS) assert.ok(n[d.name + "|" + lv] >= 1, `${d.name} has no ${lv} sentence`);
+});
+
+t("rhetoric 10d: 280 sentences = 小五 58 / 小六 70 / 中一 72 / 中二 80", () => {
+  const n = countBy(SENTENCES, (s) => s.level);
+  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [58, 70, 72, 80]);
 });
 
 t("rhetoric: the three new devices are split 6 / 7 / 7 over 小五 / 小六 / 中一", () => {
@@ -119,6 +126,58 @@ t("rhetoric: every 反覆 sentence really repeats a word or phrase (2+ character
       }
     assert.ok(found, `${s.id}: no repeated wording`);
   }
+});
+
+t("rhetoric 10d: each device has exactly 8 中二 (s2) sentences with the ids <device id>-21 … -28; none has alsoDevices", () => {
+  for (const d of DEVICES) {
+    const s2 = SENTENCES.filter((x) => x.device === d.name && x.level === "s2");
+    assert.equal(s2.length, 8, `${d.name}: ${s2.length} s2 sentences`);
+    assert.deepEqual(s2.map((x) => x.id).sort(), Array.from({ length: 8 }, (_, i) => `${d.id}-${21 + i}`).sort(), d.name);
+    for (const x of s2) assert.ok(!("alsoDevices" in x), `${x.id}: alsoDevices needs the user's approval`);
+  }
+  // the 192 older sentences are still p5 / p6 / s1 only, ids 1 … 20
+  for (const x of SENTENCES.filter((y) => y.level !== "s2")) assert.ok(Number(x.id.split("-").pop()) <= 20, x.id);
+});
+
+t("rhetoric 10d: no sentence, definition, tip, effect or example anywhere says 「中三」 (the level is only ever called 中二)", () => {
+  for (const x of SENTENCES) assert.ok(!x.sentence.includes("中三") && !x.sentence.includes("中二"), `${x.id}: level name inside the sentence`);
+  for (const d of DEVICES) for (const str of [d.definition, d.tip, d.effect, ...d.examples]) assert.ok(!str.includes("中三"), `${d.name}: 中三`);
+});
+
+t("rhetoric 10d: every s2 引用 sentence has 「」 and a speaker / source; only 引用 sentences have 「」", () => {
+  for (const x of SENTENCES.filter((y) => y.level === "s2")) {
+    if (x.device === "引用") {
+      assert.ok(/「[^」]+」/.test(x.sentence), `${x.id}: no quotation marks`);
+      assert.ok(/^(孔子|孟子|荀子|老子|曾子|韓愈)(說|在《.+》中寫道)：「/.test(x.sentence), `${x.id}: no speaker`);
+    } else assert.ok(!/[「」]/.test(x.sentence), `${x.id}: 「」 outside 引用`);
+  }
+});
+
+t("rhetoric 10d: s2 對偶 sentences are really equal-length pairs; s2 排比 sentences have 3+ items with different openings (not 反覆); only 反問 / 設問 have a question mark", () => {
+  for (const x of SENTENCES.filter((y) => y.level === "s2" && y.device === "對偶")) {
+    const body = x.sentence.replace(/。$/, "");
+    const halves = body.includes("；") ? body.split("；") : body.split("，");
+    assert.equal(halves.length, 2, x.id);
+    assert.equal(halves[0].length, halves[1].length, `${x.id}: unequal halves`);
+  }
+  for (const x of SENTENCES.filter((y) => y.level === "s2" && y.device === "排比")) {
+    const items = x.sentence.replace(/。$/, "").split("，");
+    assert.ok(items.length >= 3, `${x.id}: fewer than 3 items`);
+    const heads = items.slice(-3).map((i) => i.slice(0, 2)); // the last three clauses are the parallel items (a lead-in such as 「面對挑戰」 may come first)
+    assert.equal(new Set(heads).size, heads.length, `${x.id}: items open alike (that would make it 反覆)`);
+  }
+  for (const x of SENTENCES.filter((y) => y.level === "s2")) {
+    const q = /[？?]/.test(x.sentence);
+    assert.equal(q, x.device === "反問" || x.device === "設問", `${x.id}: question mark`);
+    if (x.device === "反問") assert.ok(x.sentence.endsWith("？") && x.sentence.indexOf("？") === x.sentence.length - 1, `${x.id}: 反問 must not be followed by an answer`);
+    if (x.device === "設問") assert.ok(!x.sentence.endsWith("？") && x.sentence.indexOf("？") < x.sentence.length - 4, `${x.id}: 設問 needs an answer after the question`);
+    if (x.device !== "比喻") assert.ok(!/像|如同|彷彿|仿佛|好比|似的|宛如|猶如/.test(x.sentence), `${x.id}: simile marker outside 比喻`);
+  }
+});
+
+t("rhetoric 10d: s2 sentences are longer than the earlier ones (非對偶 20–50 字) and 同 appears only in ordinary compounds (同學, 如同)", () => {
+  for (const x of SENTENCES.filter((y) => y.level === "s2" && y.device !== "對偶")) assert.ok(x.sentence.length >= 20 && x.sentence.length <= 50, `${x.id}: ${x.sentence.length} 字`);
+  for (const x of SENTENCES.filter((y) => y.level === "s2")) assert.ok(!/同/.test(x.sentence.replace(/同學|如同/g, "")), `${x.id}: 同`);
 });
 
 // ---------------------------------------------------------------- 作文金句

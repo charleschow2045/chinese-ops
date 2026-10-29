@@ -129,4 +129,17 @@ t("書面語 scan: the new note and the fallback wording", () => {
   assert(!bad.test(App.Storage.LEVELS.find((l) => l.key === "s2").note));
 });
 
+t("階段 10d: 修辭手法 now has 80 中二 sentences — 中二 shows exactly those (no fallback note), and every other level is unchanged and not flagged", () => {
+  const A = load();
+  const s2 = A.QuizUtils.itemsForLevel(A.Content.RHETORIC_PRACTICE_SENTENCES, "s2");
+  assert.strictEqual(s2.empty, false);
+  assert.strictEqual(s2.items.length, 80);
+  assert(s2.items.every((it) => it.level === "s2"));
+  for (const [lv, n] of [["p5", 58], ["p6", 70], ["s1", 72]]) {
+    const r = A.QuizUtils.itemsForLevel(A.Content.RHETORIC_PRACTICE_SENTENCES, lv);
+    assert.strictEqual(r.empty, false, lv);
+    assert.strictEqual(r.items.length, n, lv);
+  }
+});
+
 t.done();
