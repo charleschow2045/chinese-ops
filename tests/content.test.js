@@ -372,7 +372,13 @@ const READING_S2 = [
   "tibu-qiuyuan-v2", "waipo-de-jiu-xiangbu-v2", "yi-ba-jiechu-de-yusan-v2", "taifeng-shi-zenyang-xingcheng-de-v2",
   "chaoxi-weishenme-meitian-dou-you-zhangluo-v2", "duli-sikao-yu-renyun-yiyun-v2", "zhiben-shu-yu-dianzishu-v2", "shenqing-tushuguan-dashi-xin-v2",
 ];
-const READING_VOCAB_EXCEPTIONS =["wangluo-xianjing-v2", "chengshi-de-xuanze-v2"]; // vocab term written differently from the passage text
+// 階段 10c-2: the second 8 中二 (s2) passages (16 s2 passages in total).
+const READING_S2_B = [
+  "diyici-duzi-dache-v2", "chufang-li-de-fuqin-v2", "banjia-nayitian-v2", "shengyin-shi-zenyang-chuanbo-de-v2",
+  "maipu-de-houniao-v2", "gongping-yu-pingdeng-de-fenbie-v2", "jieyue-yu-langfei-v2", "yaoqing-xiaoyou-fenxiang-shengxue-dianyou-v2",
+];
+const READING_S2_ALL = [...READING_S2, ...READING_S2_B];
+const READING_VOCAB_EXCEPTIONS = ["wangluo-xianjing-v2", "chengshi-de-xuanze-v2"]; // vocab term written differently from the passage text
 const READING_OPEN_MARKS_EXCEPTIONS = ["baoyu-wenhua-yichan-v2"]; // a 3-mark open question with 2 reference points
 const READING_SKILLS = ["重整", "解釋", "伸展", "評鑑", "成語／詞語解釋", "修辭手法", "詞語運用", "詞語解釋", "語文運用", "說明方法", "成語解釋", "成語運用", "文言句意"];
 const NUM_CN = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
@@ -384,20 +390,21 @@ const isNumberedPara = (p) => typeof p === "string" || (p && p.numbered !== fals
 const numberedCount = (x) => x.passage.filter(isNumberedPara).length;
 const readingTexts = (q) => [q.prompt, q.explanation, q.hint, q.scheme, q.modelAnswer, ...(q.points || []), ...(q.options || [])].filter(nonEmpty);
 
-t("reading: 42 passages, unique ids, 12 小五 / 10 小六 / 12 中一 / 8 中二, level only p5 / p6 / s1 / s2", () => {
-  assert.equal(READING.length, 42);
+t("reading: 50 passages, unique ids, 12 小五 / 10 小六 / 12 中一 / 16 中二, level only p5 / p6 / s1 / s2", () => {
+  assert.equal(READING.length, 50);
   assert.deepEqual(dups(READING.map((x) => x.id)), []);
   for (const x of READING) assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
   const n = countBy(READING, (x) => x.level);
-  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [12, 10, 12, 8]);
+  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [12, 10, 12, 16]);
   for (const id of READING_C_BATCH) assert.ok(READING.some((x) => x.id === id), `missing ${id}`);
 });
 
 // 階段 10c-1: 閱讀理解 is checked against all four levels (only this module and 文言文選讀 have s2 content so far).
-t("reading 10c-1: every one of the four levels has passages; the s2 ids are exactly the 8 agreed ones, unique, all ending -v2", () => {
+t("reading 10c-1 / 10c-2: every one of the four levels has passages; the s2 ids are exactly the 16 agreed ones (8 + 8), unique, all ending -v2", () => {
   for (const lv of READING_FILLED_LEVELS) assert.ok(READING.some((x) => x.level === lv), `閱讀理解 has no ${lv} passage`);
   const s2 = READING.filter((x) => x.level === "s2").map((x) => x.id);
-  assert.deepEqual([...s2].sort(), [...READING_S2].sort());
+  assert.deepEqual([...s2].sort(), [...READING_S2_ALL].sort());
+  assert.equal(s2.length, 16);
   assert.deepEqual(dups(s2), []);
   for (const id of s2) assert.ok(id.endsWith("-v2"), `${id} does not end with -v2`);
 });
@@ -527,15 +534,17 @@ t("reading C 批: passage length in 漢字 — 實用文 300–500, 小五 450�
   }
 });
 
-const s2Reading = () => READING_S2.map((id) => READING.find((y) => y.id === id));
+const s2Reading = () => READING_S2_ALL.map((id) => READING.find((y) => y.id === id)); // all 16 s2 passages
+const s2ReadingA = () => READING_S2.map((id) => READING.find((y) => y.id === id)); // 10c-1
+const s2ReadingB = () => READING_S2_B.map((id) => READING.find((y) => y.id === id)); // 10c-2
 const s2ReadingStrings = (x) => [x.title, x.genre, x.focus, ...x.passage.map(paraText), ...x.vocab.flatMap((v) => [v.term, v.meaning]), ...readingQuestions(x).flatMap(readingTexts)];
 
 t("reading 10c-1: the genres — 3 × 記敘文 (one 兼議論), 2 × 說明文, 2 × 議論文, 1 × 實用文（申請信）", () => {
-  const genres = s2Reading().map((x) => x.genre).sort();
+  const genres = s2ReadingA().map((x) => x.genre).sort();
   assert.deepEqual(genres, ["實用文（申請信）", "記敘文", "記敘文", "記敘文（兼議論）", "說明文", "說明文", "議論文", "議論文"].sort());
 });
 
-t("reading 10c-1: 7 理解 + 3 語文 questions, 3 vocab terms, mc + multi + open present, language all mc, explanations cite 「第 N 段」, scheme states 共 N 分, total 11–15 marks", () => {
+t("reading 10c-1 / 10c-2 (all 16 s2): 7 理解 + 3 語文 questions, 3 vocab terms, mc + multi + open present, language all mc, explanations cite 「第 N 段」, scheme states 共 N 分, total 11–15 marks", () => {
   for (const x of s2Reading()) {
     assert.equal(x.comprehension.length, 7, `${x.id}: ${x.comprehension.length} comprehension questions`);
     assert.equal(x.language.length, 3, `${x.id}: ${x.language.length} language questions`);
@@ -546,7 +555,7 @@ t("reading 10c-1: 7 理解 + 3 語文 questions, 3 vocab terms, mc + multi + ope
     for (const q of readingQuestions(x)) {
       if (q.kind !== "open") {
         assert.ok(/第([一二三四五六七八九十]+|\d+)段/.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 cites no paragraph`);
-        assert.ok(!/[ABCD][項.．、)）]|選項[ABCD]|\b[ABCD]\b/.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 refers to an option letter`);
+        assert.ok(!/選項\s?[ABCD]|[（(][ABCD][)）]|\b[ABCD][項.．、:：]/.test(q.explanation), `${x.id}: explanation of 「${q.prompt}」 refers to an option letter`);
       } else assert.ok(q.scheme.includes(`共 ${q.marks} 分`), `${x.id}: scheme of 「${q.prompt}」 does not state 共 ${q.marks} 分`);
     }
     const total = readingQuestions(x).reduce((s, q) => s + q.marks, 0);
@@ -555,7 +564,7 @@ t("reading 10c-1: 7 理解 + 3 語文 questions, 3 vocab terms, mc + multi + ope
   }
 });
 
-t("reading 10c-1: passage length in 漢字 — 記敘文 / 說明文 / 議論文 750–950, 實用文 400–600", () => {
+t("reading 10c-1 / 10c-2 (all 16 s2): passage length in 漢字 — 記敘文 / 說明文 / 議論文 750–950, 實用文 400–600", () => {
   const han = (s) => (s.match(/[一-鿿]/g) || []).length;
   for (const x of s2Reading()) {
     const n = x.passage.reduce((s, p) => s + han(paraText(p)), 0);
@@ -574,9 +583,9 @@ t("reading 10c-1: the 實用文 ends with 署名 and 日期 as un-numbered right
   for (const q of readingQuestions(x)) for (const text of readingTexts(q)) for (const m of text.matchAll(/第([一二三四五六七八九十]+|\d+)段/g)) assert.ok(paraNo(m[1]) <= numberedCount(x), `${x.id}: ${m[0]} is beyond the numbered paragraphs`);
 });
 
-t("reading 10c-1: never 「中三」; no skill 「文言句意」 (no 原文 is used); 書面語 (no colloquial words; 同 only in ordinary written compounds; 甚麼 not 什麼)", () => {
+t("reading 10c-1 / 10c-2 (all 16 s2): never 「中三」; no skill 「文言句意」 (no 原文 is used); 書面語 (no colloquial words; 同 only in ordinary written compounds; 甚麼 not 什麼)", () => {
   const colloquial = ["呢個", "呢度", "呢啲", "呢次", "咩", "嘅", "咗", "唔", "喺", "哋", "嘢", "啲", "佢", "冇", "乜", "嚟", "點解", "邊個", "而家", "即刻", "嗰", "咁", "好似", "什麼", "裡"];
-  const okTong = ["同學", "同時", "相同", "共同", "同情", "不同", "同一", "同樣", "同桌", "陪同", "同意"];
+  const okTong = ["同學", "同時", "相同", "共同", "同情", "不同", "同一", "同樣", "同桌", "陪同", "同意", "一視同仁"];
   for (const x of s2Reading()) {
     for (const s of s2ReadingStrings(x)) {
       assert.ok(!s.includes("中三"), `${x.id}: 「中三」 in 「${s.slice(0, 20)}」`);
@@ -626,6 +635,65 @@ t("reading 10c-1 review fixes: 小潮 is 「部分互相抵消」 everywhere; th
   const tb = READING.find((y) => y.id === "tibu-qiuyuan-v2").passage.join("");
   assert.ok(tb.includes("阿傑拄着拐杖") && !tb.includes("柺"));
   for (const x of s2Reading()) assert.ok(!s2ReadingStrings(x).some((s) => s.includes("柺")), `${x.id}: 柺`);
+});
+
+// ---- 階段 10c-2: the second batch of 8 中二 passages ----
+t("reading 10c-2: the genres — 3 × 記敘文, 2 × 說明文, 2 × 議論文, 1 × 實用文（電郵）", () => {
+  const genres = s2ReadingB().map((x) => x.genre).sort();
+  assert.deepEqual(genres, ["實用文（電郵）", "記敘文", "記敘文", "記敘文", "說明文", "說明文", "議論文", "議論文"].sort());
+});
+
+t("reading 10c-2: the 實用文（電郵） has 收件人 / 主旨 / 稱呼 first, 結語 before 署名 and 日期 (un-numbered, right-aligned); every weekday written matches the 2026 calendar", () => {
+  const x = READING.find((y) => y.id === "yaoqing-xiaoyou-fenxiang-shengxue-dianyou-v2");
+  const n = x.passage.length;
+  assert.ok(x.passage[0].startsWith("收件人：") && x.passage[1].startsWith("主旨：") && x.passage[2].endsWith("："), "收件人 / 主旨 / 稱呼");
+  assert.deepEqual(x.passage[n - 2], { text: "朗悅中學學生會學術組組長　林芷晴　謹上", align: "right", numbered: false });
+  assert.deepEqual(x.passage[n - 1], { text: "二〇二六年十一月十六日", align: "right", numbered: false });
+  assert.ok(typeof x.passage[n - 3] === "string" && x.passage[n - 3].includes("敬禮"));
+  const DIG = { 〇: 0, 零: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+  const num = (str) => (str === "十" ? 10 : str.length === 1 ? DIG[str] : str[0] === "十" ? 10 + DIG[str[1]] : str.length === 2 && str[1] === "十" ? DIG[str[0]] * 10 : DIG[str[0]] * 10 + DIG[str[2]]);
+  const text = x.passage.map(paraText).join("");
+  let seen = 0;
+  for (const m of text.matchAll(/二〇(二六|二七)年([一二三四五六七八九十]+)月([一二三四五六七八九十]+)日（星期([一二三四五六日])）/g)) {
+    seen++;
+    const date = new Date(Date.UTC(2026 + (m[1] === "二七" ? 1 : 0), num(m[2]) - 1, num(m[3])));
+    assert.equal("日一二三四五六"[date.getUTCDay()], m[4], `${m[0]} is not a ${m[4]}`);
+  }
+  assert.ok(seen >= 1, "expected at least one dated weekday");
+  const m2 = text.match(/十一月三十日（星期([一二三四五六日])）/);
+  assert.ok(m2 && "日一二三四五六"[new Date(Date.UTC(2026, 10, 30)).getUTCDay()] === m2[1], "十一月三十日 weekday");
+});
+
+t("reading 10c-2: answer options of one mc have similar length (longest ≤ 1.35 × shortest) and the correct option is the single longest one in at most 50% of the mc questions", () => {
+  let mcN = 0, longest = 0;
+  const worst = [];
+  for (const x of s2ReadingB()) for (const q of readingQuestions(x)) {
+    if (q.kind !== "mc") continue;
+    mcN++;
+    const lens = q.options.map((o) => o.length), max = Math.max(...lens), min = Math.min(...lens);
+    if (max / min > 1.35) worst.push(`${x.id}: ${q.prompt.slice(0, 20)} (${lens})`);
+    if (lens[q.answer] === max && lens.filter((l) => l === max).length === 1) longest++;
+  }
+  assert.equal(mcN, 56);
+  assert.deepEqual(worst, [], "options too different in length");
+  assert.ok(longest / mcN <= 0.5, `correct option is the single longest in ${longest}/${mcN}`);
+});
+
+t("reading 10c-2: the correct mc answers are spread over the four positions (no position over 35%, none under 15%)", () => {
+  const c = [0, 0, 0, 0];
+  for (const x of s2ReadingB()) for (const q of readingQuestions(x)) if (q.kind === "mc") c[q.answer]++;
+  const total = c.reduce((a, b) => a + b, 0);
+  for (const k of c) assert.ok(k / total <= 0.35 && k / total >= 0.15, `positions ${c}`);
+});
+
+t("reading 10c-2: the two 說明文 facts — 聲音 numbers and wording, 米埔 wording — are the ones agreed with the sources; nothing uncertain (years, counts) is written", () => {
+  const sy = READING.find((y) => y.id === "shengyin-shi-zenyang-chuanbo-de-v2").passage.join("");
+  for (const s of ["聲音是由物體的振動產生的", "真空中，聲音就無法傳播", "固體中傳播得最快，液體次之，氣體最慢", "氣溫約攝氏十五度時，聲音每秒約傳播三百四十米", "每秒約一千五百米", "每秒數千米", "零點一秒", "至少要約十七米", "氣溫愈高，聲音傳播得愈快"]) assert.ok(sy.includes(s), `聲音: missing 「${s}」`);
+  assert.ok(!/鋼鐵[^，。]*每秒[一二三四五六七八九十百]*千[一二三四五六七八九]?百/.test(sy), "no exact speed for steel is written");
+  const mp = READING.find((y) => y.id === "maipu-de-houniao-v2").passage.join("");
+  for (const s of ["位於香港新界西北", "由世界自然基金會香港分會管理", "《拉姆薩爾公約》", "東亞—澳大拉西亞遷飛路線", "黑臉琵鷺", "瀕危物種", "基圍本來是漁民養殖蝦的魚塘"]) assert.ok(mp.includes(s), `米埔: missing 「${s}」`);
+  assert.ok(!/\d/.test(mp) && !/[一二三四五六七八九〇零]{4}年/.test(mp) && !/年起|年成立|年獲|年列/.test(mp), "米埔: no year or digit is written");
+  assert.ok(!/[二三四五六七八九十百千萬]+隻|[二三四五六七八九十百千萬]+種(鳥|候鳥|水鳥)/.test(mp), "米埔: no bird counts are written");
 });
 
 // ---- 成語學習 (idiomContent.jsx), 階段 8b ----
