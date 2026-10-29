@@ -696,6 +696,23 @@ t("reading 10c-2: the two 說明文 facts — 聲音 numbers and wording, 米埔
   assert.ok(!/[二三四五六七八九十百千萬]+隻|[二三四五六七八九十百千萬]+種(鳥|候鳥|水鳥)/.test(mp), "米埔: no bird counts are written");
 });
 
+t("reading 10c-2 review fixes: 搭車 paragraph 3 and the Q1 explanation agree (the letter was beside the 十七 and not noticed); 米埔 paragraph 8 has no 「從不間斷」", () => {
+  const dc = READING.find((y) => y.id === "diyici-duzi-dache-v2");
+  assert.ok(dc.passage[2].includes("車頭上方的顯示屏上，一個大大的「十七」十分顯眼，旁邊另有一個小小的字母，我匆忙間沒有留意。"), "paragraph 3");
+  assert.ok(!dc.passage[2].includes("號碼牌"), "paragraph 3: no 號碼牌 any more");
+  const q1 = dc.comprehension[0];
+  assert.ok(q1.explanation.includes("作者只留意到車頭大大的「十七」，沒有留意旁邊的字母"), "Q1 explanation");
+  assert.ok(!q1.explanation.includes("見車頭寫着"), "Q1 explanation: old wording gone");
+  assert.equal(q1.options[q1.answer], "匆忙登車時只看了車頭的「十七」，沒有留意字母「A」", "Q1 correct option unchanged");
+  assert.equal(q1.options.filter((o) => o.includes("沒有留意字母")).length, 1, "Q1 has exactly one option about the missed letter");
+  const dcAll = [...dc.passage, ...readingQuestions(dc).flatMap(readingTexts)].join("\n");
+  assert.ok(!dcAll.includes("號碼牌"), "no 號碼牌 anywhere in the passage");
+  const mp = READING.find((y) => y.id === "maipu-de-houniao-v2");
+  const p8 = mp.passage[7];
+  assert.ok(p8.includes("牠們正在走一段橫跨數千公里的漫長旅程，") && !p8.includes("從不間斷"), "米埔 paragraph 8");
+  assert.ok(p8.includes("漫長旅程"));
+});
+
 // ---- 成語學習 (idiomContent.jsx), 階段 8b ----
 const ID = loadContent("idiomContent.jsx");
 const IDIOMS = ID.IDIOM_ITEMS;
