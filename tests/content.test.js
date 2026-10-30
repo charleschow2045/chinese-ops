@@ -823,8 +823,8 @@ const IDIOM_OLD_CLUE_NAMES_IDIOM = ["恩將仇報", "班門弄斧"];
 const idiomByText = (s) => IDIOMS.find((x) => x.idiom === s);
 const idiomSlices = (s) => { const r = []; for (let i = 0; i + 3 <= s.length; i++) r.push(s.slice(i, i + 3)); return r; };
 
-t("idiom: 696 items, unique ids and unique idioms (variant characters 卧/臥 and 裡/裏 counted as the same)", () => {
-  assert.strictEqual(IDIOMS.length, 696);
+t("idiom: 756 items (696 + 60 中二 of 階段 10f), unique ids and unique idioms (variant characters 卧/臥 and 裡/裏 counted as the same)", () => {
+  assert.strictEqual(IDIOMS.length, 756);
   assert.strictEqual(new Set(IDIOMS.map((x) => x.id)).size, IDIOMS.length, "duplicate id");
   assert.strictEqual(new Set(IDIOMS.map((x) => x.idiom)).size, IDIOMS.length, "duplicate idiom");
   const norm = (s) => s.replace(/卧/g, "臥").replace(/裡/g, "裏").replace(/爲/g, "為");
@@ -843,10 +843,10 @@ t("idiom: base fields present, level valid, no comma, pinyin has one syllable pe
   }
 });
 
-t("idiom 8b: 54 idioms gained an origin, 58 were added; 270 idioms now have an origin", () => {
+t("idiom 8b: 54 idioms gained an origin, 58 were added; 270 idioms had an origin after 8b (+ 32 from 階段 10f = 302)", () => {
   assert.strictEqual(IDIOM_8B_ORIGIN_ADDED.length, 54);
   assert.strictEqual(IDIOM_8B_NEW.length, 58);
-  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 54 + 58);
+  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 54 + 58 + 32);
   for (const s of IDIOM_8B_ORIGIN_ADDED) {
     const x = idiomByText(s);
     assert.ok(x && x.origin && x.origin.length >= 20, `${s}: origin missing or too short`);
@@ -889,6 +889,96 @@ t("idiom 8b: new text is 書面語 (no 什麼 / 裡 / colloquial particles)", ()
       if (!x[f]) continue;
       assert.ok(!/什麼|裡|嘅|咗|唔|喺|呢|咩|啲|冇|睇|佢/.test(x[f]), `${s}: ${f} looks colloquial`);
     }
+  }
+});
+
+// ---- 成語學習 階段 10f: 60 new 中二 (s2) idioms ----
+const IDIOM_10F = ["圖窮匕見", "百步穿楊", "捲土重來", "項莊舞劍", "狡兔三窟", "馬革裹屍", "前車之鑑", "大義滅親", "一敗塗地", "老當益壯", "脫穎而出", "既往不咎", "出爾反爾", "患得患失", "舉棋不定", "剛愎自用", "明哲保身", "推心置腹", "開誠布公", "見異思遷", "朝秦暮楚", "左右逢源", "知難而退", "恃才傲物", "自欺欺人", "好為人師", "融會貫通", "觸類旁通", "一知半解", "不求甚解", "獨具匠心", "別出心裁", "剛正不阿", "忠心耿耿", "風度翩翩", "老態龍鍾", "神采奕奕", "氣宇軒昂", "亭亭玉立", "沉魚落雁", "層巒疊嶂", "崇山峻嶺", "萬紫千紅", "柳暗花明", "驚濤駭浪", "月明星稀", "斗轉星移", "白雲蒼狗", "一望無際", "熙熙攘攘", "鱗次櫛比", "欣欣向榮", "蒸蒸日上", "日薄西山", "世態炎涼", "層出不窮", "趨之若鶩", "人云亦云", "後生可畏", "水深火熱"];
+// Cantonese readings that were looked up (jyut.net / words.hk / 漢典 via search summaries) before being written — no other annotation may be added without a check.
+const IDIOM_10F_JYUTPING_CHECKED = { "匕": "bei3", "見": "jin6", "穎": "wing6", "愎": "bik1", "恃": "ci5", "好": "hou3", "為": "wai4", "櫛": "zit3", "鶩": "mou6" };
+
+t("idiom 10f: 756 idioms; levels 100 / 333 / 263 / 60 (小五 / 小六 / 中一 / 中二); the 60 s2 idioms are exactly the agreed list", () => {
+  const n = {};
+  for (const x of IDIOMS) n[x.level] = (n[x.level] || 0) + 1;
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(n)), { p5: 100, p6: 333, s1: 263, s2: 60 });
+  const s2 = IDIOMS.filter((x) => x.level === "s2");
+  assert.strictEqual(s2.length, 60);
+  assert.strictEqual(IDIOM_10F.length, 60);
+  assert.deepStrictEqual(Array.from(s2.map((x) => x.idiom)).sort(), IDIOM_10F.slice().sort());
+  for (const lv of ["p5", "p6", "s1", "s2"]) assert.ok(IDIOMS.some((x) => x.level === lv), `成語學習 has no ${lv} idiom`);
+});
+
+t("idiom 10f: every s2 idiom is 4 characters without any punctuation, has one pinyin syllable per character, and the writing follows the 成語典 headword (no variant of an old entry)", () => {
+  for (const s of IDIOM_10F) {
+    const x = idiomByText(s);
+    assert.ok(x, `${s} missing`);
+    assert.strictEqual([...x.idiom].length, 4, `${s}: not 4 characters`);
+    assert.ok(!/[，。、；：？！「」『』（）《》,.\s]/.test(x.idiom), `${s}: punctuation`);
+    assert.strictEqual(x.pinyin.split(" ").length, 4, `${s}: pinyin syllables`);
+    assert.ok(/^[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü ]+$/.test(x.pinyin), `${s}: pinyin characters`);
+  }
+  // 成語典 headwords that differ from the common writing (checked in the dictionary): 捲 (not 卷), the others are written as listed
+  assert.ok(idiomByText("捲土重來") && !idiomByText("卷土重來"));
+  // idioms that were considered but NOT added because the 成語典 headword is different / unverified
+  for (const s of ["作壁上觀", "淡泊明志", "義正詞嚴", "姹紫嫣紅", "韜光養晦", "落英繽紛", "烏合之眾", "沐猴而冠"]) assert.ok(!idiomByText(s), `${s} must not be in the list (not verified)`);
+});
+
+t("idiom 10f: every s2 idiom has all base fields; meaning is one sentence ending in 。 and is unique in the whole library; clue is unique", () => {
+  const meanings = new Map();
+  const clues = new Set();
+  for (const x of IDIOMS) {
+    assert.ok(!meanings.has(x.meaning), `${x.idiom} and ${meanings.get(x.meaning)} share a meaning`);
+    meanings.set(x.meaning, x.idiom);
+    assert.ok(!clues.has(x.clue), `${x.idiom}: duplicate clue`);
+    clues.add(x.clue);
+  }
+  for (const s of IDIOM_10F) {
+    const x = idiomByText(s);
+    for (const f of ["id", "idiom", "pinyin", "level", "meaning", "clue"]) assert.ok(typeof x[f] === "string" && x[f].length > 0, `${s}: missing ${f}`);
+    assert.ok(x.meaning.endsWith("。") && x.meaning.indexOf("。") === x.meaning.length - 1, `${s}: meaning is not a single sentence`);
+    assert.ok(/^[a-z0-9-]+$/.test(x.id), `${s}: id shape`);
+  }
+});
+
+t("idiom 10f: clue and origin never contain the idiom or three consecutive characters of it (all 60)", () => {
+  for (const s of IDIOM_10F) {
+    const x = idiomByText(s);
+    for (const f of ["origin", "clue"]) {
+      if (!x[f]) continue;
+      for (const piece of [s, ...idiomSlices(s)]) assert.ok(!x[f].includes(piece), `${s}: ${f} contains "${piece}"`);
+    }
+    assert.ok(![...s].every((c) => x.clue.includes(c)), `${s}: clue holds every character`);
+  }
+});
+
+t("idiom 10f: 32 of the 60 carry an origin (only where the story was checked); 7 carry annotations and every Cantonese reading is one that was looked up", () => {
+  const s2 = IDIOMS.filter((x) => x.level === "s2");
+  assert.strictEqual(s2.filter((x) => x.origin).length, 32);
+  assert.strictEqual(s2.filter((x) => x.annotations).length, 7);
+  for (const x of s2) {
+    if (x.origin) assert.ok(x.origin.length >= 30, `${x.idiom}: origin too short`);
+    for (const a of x.annotations || []) {
+      assert.ok(x.idiom.includes(a.term), `${x.idiom}: annotation term ${a.term} is not in the idiom`);
+      assert.strictEqual(IDIOM_10F_JYUTPING_CHECKED[a.term], a.jyutping, `${x.idiom}: ${a.term} ${a.jyutping} was not checked`);
+      assert.ok(typeof a.meaning === "string" && a.meaning.length > 0);
+    }
+  }
+});
+
+t("idiom 10f: no 「中三」 / 「中二」 in any idiom field of the whole library; s2 text is 書面語 (no colloquial words, 「同」 only in ordinary compounds)", () => {
+  for (const x of IDIOMS) {
+    for (const f of ["idiom", "meaning", "clue", "origin"]) assert.ok(!x[f] || !/中三|中二/.test(x[f]), `${x.idiom}: ${f} mentions the level`);
+    for (const a of x.annotations || []) assert.ok(!/中三|中二/.test(a.meaning + a.term));
+  }
+  const ok = /同學|同時|相同|共同|同情|不同|同類|同樣|同一|同行/;
+  for (const s of IDIOM_10F) {
+    const x = idiomByText(s);
+    for (const f of ["meaning", "clue", "origin"]) {
+      const txt = x[f] || "";
+      assert.ok(!/什麼|裡|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻|嗰|咁|好似|咩/.test(txt), `${s}: ${f} looks colloquial`);
+      assert.ok(!/同/.test(txt.replace(ok, "")), `${s}: ${f} uses 同 outside an ordinary compound`);
+    }
+    for (const a of x.annotations || []) assert.ok(!/同/.test(a.meaning.replace(/同「現」|同類|不同/g, "")), `${s}: annotation uses 同`);
   }
 });
 

@@ -157,5 +157,19 @@ t("階段 10e: 作文金句 now has 48 中二 sentences — 中二 shows exactly
     assert.strictEqual(r.items.length, n, lv);
   }
 });
+t("階段 10f: 成語學習 now has 60 中二 idioms — 中二 shows exactly those (no fallback note), the other levels are 100 / 333 / 263 and not flagged", () => {
+  const A = load();
+  const list = A.Content.IDIOM_ITEMS;
+  assert.strictEqual(list.length, 756);
+  const s2 = A.QuizUtils.itemsForLevel(list, "s2");
+  assert.strictEqual(s2.empty, false);
+  assert.strictEqual(s2.items.length, 60);
+  assert(s2.items.every((it) => it.level === "s2"));
+  for (const [lv, n] of [["p5", 100], ["p6", 333], ["s1", 263]]) {
+    const r = A.QuizUtils.itemsForLevel(list, lv);
+    assert.strictEqual(r.empty, false, lv);
+    assert.strictEqual(r.items.length, n, lv);
+  }
+});
 
 t.done();

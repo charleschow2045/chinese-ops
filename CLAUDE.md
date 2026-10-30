@@ -560,7 +560,7 @@ switch and `design-preview/` were deleted in Phase 6d-2. Don't reintroduce a sec
   file at each level, same as Modules 1–2.
 
 ## Module 5 details — 成語學習 (built, expanded four times after user feedback)
-- Content: `src/content/idiomContent.jsx` — **696 idioms total** (653 + 58 added by 階段 8b = 711, then −15 +0 by 階段 8d — see "階段 8d" at the end of this file; **270 carry `origin`**: 158 + 54
+- Content: `src/content/idiomContent.jsx` — **756 idioms total since 階段 10f** (696 + 60 中二; the text below describes the 696: 653 + 58 added by 階段 8b = 711, then −15 +0 by 階段 8d — see "階段 8d" at the end of this file; **270 carry `origin`**: 158 + 54
   補上 + 58 new — see "階段 8b" at the end of this file; the tier descriptions below describe the 653 before 8b). Three tiers
   of depth, all sharing the same base fields (`idiom`, `pinyin`, `level`,
   `meaning`, `clue`):
@@ -1278,7 +1278,7 @@ missing features):
 - [ ] Expand poem library further beyond the current 54+7 curated items (spec target: ~150)
 - [ ] Expand essay golden sentence library further beyond the current 198 curated items (150 + 48 中二 from 階段 10e)
 - [ ] Expand Mandarin vocabulary/sentence bank beyond the initial 22+6 curated items
-- [ ] Idiom library now at 696 (711 before 階段 8d removed 15; 39 fully-verified + 495 lighter-schema + 119
+- [ ] Idiom library now at 756 (696 + 60 中二 from 階段 10f; 711 before 階段 8d removed 15; 39 fully-verified + 495 lighter-schema + 119
       curriculum-gap batch + 58 from 階段 8b; 54 of the lighter-schema entries
       got an `origin` in 8b — see Module 5 notes and 階段 8b); could still have
       `origin` added back to the other ~440 lighter-schema entries if depth matters
@@ -1440,7 +1440,7 @@ Modelled on the sibling `english-ops` (`DailyMissions.jsx` / `BadgesScreen.jsx` 
 Pure-node tests for the logic in `src/Storage.jsx` (backup, daily missions, streak / 保護符, badges,
 notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayContent.jsx` (`content.test.js`). **Optional dev tooling — the app itself still needs no Node, no build step.**
 - **Run all:** `node tests/run-all.js` (from the repo root; Node 18+; no `npm install`; exit code 0 =
-  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **261 tests**.
+  all passed). Run one file: `node tests/storage.test.js`. Expected today: 13 files, **268 tests**.
 - **How it works:** `tests/helpers.js` reads `src/Storage.jsx` (plain JS, no JSX) and runs it in a
   `node:vm` sandbox with a stub `window` / `localStorage` / `URLSearchParams`, exactly as the browser
   loads it, then hands back `window.App.Storage`. `loadStorage({ initial, search })` pre-fills
@@ -1454,13 +1454,13 @@ notices, 測試模式) and for the content files `rhetoricContent.jsx` / `essayC
   the test key never touches `chineseOps:v1`; test backups refused in normal mode) ·
   `titles.test.js` (12 — 科舉稱號 tiers / 模組里程 boundaries, junk input, read-only; see "UI system — A2") ·
   `idiom-compat.test.js` (8 — 階段 8d: retired idiom ids vs old saves / old v1+v2 backups / `pruneUnknownMistakes`; see "階段 8d") ·
-  `level.test.js` (11 — 階段 10a (+1 in 階段 10d: 修辭手法 中二 = 80 sentences, no fallback note; +1 in 階段 10e: 作文金句 中二 = 48, 16 per theme): `QuizUtils.itemsForLevel` (the empty-level fallback) on the real and on patched content for the 8 levelled modules, every `*_LEVEL_LABEL` knows s2, the modules take their level options from `Storage.LEVELS`; see "階段 10") ·
+  `level.test.js` (12 — 階段 10a (+1 in 階段 10f: 成語學習 中二 = 60 idioms, no fallback note; +1 in 階段 10d: 修辭手法 中二 = 80 sentences, no fallback note; +1 in 階段 10e: 作文金句 中二 = 48, 16 per theme): `QuizUtils.itemsForLevel` (the empty-level fallback) on the real and on patched content for the 8 levelled modules, every `*_LEVEL_LABEL` knows s2, the modules take their level options from `Storage.LEVELS`; see "階段 10") ·
   `history-quiz.test.js` (27 — 階段 9d: runs `src/historyQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the 朝代歸一 table, `HISTORY_SIMILAR_GROUPS`, the same-event / shared-person rule, 事件先後 and the tricky-people cases; see "階段 9d") ·
   `essay-quiz.test.js` (16 — 階段 9c (+1 in 階段 10e review: the approved 中二 groups are present, 57 groups / 132 covered sentences): runs `src/essayQuiz.jsx` thousands of times and checks one defensible answer per question, `ESSAY_SIMILAR_GROUPS`, same-theme wrong options, 情境是非 balance; see "階段 9c") ·
   `idiom-quiz.test.js` (15 — 階段 9b-1: runs `src/idiomQuiz.jsx` (+ `quizPlan.jsx`) thousands of times and checks one defensible answer per question, the synonym groups, story fallback, 是非題 balance and 成語稱號 compatibility; see "階段 9b") ·
   `poetry-quiz.test.js` (15 — 階段 9b-2: runs `src/poetryQuiz.jsx` thousands of times; real library + small synthetic libraries for cases the library does not contain yet — a line in two poems, no annotations, < 4 dynasties; see "階段 9b") ·
   `rhetoric-quiz.test.js` (15 — 階段 9a: runs `src/rhetoricQuiz.jsx` thousands of times with a seeded `Math.random` and checks every question has one defensible answer; see "階段 9a") ·
-  `content.test.js` (82 — rhetoric (incl. the 80 中二 sentences of 階段 10d), essay (incl. the 48 中二 sentences of 階段 10e), 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解 (incl. the 16 中二 passages of 階段 10c-1 / 10c-2), 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
+  `content.test.js` (88 — 階段 10f adds 6 成語 tests; rhetoric (incl. the 80 中二 sentences of 階段 10d), essay (incl. the 48 中二 sentences of 階段 10e), 文言文選讀 (incl. the 8 中二 passages of 階段 10b), 閱讀理解 (incl. the 16 中二 passages of 階段 10c-1 / 10c-2), 成語 and 歷史故事 content; it loads the content files in a `node:vm` sandbox, so a
   broken `keyPhrase`, an unknown `device`, a duplicate id / sentence, a glossary term that is not in the lines, a passage that does not
   have exactly 5 questions with 4 different options, a reading passage whose vocab term / 「第 N 段」 does not fit, an idiom whose origin / clue names itself, a duplicate idiom or id, or a wrong count fails the run).
 - **When to run:** before pushing any change to `Storage.jsx` (or to anything it depends on). When you
@@ -1859,6 +1859,7 @@ Changes: `src/historyQuiz.jsx` (new, question generation only — plain JavaScri
 - **Verified (Playwright, test mode, 820 and 390):** home 中二 selected (note shown, buttons one line, ≥ 44 px, no horizontal overflow); each of the 8 modules opened at 中二: note shown, list / hub non-empty, 開始練習 (or the first passage's 開始問答, or 聆聽練習) works, 練習錯題 works, switching to 小五 inside the module removes the note and shows that level's items; essay patched so every item is s2: no note at 中二 (150 items), the note (「小五內容陸續加入…」) at 小五; console errors 0; the real key `chineseOps:v1` never written.
 
 - **階段 10b (done, 已審核並已合併):** 文言文選讀 now has 8 中二 passages (see "Module 10 details → 階段 10b"); its 中二 list shows them and the fallback note is gone for that module only. The other 7 levelled modules still show the note at 中二 (verified in the browser). `tests/content.test.js` `FILLED_LEVELS` is unchanged on purpose; a separate test checks that 文言文選讀 has all four levels.
+- **階段 10f (待審核):** 成語學習 now has 60 中二 idioms (see "階段 10f" at the end of this file); its 中二 list / practice no longer shows the fallback note. 作文金句 (10e), 修辭手法 (10d), 閱讀理解 (10c) and 文言文選讀 (10b) already have 中二 content; 詩詞, 標點符號 and 普通話 still show the note at 中二.
 - **階段 10e (done, 已審核並已合併):** 作文金句 now has 48 中二 sentences (see "階段 10e" at the end of this file); its 中二 list / practice no longer shows the fallback note. 修辭手法 (10d), 閱讀理解 (10c) and 文言文選讀 (10b) already have 中二 content; 詩詞, 成語, 標點符號 and 普通話 still show the note at 中二.
 - **階段 10d (done, 已審核並已合併):** 修辭手法 now has 80 中二 sentences (see "階段 10d" at the end of this file); its 中二 list / practice no longer shows the fallback note. 閱讀理解 (階段 10c-1 / 10c-2) and 文言文選讀 already have 中二 content; the remaining levelled modules (詩詞, 作文金句, 成語, 標點符號, 普通話) still show the note at 中二.
 
@@ -1973,3 +1974,86 @@ Content-only change (`essayContent.jsx`, `tests/content.test.js`, `tests/level.t
      [verify-info, ask-why] · [verify-info, independent-judgement] · [waiting-room, library-mood] · [dream-and-action, action-transition] · [trust-wall, integrity-foundation] · [phone-master, double-edged-tech] · [teamwork-building, cooperation-disagreement] · [perseverance-after-falling, courage-to-retry] · [last-lock, old-house-return] · [recycler-respect, dignity-of-labour] · [small-lamp-ideal, chasing-dreams].
      No other group was added. The existing group-validity test in `essay-quiz.test.js` (ids exist, 2+ members, no repeated group) covers the new groups automatically.
   4. **Tests:** `essay-quiz.test.js` 15 → 16: new test `the 48 中二 sentences' groups approved in the 階段 10e review are present` (every addition above, every new group, exactly 57 groups, 132 covered sentences). The 5000-session "one defensible answer" tests, the 195-window test and the safety-net fallback test pass unchanged on the enlarged groups. Whole suite 13 files, **261 tests**.
+
+## 階段 10f — 成語學習新增中二（s2）成語 (Oct 2026) — 待審核 (built on the dev branch `claude/elegant-volta-ihb51l`, pushed for review, NOT merged into master)
+Content-only change (`idiomContent.jsx`, `tests/content.test.js`, `tests/level.test.js`, `tests/idiom-quiz.test.js`, this file). `IdiomModule.jsx`, `idiomQuiz.jsx` and every other program file are untouched — list, detail (拼音方塊, 🔊 buttons, 難字讀音, 出處及故事), the five question kinds, 練習錯題 and 成語稱號 all work on the new items as they are.
+成語學習 696 → **756: 小五 100 / 小六 333 / 中一 263 / 中二 60** (the request listed 小六 as 334, but 100 + 333 + 263 = 696 is the real count of the old library). Same fields as before (`id, idiom, pinyin, level: "s2", meaning, clue`, optional `origin`, optional `annotations`); ids are the toneless pinyin joined by hyphens (e.g. `tu-qiong-bi-xian`), all unique.
+- **Rules the 60 follow (keep them for any later s2 batch):** not in the library of 696 (checked by program, including variant characters 卧/臥, 裡/裏, 羣/群, 洩/泄, 捲/卷, 佈/布); written exactly as the **教育部《成語典》 headword** — 捲土重來 (成語典 ID 636: 「卷」 is the 典源 form, the headword is 「捲」); four characters, no punctuation (填字題 splits `idiom` by character); `pinyin` = one tone-marked syllable per character (base tones, e.g. 一 = yī); `meaning` one 書面語 sentence, unique in the whole library (checked against all 756); `clue` unique, never contains the idiom or 3 consecutive characters of it nor every character of it;
+  `origin` only where the story was found in the dictionary page summary, never contains the idiom or 3 consecutive characters, and where it retells a quotation it says 「大意是說」 (意譯) instead of quoting; no 「中三」 / 「中二」 in any field, no colloquial Cantonese, 「同」 only in ordinary compounds, no politics / religion.
+- **Spread (60):** 歷史典故 11 (圖窮匕見 百步穿楊 捲土重來 項莊舞劍 狡兔三窟 馬革裹屍 前車之鑑 大義滅親 一敗塗地 老當益壯 脫穎而出) · 做人處事 15 (既往不咎 出爾反爾 患得患失 舉棋不定 剛愎自用 明哲保身 推心置腹 開誠布公 見異思遷 朝秦暮楚 左右逢源 知難而退 恃才傲物 自欺欺人 好為人師) · 學習修養 6 (融會貫通 觸類旁通 一知半解 不求甚解 獨具匠心 別出心裁) · 品德 2 (剛正不阿 忠心耿耿) ·
+  形容人物 6 (風度翩翩 老態龍鍾 神采奕奕 氣宇軒昂 亭亭玉立 沉魚落雁) · 景物自然 9 (層巒疊嶂 崇山峻嶺 萬紫千紅 柳暗花明 驚濤駭浪 月明星稀 斗轉星移 白雲蒼狗 一望無際) · 社會現象 11 (熙熙攘攘 鱗次櫛比 欣欣向榮 蒸蒸日上 日薄西山 世態炎涼 層出不窮 趨之若鶩 人云亦云 後生可畏 水深火熱).
+- **How the facts were checked — be honest about it:** `WebFetch` is not available in this sandbox and the dictionary sites cannot be opened directly. `WebSearch` with `allowed_domains` limited to `dict.idioms.moe.edu.tw` / `zdic.net` returns summaries of the real 《成語典》 / 漢典 pages (each summary names the entry's ID and quotes 釋義 / 典源), so **every row below is 「只有搜尋摘要」** — no page was read in full. Each idiom got its own search (71 idioms were searched, 60 kept, 11 held back — see below).
+  Where 《成語典》 and 漢典 give a different 典源 book, the idiom was kept only if the meaning agrees, and then **no `origin` was written** or the story is told without naming the book (「典源說法不一」 in the table). A 把握 of 「中」 means a detail beyond the headword / meaning (a story detail, a Cantonese reading) rests on one summary and should be looked at first.
+| id | 成語 | 核實依據 | origin | annotations | 把握 |
+|---|---|---|---|---|---|
+| `tu-qiong-bi-xian` | 圖窮匕見 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | 有（匕 bei3、見 jin6） | 中 |
+| `bai-bu-chuan-yang` | 百步穿楊 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | 有 | — | 高 |
+| `juan-tu-chong-lai` | 捲土重來 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `xiang-zhuang-wu-jian` | 項莊舞劍 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | 有 | — | 中 |
+| `jiao-tu-san-ku` | 狡兔三窟 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `ma-ge-guo-shi` | 馬革裹屍 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | 有 | — | 高 |
+| `qian-che-zhi-jian` | 前車之鑑 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `da-yi-mie-qin` | 大義滅親 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `yi-bai-tu-di` | 一敗塗地 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `lao-dang-yi-zhuang` | 老當益壯 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `tuo-ying-er-chu` | 脫穎而出 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | 有（穎 wing6） | 高 |
+| `ji-wang-bu-jiu` | 既往不咎 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `chu-er-fan-er` | 出爾反爾 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `huan-de-huan-shi` | 患得患失 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `ju-qi-bu-ding` | 舉棋不定 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `gang-bi-zi-yong` | 剛愎自用 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | 有（愎 bik1） | 中 |
+| `ming-zhe-bao-shen` | 明哲保身 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `tui-xin-zhi-fu` | 推心置腹 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | 有 | — | 高 |
+| `kai-cheng-bu-gong` | 開誠布公 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `jian-yi-si-qian` | 見異思遷 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `zhao-qin-mu-chu` | 朝秦暮楚 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `zuo-you-feng-yuan` | 左右逢源 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `zhi-nan-er-tui` | 知難而退 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `shi-cai-ao-wu` | 恃才傲物 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | 有 | 有（恃 ci5） | 中 |
+| `zi-qi-qi-ren` | 自欺欺人 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `hao-wei-ren-shi` | 好為人師 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | 有（好 hou3、為 wai4） | 中 |
+| `rong-hui-guan-tong` | 融會貫通 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `chu-lei-pang-tong` | 觸類旁通 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `yi-zhi-ban-jie` | 一知半解 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `bu-qiu-shen-jie` | 不求甚解 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `du-ju-jiang-xin` | 獨具匠心 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典（典源說法不一） | — | — | 高 |
+| `bie-chu-xin-cai` | 別出心裁 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `gang-zheng-bu-e` | 剛正不阿 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典（典源說法不一） | — | — | 高 |
+| `zhong-xin-geng-geng` | 忠心耿耿 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `feng-du-pian-pian` | 風度翩翩 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `lao-tai-long-zhong` | 老態龍鍾 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `shen-cai-yi-yi` | 神采奕奕 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `qi-yu-xuan-ang` | 氣宇軒昂 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `ting-ting-yu-li` | 亭亭玉立 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `chen-yu-luo-yan` | 沉魚落雁 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `ceng-luan-die-zhang` | 層巒疊嶂 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `chong-shan-jun-ling` | 崇山峻嶺 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `wan-zi-qian-hong` | 萬紫千紅 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `liu-an-hua-ming` | 柳暗花明 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `jing-tao-hai-lang` | 驚濤駭浪 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `yue-ming-xing-xi` | 月明星稀 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | 有 | — | 中 |
+| `dou-zhuan-xing-yi` | 斗轉星移 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `bai-yun-cang-gou` | 白雲蒼狗 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `yi-wang-wu-ji` | 一望無際 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | — | 高 |
+| `xi-xi-rang-rang` | 熙熙攘攘 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典（典源說法不一） | — | — | 高 |
+| `lin-ci-zhi-bi` | 鱗次櫛比 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | 有（櫛 zit3） | 高 |
+| `xin-xin-xiang-rong` | 欣欣向榮 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+| `zheng-zheng-ri-shang` | 蒸蒸日上 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `ri-bo-xi-shan` | 日薄西山 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | 有 | — | 中 |
+| `shi-tai-yan-liang` | 世態炎涼 | 只有搜尋摘要：成語典（正文）＋漢典 | — | — | 高 |
+| `ceng-chu-bu-qiong` | 層出不窮 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `qu-zhi-ruo-wu` | 趨之若鶩 | 只有搜尋摘要：成語典（修訂本參考資料）＋漢典 | — | 有（鶩 mou6） | 高 |
+| `ren-yun-yi-yun` | 人云亦云 | 只有搜尋摘要：成語典（正文）＋漢典（典源說法不一） | — | — | 高 |
+| `hou-sheng-ke-wei` | 後生可畏 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 高 |
+| `shui-shen-huo-re` | 水深火熱 | 只有搜尋摘要：成語典（正文）＋漢典 | 有 | — | 中 |
+- **Cantonese readings (`annotations`, 9 terms in 7 idioms — only these were looked up on jyut.net / words.hk / 漢典 via summaries; the test `IDIOM_10F_JYUTPING_CHECKED` fails if another is added):** 匕 bei3 and 見 jin6 (圖窮匕見; 見 = 「同現」, 《常用字廣州話讀音表》; 匕 bei3 per 粵典, bei2 is listed as 又讀) · 穎 wing6 (脫穎而出) · 愎 bik1 (剛愎自用; 《常用字廣州話讀音表》 suggests bik1, bik6 is marked 誤讀 / 俗讀 in 《粵語同音字典》 — the summary was not fully explicit, 把握 中) · 恃 ci5 (恃才傲物) · 好 hou3 and 為 wai4 (好為人師; 《常用字廣州話讀音表》) · 櫛 zit3 (鱗次櫛比) · 鶩 mou6 (趨之若鶩).
+  **Looked up but NOT written because no source confirmed it:** 薄 (日薄西山), 阿 (剛正不阿), 熙 / 攘 (熙熙攘攘), 駭 (驚濤駭浪 — words.hk says haai5 but the jyut.net main reading could not be read from the summary, so left out). Other possibly tricky characters (龍鍾, 裹, 咎, 奕, 窟, 嶂 …) were not looked up and carry no annotation.
+- **Considered but NOT added (listed for the user):** 作壁上觀 (成語典 headword is 從壁上觀; 作壁上觀 is only a 修訂本 entry) · 淡泊明志 (成語典 headword is 澹泊明志) · 義正詞嚴 (成語典 headword is 義正辭嚴; 詞 is a 「猶」 entry) · 姹紫嫣紅 (成語典 headword is 奼紫嫣紅) · 韜光養晦 (典源 differs between 成語典 and 漢典, and modern political usage) · 落英繽紛 (no 成語典 page was found, only 漢典) ·
+  烏合之眾 (典源 differs completely: 《管子》逸文 vs 《後漢書》; kept in reserve) · 沐猴而冠 (two senses and the speaker differs between 《史記》 and 《漢書》) · 眾口難調 (only a 修訂本 entry, meaning two-fold) · 民不聊生, 顛沛流離 (verified, held back for category balance). 
+- **IDIOM_SYNONYM_GROUPS: NOT changed.** The user's rule: proposals only until approved (see the 階段 10f report). Until then the automatic guard `IdiomQuiz.meaningsSimilar` is the only protection for the new idioms; the full quiz test (5000 sessions + 800 per level incl. the 60 中二 + 練習錯題 sets) found 0 violations with it. The 8 pairs the guard flags between a new and an old idiom: 一敗塗地–不可收拾 · 恃才傲物–目空一切 · 自欺欺人–掩耳盜鈴 · 氣宇軒昂–儀表堂堂 · 沉魚落雁–國色天香 / 傾城傾國 / 花容月貌 · 萬紫千紅–春暖花開; no pair among the 60 new ones.
+- **故事猜成語 usable count:** 267 of the 302 idioms with an `origin` (p5 23 / p6 148 / s1 64 / **s2 32**); was 235 of 270. All 32 new origins are usable (none names its idiom or 3 consecutive characters). The 35 older unusable ones are unchanged.
+- **成語稱號:** unchanged and not affected — progress is still `floor(practiceStats.attempts / 8)` (`IdiomQuiz.STAGE_SIZE`); no stored field, no backup change (`BACKUP_VERSION` stays 2; ids of the new idioms only ever appear in `moduleProgress.idiom.mistakes`, which already accepts any string id).
+- **Tests (whole suite 13 files, 268 tests = 261 + 7):** `content.test.js` 82 → 88 — the count test is now 756 (unique ids / idioms incl. variants), the origin count test expects 302, and 6 new tests: levels 100 / 333 / 263 / 60 and the s2 list is exactly the agreed 60; all s2 four characters without punctuation, one pinyin syllable per character, the 成語典 headword rule (捲土重來 present, 卷土重來 absent, the 8 rejected idioms absent); every `meaning` unique in the whole library and one sentence, every `clue` unique; clue / origin never contain the idiom or 3 consecutive characters; 32 origins / 7 annotations and every Cantonese reading is in the checked list; no 「中三」 / 「中二」 in any idiom field of the library, no colloquial wording, 「同」 only in ordinary compounds.
+  `level.test.js` 11 → 12: 成語學習 at 中二 = 60 items, not flagged, other levels 100 / 333 / 263 and not flagged. `idiom-quiz.test.js` (15, count unchanged; no assertion changed — only coverage widened): `LEVELS` gains `"s2"` (the session-shape test now also runs on the 60-idiom 中二 pool) and the level-pool test runs `p5 / p6 / s1 / s2` (800 sessions each, 0 violations).
+- **Verified (Playwright, test mode `?today=2026-10-12`, 820 and 390; only `chineseOps:test` written, `chineseOps:v1` never):** 成語學習 at 中二 — no 「中二內容陸續加入…」 note, 60 rows each labelled 「中二」; all 60 detail pages opened (pinyin tiles show every syllable above its character — 4 tiles aligned on 8 pages checked geometrically at both widths —, 普通話 / 粵語 buttons, 意思, 出處及故事 and 難字讀音 only where the data has them, 「中二」 label, no horizontal overflow); the audit (text ≥ 13 px, taps ≥ 44 px, back buttons ≥ 96 × 48) on the list, 8 representative detail pages, a question and a result page: ok at both widths;
+  three full 15-question sessions (five kinds × 3, no kind twice in a row, 2 options for 是非判斷, 4 otherwise, only 中二 idioms met), 練習錯題 (26 stored ids, all s2) runs a 15-question session (its wrong options come from the whole library by design); switching to 小五 → 100 rows and a session with only 小五 idioms; console errors 0. Not verified on a real iPad / the real CDN / the real Cantonese TTS voices.

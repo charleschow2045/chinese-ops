@@ -29,7 +29,7 @@ const { IDIOM_ITEMS: ITEMS, IDIOM_SYNONYM_GROUPS: GROUPS, getIdiomMasteryTier } 
 const Q = App.IdiomQuiz;
 const byId = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 const byText = Object.fromEntries(ITEMS.map((i) => [i.idiom, i]));
-const LEVELS = [null, "p5", "p6", "s1"];
+const LEVELS = [null, "p5", "p6", "s1", "s2"]; // 階段 10f: the 中二 pool (60 idioms) is covered too
 const poolFor = (lv) => (lv ? ITEMS.filter((i) => i.level === lv) : ITEMS);
 
 // independent re-implementation of the "same group" rule (does not use the generator's lookup)
@@ -191,8 +191,8 @@ t("5000 sessions over the full pool: every question has exactly one defensible a
   assert.deepStrictEqual(bad.slice(0, 5), []);
 });
 
-t("level pools (p5 / p6 / s1, 800 sessions each): 0 violations", () => {
-  for (const lv of ["p5", "p6", "s1"]) {
+t("level pools (p5 / p6 / s1 / s2, 800 sessions each): 0 violations", () => {
+  for (const lv of ["p5", "p6", "s1", "s2"]) {
     let bad = [];
     for (let r = 0; r < 800 && bad.length < 5; r++) bad = bad.concat(sessionProblems(Q.buildQuestions(poolFor(lv), 15)));
     assert.deepStrictEqual(bad.slice(0, 5), [], lv);
