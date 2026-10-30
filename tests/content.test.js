@@ -34,6 +34,8 @@ const FILLED_LEVELS = ["p5", "p6", "s1"];
 const READING_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
 // 階段 10d: 修辭手法 has s2 practice sentences too (rhetoric only)
 const RHETORIC_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
+// 階段 10e: 作文金句 has s2 sentences too (essay only)
+const ESSAY_FILLED_LEVELS = [...FILLED_LEVELS, "s2"];
 const THEMES = ["描寫", "抒情", "論說"];
 const t = makeRunner("content");
 
@@ -181,29 +183,65 @@ t("rhetoric 10d: s2 sentences are longer than the earlier ones (非對偶 20–5
 });
 
 // ---------------------------------------------------------------- 作文金句
-t("essay: 150 items, unique ids, all seven fields present", () => {
-  assert.equal(ESSAYS.length, 150);
+t("essay: 198 items (階段 10e added 48 中二), unique ids, all seven fields present", () => {
+  assert.equal(ESSAYS.length, 198);
   assert.deepEqual(dups(ESSAYS.map((x) => x.id)), []);
   for (const x of ESSAYS) {
     for (const f of ["id", "theme", "level", "sentence", "keyPhrase", "usage", "scenario"]) assert.ok(nonEmpty(x[f]), `${x.id}.${f} is empty`);
   }
 });
 
-t("essay: level is only p5 / p6 / s1 / s2 (s2 may be empty) and theme is only 描寫 / 抒情 / 論說", () => {
+t("essay: level is only p5 / p6 / s1 / s2 and theme is only 描寫 / 抒情 / 論說", () => {
   for (const x of ESSAYS) {
     assert.ok(LEVELS.includes(x.level), `${x.id}: level ${x.level}`);
     assert.ok(THEMES.includes(x.theme), `${x.id}: theme ${x.theme}`);
   }
 });
 
-t("essay: exactly 50 sentences per theme", () => {
+t("essay: exactly 66 sentences per theme", () => {
   const n = countBy(ESSAYS, (x) => x.theme);
-  for (const th of THEMES) assert.equal(n[th], 50, `${th}: ${n[th]}`);
+  for (const th of THEMES) assert.equal(n[th], 66, `${th}: ${n[th]}`);
 });
 
-t("essay: every theme has sentences at every level", () => {
+t("essay: every theme has sentences at every one of the four levels", () => {
   const n = countBy(ESSAYS, (x) => x.theme + "|" + x.level);
-  for (const th of THEMES) for (const lv of FILLED_LEVELS) assert.ok(n[th + "|" + lv] >= 1, `${th} has no ${lv} sentence`);
+  for (const th of THEMES) for (const lv of ESSAY_FILLED_LEVELS) assert.ok(n[th + "|" + lv] >= 1, `${th} has no ${lv} sentence`);
+});
+
+t("essay 10e: 198 sentences = 小五 41 / 小六 52 / 中一 57 / 中二 48; exactly 16 中二 per theme", () => {
+  const n = countBy(ESSAYS, (x) => x.level);
+  assert.deepEqual([n.p5, n.p6, n.s1, n.s2], [41, 52, 57, 48]);
+  const m = countBy(ESSAYS.filter((x) => x.level === "s2"), (x) => x.theme);
+  for (const th of THEMES) assert.equal(m[th], 16, `${th}: ${m[th]} s2 sentences`);
+  assert.equal(ESSAYS.filter((x) => x.level === "s2").length, 48);
+});
+
+t("essay 10e: every 中二 sentence is 25–50 字 long; no field of any essay item says 「中三」 or 「中二」", () => {
+  for (const x of ESSAYS.filter((y) => y.level === "s2")) assert.ok(x.sentence.length >= 25 && x.sentence.length <= 50, `${x.id}: ${x.sentence.length} 字`);
+  for (const x of ESSAYS) for (const f of ["id", "sentence", "keyPhrase", "usage", "scenario"]) assert.ok(!/中三|中二/.test(x[f]), `${x.id}.${f} names a school year`);
+});
+
+t("essay 10e: the 中二 items follow the field rules — usage starts with 「用來」, ids are lower-case words joined by hyphens, no colloquial wording, 「同」 only in ordinary compounds", () => {
+  const bad = /呢個|咩|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻|嗰|咁|好似/;
+  for (const x of ESSAYS.filter((y) => y.level === "s2")) {
+    assert.ok(x.usage.startsWith("用來"), `${x.id}: usage`);
+    assert.ok(/^[a-z]+(-[a-z]+)*$/.test(x.id), `${x.id}: id`);
+    for (const f of ["sentence", "keyPhrase", "usage", "scenario"]) {
+      assert.ok(!bad.test(x[f]), `${x.id}.${f}: colloquial`);
+      assert.ok(!/同/.test(x[f].replace(/同學|同窗|同等|同時|如同|共同|相同|不同/g, "")), `${x.id}.${f}: 同`);
+    }
+  }
+});
+
+t("essay 10e: for the 中二 items no other item's keyPhrase occurs inside the sentence and the keyPhrase occurs in no other sentence (so a blank can never be answered by another phrase)", () => {
+  const s2 = ESSAYS.filter((y) => y.level === "s2");
+  for (const x of s2) {
+    for (const o of ESSAYS) {
+      if (o.id === x.id) continue;
+      assert.ok(!x.sentence.includes(o.keyPhrase), `${x.id} contains the keyPhrase of ${o.id}`);
+      assert.ok(!o.sentence.includes(x.keyPhrase), `${o.id} contains the keyPhrase of ${x.id}`);
+    }
+  }
 });
 
 t("essay: keyPhrase occurs in its sentence exactly once (so the blank is drawn once)", () => {

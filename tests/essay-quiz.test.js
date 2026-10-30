@@ -144,7 +144,7 @@ t("every scenario, usage, keyPhrase and sentence is unique (they are quiz option
 
 // ---------------------------------------------------------------- session shape
 t("a session is 15 questions: 3 of each of the 5 kinds, never the same kind twice in a row (full pool, each level, each theme)", () => {
-  const pools = [ITEMS, poolFor((i) => i.level === "p5"), poolFor((i) => i.level === "p6"), poolFor((i) => i.level === "s1"), ...THEMES.map((th) => poolFor((i) => i.theme === th))];
+  const pools = [ITEMS, poolFor((i) => i.level === "p5"), poolFor((i) => i.level === "p6"), poolFor((i) => i.level === "s1"), poolFor((i) => i.level === "s2"), ...THEMES.map((th) => poolFor((i) => i.theme === th))];
   for (const pool of pools) {
     for (let r = 0; r < 300; r++) {
       const qs = Q.buildQuestions(pool, 15);
@@ -179,8 +179,8 @@ t("5000 sessions over the full pool: every question has exactly one defensible a
   assert.deepStrictEqual(bad.slice(0, 5), []);
 });
 
-t("level pools (p5 / p6 / s1, 1000 sessions each) and theme pools (1000 each): 0 violations", () => {
-  const pools = [["p5", poolFor((i) => i.level === "p5")], ["p6", poolFor((i) => i.level === "p6")], ["s1", poolFor((i) => i.level === "s1")], ...THEMES.map((th) => [th, poolFor((i) => i.theme === th)])];
+t("level pools (p5 / p6 / s1 / s2, 1000 sessions each) and theme pools (1000 each): 0 violations", () => {
+  const pools = [["p5", poolFor((i) => i.level === "p5")], ["p6", poolFor((i) => i.level === "p6")], ["s1", poolFor((i) => i.level === "s1")], ["s2", poolFor((i) => i.level === "s2")], ...THEMES.map((th) => [th, poolFor((i) => i.theme === th)])];
   for (const [name, pool] of pools) {
     let bad = [];
     for (let r = 0; r < 1000 && bad.length < 5; r++) bad = bad.concat(sessionProblems(Q.buildQuestions(pool, 15)));
@@ -203,9 +203,10 @@ t("練習錯題 (chooseFrom a small set, pool = whole library): only those sente
 });
 
 t("a pool of only 4 sentences still gives 15 valid questions (wrong options topped up from the whole library)", () => {
-  // every window of 4 consecutive sentences (147 pools) x 10 sessions; the groups added after the 階段 9c review are among them
-  for (let r = 0; r < 1470; r++) {
-    const pool = ITEMS.slice(r % 147, (r % 147) + 4);
+  // every window of 4 consecutive sentences (ITEMS.length - 3 pools: 147 in 階段 9c, 195 with the 48 中二 sentences of 階段 10e) x 10 sessions; the groups added after the 階段 9c review are among them
+  const windows = ITEMS.length - 3;
+  for (let r = 0; r < windows * 10; r++) {
+    const pool = ITEMS.slice(r % windows, (r % windows) + 4);
     const qs = Q.buildQuestions(pool, 15);
     assert.strictEqual(qs.length, 15);
     assert.deepStrictEqual(sessionProblems(qs).filter((p) => !/same kind twice/.test(p)), []);

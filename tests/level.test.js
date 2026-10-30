@@ -90,11 +90,12 @@ t("patched content: when a module's items are ALL s2, 中二 is no longer flagge
 });
 
 t("patched content: a single s2 item makes 中二 show just that item, no note (the note switches itself off once the level has content)", () => {
-  const A = load((Cn, f) => { if (f === "content/essayContent.jsx") Cn.ESSAY_ITEMS[0].level = "s2"; });
-  const r = A.QuizUtils.itemsForLevel(A.Content.ESSAY_ITEMS, "s2");
+  // (patched on 詩詞: 作文金句 has had real 中二 sentences since 階段 10e, so it no longer starts from zero s2 items; 詩詞 still has none)
+  const A = load((Cn, f) => { if (f === "content/poetryContent.jsx") Cn.POETRY_ITEMS[0].level = "s2"; });
+  const r = A.QuizUtils.itemsForLevel(A.Content.POETRY_ITEMS, "s2");
   assert.strictEqual(r.empty, false);
   assert.strictEqual(r.items.length, 1);
-  assert.strictEqual(A.QuizUtils.itemsForLevel(A.Content.ESSAY_ITEMS, "p5").empty, false);
+  assert.strictEqual(A.QuizUtils.itemsForLevel(A.Content.POETRY_ITEMS, "p5").empty, false);
 });
 
 t("the level options a module draws come from Storage.LEVELS (so a later level needs no per-module edit), and the home note exists for s2", () => {
@@ -137,6 +138,21 @@ t("階段 10d: 修辭手法 now has 80 中二 sentences — 中二 shows exactly
   assert(s2.items.every((it) => it.level === "s2"));
   for (const [lv, n] of [["p5", 58], ["p6", 70], ["s1", 72]]) {
     const r = A.QuizUtils.itemsForLevel(A.Content.RHETORIC_PRACTICE_SENTENCES, lv);
+    assert.strictEqual(r.empty, false, lv);
+    assert.strictEqual(r.items.length, n, lv);
+  }
+});
+
+t("階段 10e: 作文金句 now has 48 中二 sentences — 中二 shows exactly those (no fallback note, 16 per theme), the other levels are 41 / 52 / 57 and not flagged", () => {
+  const A = load();
+  const list = A.Content.ESSAY_ITEMS;
+  const s2 = A.QuizUtils.itemsForLevel(list, "s2");
+  assert.strictEqual(s2.empty, false);
+  assert.strictEqual(s2.items.length, 48);
+  assert(s2.items.every((it) => it.level === "s2"));
+  for (const th of A.Content.ESSAY_THEMES) assert.strictEqual(s2.items.filter((it) => it.theme === th).length, 16, th);
+  for (const [lv, n] of [["p5", 41], ["p6", 52], ["s1", 57]]) {
+    const r = A.QuizUtils.itemsForLevel(list, lv);
     assert.strictEqual(r.empty, false, lv);
     assert.strictEqual(r.items.length, n, lv);
   }
