@@ -368,7 +368,7 @@ window.App.Content = window.App.Content || {};
     { id: "biyu-25", sentence: "他的沉默是一扇半掩的門，只要有人肯耐心敲一敲，便能看見門後的世界。", device: "比喻", level: "s2" },
     { id: "biyu-26", sentence: "成績單像一張快照，只記錄了某一刻的模樣，卻拍不下努力的全過程。", device: "比喻", level: "s2" },
     { id: "biyu-27", sentence: "友誼是一棵需要長年澆灌的樹，缺少了關懷和信任，枝葉便會漸漸枯萎。", device: "比喻", level: "s2" },
-    { id: "biyu-28", sentence: "他們的爭論如同兩列相向而行的火車，各自沿着自己的軌道前進，誰也沒有停下來聽聽對方。", device: "比喻", level: "s2" },
+    { id: "biyu-28", sentence: "他們的爭論如同兩列擦身而過的火車，各自沿着自己的軌道前進，誰也沒有停下來聽聽對方。", device: "比喻", level: "s2" },
 
     { id: "niren-21", sentence: "夜幕輕手輕腳地降臨，生怕驚醒了在樹梢熟睡的鳥兒。", device: "擬人", level: "s2" },
     { id: "niren-22", sentence: "古老的城牆沉默地站立了幾百年，聽慣了商旅的駝鈴，也聽慣了風沙的低語。", device: "擬人", level: "s2" },

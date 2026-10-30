@@ -43,7 +43,7 @@ const APPROVED_ALSO = {
   "niren-6": ["比喻"], "niren-9": ["比喻"], "kuazhang-9": ["比喻"], "kuazhang-13": ["比喻"], "kuazhang-6": ["比喻"], "paibi-15": ["比喻"], // second review
   "biyu-14": ["對比"], "duiou-9": ["對比"], "duiou-3": ["對比", "比喻"], "duiou-2": ["比喻"], "duiou-14": ["比喻"],
 };
-const LEVELS = [null, "p5", "p6", "s1"];
+const LEVELS = [null, "p5", "p6", "s1", "s2"]; // 階段 10d: 中二 pools (80 sentences) are covered by every session-level check below
 const poolFor = (lv) => (lv ? SENTENCES.filter((s) => s.level === lv) : SENTENCES);
 
 // ---------------------------------------------------------------- content fields
@@ -119,7 +119,7 @@ t("the order of the kinds varies from session to session", () => {
 
 t("every question: sentence id exists, 4 distinct options (2 for 是非題), valid correctIndex, itemId returned", () => {
   for (let r = 0; r < 400; r++) {
-    Q.buildQuestions(poolFor(LEVELS[r % 4]), 15).forEach((q) => {
+    Q.buildQuestions(poolFor(LEVELS[r % LEVELS.length]), 15).forEach((q) => {
       assert.ok(byId[q.itemId], `unknown itemId ${q.itemId}`);
       const n = q.kind === "true-false" ? 2 : 4;
       assert.strictEqual(q.options.length, n, `${q.kind}: ${q.options.length} options`);
@@ -134,7 +134,7 @@ t("every question: sentence id exists, 4 distinct options (2 for 是非題), val
 t("device / effect questions: right answer is the sentence's device, wrong ones never its alsoDevices, ≥2 confusable wrong options", () => {
   let seenDevice = 0, seenEffect = 0;
   for (let r = 0; r < 600; r++) {
-    Q.buildQuestions(poolFor(LEVELS[r % 4]), 15).forEach((q) => {
+    Q.buildQuestions(poolFor(LEVELS[r % LEVELS.length]), 15).forEach((q) => {
       if (q.kind !== "device" && q.kind !== "effect") return;
       const s = byId[q.itemId];
       const asDevice = (opt) => (q.kind === "device" ? opt : NAMES.find((n) => byName[n].effect === opt));
@@ -160,7 +160,7 @@ t("device / effect questions: right answer is the sentence's device, wrong ones 
 t("find-sentence: exactly one option uses the asked device (device or alsoDevices); the other three use none of it", () => {
   let n = 0;
   for (let r = 0; r < 800; r++) {
-    Q.buildQuestions(poolFor(LEVELS[r % 4]), 15).forEach((q) => {
+    Q.buildQuestions(poolFor(LEVELS[r % LEVELS.length]), 15).forEach((q) => {
       if (q.kind !== "find-sentence") return;
       n++;
       assert.strictEqual(q.sentence, null);
@@ -192,7 +192,7 @@ t("find-sentence: confusable devices are preferred for the wrong sentences", () 
 t("true-false: stem never has alsoDevices; the claim is right or a confusable device; correctIndex agrees; about half are true", () => {
   let n = 0, trueCount = 0;
   for (let r = 0; r < 800; r++) {
-    const qs = Q.buildQuestions(poolFor(LEVELS[r % 4]), 15).filter((q) => q.kind === "true-false");
+    const qs = Q.buildQuestions(poolFor(LEVELS[r % LEVELS.length]), 15).filter((q) => q.kind === "true-false");
     let trues = 0;
     qs.forEach((q) => {
       const s = byId[q.itemId];
@@ -220,7 +220,7 @@ t("true-false: stem never has alsoDevices; the claim is right or a confusable de
 t("effect-device: the effect belongs to the right option; no two options have clashing effects", () => {
   let n = 0;
   for (let r = 0; r < 800; r++) {
-    Q.buildQuestions(poolFor(LEVELS[r % 4]), 15).forEach((q) => {
+    Q.buildQuestions(poolFor(LEVELS[r % LEVELS.length]), 15).forEach((q) => {
       if (q.kind !== "effect-device") return;
       n++;
       const s = byId[q.itemId];
