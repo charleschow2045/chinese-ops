@@ -315,6 +315,43 @@ t("the groups the user approved after the review are present (階段 9c review)"
   GROUPS.forEach((g) => assert.ok(!g.includes("friends-drift-apart"), "friends-drift-apart must stay ungrouped"));
 });
 
+t("the 48 中二 sentences' groups approved in the 階段 10e review are present (57 groups, no other additions)", () => {
+  const has = (...ids) => GROUPS.some((g) => ids.every((id) => g.includes(id)));
+  // new sentences added to existing groups (matched by content)
+  [
+    ["teacher-hindsight", "grateful-teacher", "teacher-white-hair"],
+    ["airport-farewell", "school-farewell", "transfer-school", "farewell-sorrow"],
+    ["award-moment", "finish-line-tears", "first-bike"],
+    ["perseverance-after-falling", "no-gain-without-effort", "drop-wears-stone"],
+    ["learning-conclusion", "reading-lens", "knowledge-ladder", "value-of-reading", "never-stop-learning"],
+    ["time-deposit", "time-management", "plan-ahead"],
+    ["need-vs-want", "frugality-virtue", "waste-food"],
+    ["online-privacy", "power-of-words", "online-responsibility"],
+    ["responsibility-proof", "eco-small-steps", "environmental-duty", "public-property", "sense-of-duty"],
+    ["ordinary-afternoon", "time-flies", "childhood-album", "corridor-memory"],
+    ["unseen-practice", "gritting-teeth", "unyielding-spirit", "tired-runner"],
+    ["grown-stronger", "facing-setback", "failure-letting-go"],
+    ["moonlight-homesick", "missing-family", "hometown-longing"],
+    ["moonlight-homesick", "empty-rocking-chair", "hometown-longing", "distant-friendship"],
+    ["grandma-thimble", "empty-rocking-chair", "hometown-longing", "distant-friendship"],
+    ["old-yearbook", "old-wine-friendship", "true-friendship", "being-accepted"],
+    ["before-thunderstorm", "bus-stop-rain", "rain-pearls", "storm-wind"],
+  ].forEach((ids) => assert.ok(has(...ids), "missing: " + ids.join(",")));
+  // the 21 new groups
+  [
+    ["bustling-market", "wet-market-dawn", "flower-market-cny", "cha-chaan-teng"],
+    ["playground-joy", "dismissal-corridor"], ["starting-line", "sports-day-start"], ["absorbed-painter", "chess-elders"],
+    ["unsent-letter", "apology-guilt"], ["unsent-letter", "unsaid-thanks"], ["old-yearbook", "class-reunion"],
+    ["cherish-present", "ordinary-afternoon"], ["forgiving-relief", "friends-make-up"], ["homecoming-anticipation", "homebound-platform"],
+    ["verify-info", "ask-why"], ["verify-info", "independent-judgement"], ["waiting-room", "library-mood"],
+    ["dream-and-action", "action-transition"], ["trust-wall", "integrity-foundation"], ["phone-master", "double-edged-tech"],
+    ["teamwork-building", "cooperation-disagreement"], ["perseverance-after-falling", "courage-to-retry"],
+    ["last-lock", "old-house-return"], ["recycler-respect", "dignity-of-labour"], ["small-lamp-ideal", "chasing-dreams"],
+  ].forEach((ids) => assert.ok(GROUPS.some((g) => g.length === ids.length && ids.every((id) => g.includes(id))), "missing group: " + ids.join(",")));
+  assert.strictEqual(GROUPS.length, 57, "36 old groups + 21 new ones");
+  assert.strictEqual(new Set(GROUPS.flat()).size, 132, "sentences covered by a group");
+});
+
 // ---------------------------------------------------------------- 書面語
 t("new strings contain no colloquial Cantonese, and the question wording uses no 同", () => {
   const files = ["essayQuiz.jsx", "EssayModule.jsx"].map((f) => fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8"));

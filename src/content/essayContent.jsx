@@ -1383,8 +1383,8 @@ window.App.Content = window.App.Content || {};
       id: "wet-market-dawn",
       theme: "描寫",
       level: "s2",
-      sentence: "清晨的街市人來人往，魚檔水花四濺，菜販的吆喝聲中夾雜着濕潤的泥土味和鮮魚的腥氣，撲面而來。",
-      keyPhrase: "夾雜着濕潤的泥土味和鮮魚的腥氣",
+      sentence: "清晨的街市人來人往，魚檔水花四濺，菜販的吆喝聲此起彼落，濕潤的泥土味和鮮魚的腥氣撲面而來。",
+      keyPhrase: "濕潤的泥土味和鮮魚的腥氣撲面而來",
       usage: "用來描寫街市的熱鬧場面，結合聽覺與嗅覺，令讀者如臨其境。",
       scenario: "想描寫清晨街市的聲音和氣味",
     },
@@ -1455,7 +1455,7 @@ window.App.Content = window.App.Content || {};
       id: "sports-day-start",
       theme: "描寫",
       level: "s2",
-      sentence: "起跑槍聲一響，跑道上塵土微揚，觀眾席的吶喊聲如潮水般湧來，選手們急促而整齊的腳步聲緊緊相隨。",
+      sentence: "起跑槍聲一響，跑道上塵土微揚，觀眾席的吶喊聲如潮水般湧來，選手們急促的腳步聲緊緊相隨。",
       keyPhrase: "觀眾席的吶喊聲如潮水般湧來",
       usage: "用來描寫比賽開始時的熱烈場面，以比喻與聲音的疊加加強臨場感。",
       scenario: "想描寫運動會賽跑開始時的熱烈場面",
@@ -1816,41 +1816,63 @@ window.App.Content = window.App.Content || {};
   // and misses close ones. Borderline pairs are NOT listed here — they are recorded in CLAUDE.md under 待確認.
   const ESSAY_SIMILAR_GROUPS = [
     ["parents-love", "parents-sacrifice", "mother-cold-towel"], // 感激父母（母親）的養育與照顧
-    ["gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study", "tired-runner"], // 堅持不放棄
+    ["gritting-teeth", "unyielding-spirit", "facing-setback", "drop-wears-stone", "chasing-dreams", "late-study", "tired-runner", "unseen-practice"], // 堅持不放棄
     ["missing-family", "distant-friendship"], // 思念遠方的親友
-    ["missing-family", "hometown-longing"], // 思念遠方的親人／家鄉
-    ["grateful-teacher", "teacher-white-hair"], // 感激師恩
-    ["school-farewell", "transfer-school", "farewell-sorrow"], // 離別的不捨
+    ["missing-family", "hometown-longing", "moonlight-homesick"], // 思念遠方的親人／家鄉
+    ["grateful-teacher", "teacher-white-hair", "teacher-hindsight"], // 感激師恩
+    ["school-farewell", "transfer-school", "farewell-sorrow", "airport-farewell"], // 離別的不捨
     ["farewell-sorrow", "first-trip-alone"], // 離開親人時的不捨
-    ["time-flies", "childhood-album", "corridor-memory"], // 懷念過去的時光
+    ["time-flies", "childhood-album", "corridor-memory", "ordinary-afternoon"], // 懷念過去的時光
     ["old-wine-friendship", "distant-friendship"], // 珍惜朋友的情誼
-    ["rain-pearls", "storm-wind"], // 描寫下雨
+    ["rain-pearls", "storm-wind", "before-thunderstorm", "bus-stop-rain"], // 描寫下雨
     ["bustling-market", "playground-joy", "beach-play"], // 描寫熱鬧的場面
     ["busy-city", "mtr-crowd"], // 描寫繁忙擁擠
     ["nervous-heartbeat", "exam-nerves", "starting-line"], // 描寫緊張
     ["autumn-leaves", "autumn-valley"], // 描寫秋景
     ["mountain-dawn", "fishing-village-fog"], // 描寫寧靜的清晨景色
     ["winter-snow", "winter-breath"], // 描寫寒冬
-    ["no-gain-without-effort", "drop-wears-stone"], // 論證努力、堅持
-    ["knowledge-ladder", "value-of-reading", "never-stop-learning"], // 論證學習、閱讀
-    ["time-management", "plan-ahead"], // 論證善用時間、做事有計劃
+    ["no-gain-without-effort", "drop-wears-stone", "perseverance-after-falling"], // 論證努力、堅持
+    ["knowledge-ladder", "value-of-reading", "never-stop-learning", "learning-conclusion", "reading-lens"], // 論證學習、閱讀
+    ["time-management", "plan-ahead", "time-deposit"], // 論證善用時間、做事有計劃
     ["tolerance-wisdom", "respect-views", "empathy-bridge"], // 論證寬容、尊重、同理心
     ["importance-of-exercise", "early-to-bed", "balanced-diet"], // 論證健康的生活習慣
-    ["frugality-virtue", "waste-food"], // 論證節儉、不浪費
-    ["power-of-words", "online-responsibility"], // 論證言語要謹慎、負責
-    ["finish-line-tears", "first-bike"], // 努力或克服困難後的喜悅
+    ["frugality-virtue", "waste-food", "need-vs-want"], // 論證節儉、不浪費
+    ["power-of-words", "online-responsibility", "online-privacy"], // 論證言語要謹慎、負責
+    ["finish-line-tears", "first-bike", "award-moment"], // 努力或克服困難後的喜悅
     ["grandma-cooking", "quiet-support", "kind-stranger", "silent-father"], // 感激身邊人的關愛與幫助
     ["mother-hands", "mother-growing-old"], // 母親的辛勞與衰老
-    ["empty-rocking-chair", "hometown-longing", "distant-friendship"], // 思念
-    ["old-wine-friendship", "true-friendship", "being-accepted"], // 友誼
-    ["facing-setback", "failure-letting-go"], // 面對挫折與失敗
+    ["empty-rocking-chair", "hometown-longing", "distant-friendship", "moonlight-homesick", "grandma-thimble"], // 思念
+    ["old-wine-friendship", "true-friendship", "being-accepted", "old-yearbook"], // 友誼
+    ["facing-setback", "failure-letting-go", "grown-stronger"], // 面對挫折與失敗
     ["details-decide", "stay-focused", "plan-ahead"], // 做事的態度：細心、專心、有計劃
     ["knowledge-ladder", "apply-knowledge", "practice-makes-perfect"], // 論證學習與練習
     ["lonely-lane", "city-night-train", "late-study"], // 孤單
     ["chasing-dreams", "dream-and-action"], // 夢想
-    ["environmental-duty", "public-property", "sense-of-duty"], // 論證責任
+    ["environmental-duty", "public-property", "sense-of-duty", "responsibility-proof", "eco-small-steps"], // 論證責任
     ["quiet-night", "library-mood", "fishing-village-fog"], // 描寫寧靜
     ["teamwork-building", "teammates-thanks"], // 團結合作
+    // 階段 10e 審核後新增（用戶批准）：中二新句子的相似句組
+    ["bustling-market", "wet-market-dawn", "flower-market-cny", "cha-chaan-teng"],
+    ["playground-joy", "dismissal-corridor"],
+    ["starting-line", "sports-day-start"],
+    ["absorbed-painter", "chess-elders"],
+    ["unsent-letter", "apology-guilt"],
+    ["unsent-letter", "unsaid-thanks"],
+    ["old-yearbook", "class-reunion"],
+    ["cherish-present", "ordinary-afternoon"],
+    ["forgiving-relief", "friends-make-up"],
+    ["homecoming-anticipation", "homebound-platform"],
+    ["verify-info", "ask-why"],
+    ["verify-info", "independent-judgement"],
+    ["waiting-room", "library-mood"],
+    ["dream-and-action", "action-transition"],
+    ["trust-wall", "integrity-foundation"],
+    ["phone-master", "double-edged-tech"],
+    ["teamwork-building", "cooperation-disagreement"],
+    ["perseverance-after-falling", "courage-to-retry"],
+    ["last-lock", "old-house-return"],
+    ["recycler-respect", "dignity-of-labour"],
+    ["small-lamp-ideal", "chasing-dreams"],
   ];
 
   const ESSAY_THEMES = ["描寫", "抒情", "論說"];
