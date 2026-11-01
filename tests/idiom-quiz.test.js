@@ -155,6 +155,31 @@ t("IDIOM_SYNONYM_GROUPS: every member is an existing idiom, no duplicates, at le
   });
 });
 
+t("階段 10f review: the approved 中二 synonym groups are present (additions to old groups found by content, 19 new groups), and 大義滅親 / 大公無私 are not grouped", () => {
+  const has = (...xs) => GROUPS.some((g) => xs.every((x) => g.includes(x)));
+  // new idioms added to the old groups
+  [
+    ["沉魚落雁", "國色天香", "傾城傾國", "花容月貌"], ["斗轉星移", "光陰似箭", "日月如梭", "光陰荏苒"],
+    ["恃才傲物", "目空一切", "孤高自許", "孤芳自賞", "自高自大"], ["剛愎自用", "至死不悟", "冥頑不靈", "頑固不化", "執迷不悟", "固執己見"],
+    ["出爾反爾", "食言而肥", "背信棄義", "口惠而實不至"], ["見異思遷", "朝秦暮楚", "朝三暮四", "三心二意"],
+    ["熙熙攘攘", "摩肩接踵", "門庭若市", "車水馬龍", "絡繹不絕"], ["左右逢源", "遊刃有餘", "駕輕就熟", "得心應手"],
+  ].forEach((xs) => assert.ok(has(...xs), "missing: " + xs.join(",")));
+  // the 19 new groups (exact)
+  [
+    ["圖窮匕見", "水落石出", "東窗事發"], ["脫穎而出", "出人頭地", "鶴立雞群"], ["一敗塗地", "不可收拾"], ["舉棋不定", "優柔寡斷", "當斷不斷"],
+    ["推心置腹", "開誠布公"], ["知難而退", "裹足不前"], ["自欺欺人", "掩耳盜鈴"], ["融會貫通", "觸類旁通", "舉一反三"],
+    ["不求甚解", "一知半解", "囫圇吞棗"], ["獨具匠心", "別出心裁", "標新立異", "獨樹一幟"], ["風度翩翩", "氣宇軒昂", "儀表堂堂", "一表人才"],
+    ["層巒疊嶂", "崇山峻嶺"], ["萬紫千紅", "花團錦簇", "春暖花開"], ["白雲蒼狗", "滄海桑田"], ["層出不窮", "源源不絕"], ["欣欣向榮", "蒸蒸日上"],
+    ["人云亦云", "鸚鵡學舌", "隨波逐流"], ["後生可畏", "後來居上", "青出於藍"], ["水深火熱", "生靈塗炭"],
+  ].forEach((xs) => {
+    assert.ok(GROUPS.some((g) => g.length === xs.length && xs.every((x) => g.includes(x))), "missing group: " + xs.join(","));
+    xs.forEach((x) => assert.ok(byText[x], "unknown idiom " + x));
+  });
+  assert.strictEqual(GROUPS.length, 102, "83 old groups + 19 new ones");
+  assert.strictEqual(new Set(GROUPS.flat()).size, 306, "idioms covered by a group");
+  assert.ok(!GROUPS.some((g) => g.includes("大義滅親") && g.includes("大公無私")), "大義滅親 / 大公無私 must not be grouped");
+});
+
 // ---------------------------------------------------------------- session shape
 t("a session is 15 questions: 3 of each of the 5 kinds, never the same kind twice in a row (full pool and each level)", () => {
   for (const lv of LEVELS) {

@@ -843,10 +843,10 @@ t("idiom: base fields present, level valid, no comma, pinyin has one syllable pe
   }
 });
 
-t("idiom 8b: 54 idioms gained an origin, 58 were added; 270 idioms had an origin after 8b (+ 32 from 階段 10f = 302)", () => {
+t("idiom 8b: 54 idioms gained an origin, 58 were added; 270 idioms had an origin after 8b (+ 31 from 階段 10f = 301)", () => {
   assert.strictEqual(IDIOM_8B_ORIGIN_ADDED.length, 54);
   assert.strictEqual(IDIOM_8B_NEW.length, 58);
-  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 54 + 58 + 32);
+  assert.strictEqual(IDIOMS.filter((x) => x.origin).length, 158 + 54 + 58 + 31);
   for (const s of IDIOM_8B_ORIGIN_ADDED) {
     const x = idiomByText(s);
     assert.ok(x && x.origin && x.origin.length >= 20, `${s}: origin missing or too short`);
@@ -895,7 +895,7 @@ t("idiom 8b: new text is 書面語 (no 什麼 / 裡 / colloquial particles)", ()
 // ---- 成語學習 階段 10f: 60 new 中二 (s2) idioms ----
 const IDIOM_10F = ["圖窮匕見", "百步穿楊", "捲土重來", "項莊舞劍", "狡兔三窟", "馬革裹屍", "前車之鑑", "大義滅親", "一敗塗地", "老當益壯", "脫穎而出", "既往不咎", "出爾反爾", "患得患失", "舉棋不定", "剛愎自用", "明哲保身", "推心置腹", "開誠布公", "見異思遷", "朝秦暮楚", "左右逢源", "知難而退", "恃才傲物", "自欺欺人", "好為人師", "融會貫通", "觸類旁通", "一知半解", "不求甚解", "獨具匠心", "別出心裁", "剛正不阿", "忠心耿耿", "風度翩翩", "老態龍鍾", "神采奕奕", "氣宇軒昂", "亭亭玉立", "沉魚落雁", "層巒疊嶂", "崇山峻嶺", "萬紫千紅", "柳暗花明", "驚濤駭浪", "月明星稀", "斗轉星移", "白雲蒼狗", "一望無際", "熙熙攘攘", "鱗次櫛比", "欣欣向榮", "蒸蒸日上", "日薄西山", "世態炎涼", "層出不窮", "趨之若鶩", "人云亦云", "後生可畏", "水深火熱"];
 // Cantonese readings that were looked up (jyut.net / words.hk / 漢典 via search summaries) before being written — no other annotation may be added without a check.
-const IDIOM_10F_JYUTPING_CHECKED = { "匕": "bei3", "見": "jin6", "穎": "wing6", "愎": "bik1", "恃": "ci5", "好": "hou3", "為": "wai4", "櫛": "zit3", "鶩": "mou6" };
+const IDIOM_10F_JYUTPING_CHECKED = { "見": "jin6", "穎": "wing6", "愎": "bik1", "恃": "ci5", "好": "hou3", "為": "wai4", "櫛": "zit3", "鶩": "mou6" };
 
 t("idiom 10f: 756 idioms; levels 100 / 333 / 263 / 60 (小五 / 小六 / 中一 / 中二); the 60 s2 idioms are exactly the agreed list", () => {
   const n = {};
@@ -951,10 +951,11 @@ t("idiom 10f: clue and origin never contain the idiom or three consecutive chara
   }
 });
 
-t("idiom 10f: 32 of the 60 carry an origin (only where the story was checked); 7 carry annotations and every Cantonese reading is one that was looked up", () => {
+t("idiom 10f: 31 of the 60 carry an origin (only where the story was checked); 7 carry 8 annotation items and every Cantonese reading is one that was looked up", () => {
   const s2 = IDIOMS.filter((x) => x.level === "s2");
-  assert.strictEqual(s2.filter((x) => x.origin).length, 32);
+  assert.strictEqual(s2.filter((x) => x.origin).length, 31);
   assert.strictEqual(s2.filter((x) => x.annotations).length, 7);
+  assert.strictEqual(s2.reduce((n, x) => n + (x.annotations || []).length, 0), 8);
   for (const x of s2) {
     if (x.origin) assert.ok(x.origin.length >= 30, `${x.idiom}: origin too short`);
     for (const a of x.annotations || []) {
@@ -980,6 +981,21 @@ t("idiom 10f: no 「中三」 / 「中二」 in any idiom field of the whole lib
     }
     for (const a of x.annotations || []) assert.ok(!/同/.test(a.meaning.replace(/同「現」|同類|不同/g, "")), `${s}: annotation uses 同`);
   }
+});
+
+t("idiom 10f review fixes: 圖窮匕見 keeps only the 「見」 annotation; 見異思遷 has no origin; 柳暗花明 says the 山西村 is a village name", () => {
+  const a = idiomByText("圖窮匕見").annotations;
+  assert.strictEqual(a.length, 1);
+  assert.strictEqual(a[0].term, "見");
+  assert.strictEqual(a[0].jyutping, "jin6");
+  assert.ok(!JSON.stringify(a).includes("匕"), "匕 must not be annotated (its Cantonese reading is not settled)");
+  const j = idiomByText("見異思遷");
+  assert.ok(!("origin" in j), "見異思遷 must have no origin");
+  assert.ok(j.meaning && j.clue && j.pinyin === "jiàn yì sī qiān");
+  assert.ok(!IDIOMS.some((x) => x.origin && x.origin.includes("管子．小匡")), "no origin may still cite 《管子．小匡》");
+  const l = idiomByText("柳暗花明").origin;
+  assert.ok(l.includes("遊覽山西村（村名，不是山西省）時寫下詩句"));
+  for (const piece of idiomSlices("柳暗花明")) assert.ok(!l.includes(piece), `origin contains "${piece}"`);
 });
 
 // ---- 歷史故事 (historyContent.jsx), 階段 8c ----
