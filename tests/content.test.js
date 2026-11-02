@@ -1186,4 +1186,21 @@ t("階段 10g: the settled wording of the points that follow the 教育局 print
   assert.strictEqual(POETRY.find((p) => p.id === "song-du-shaofu-zhi-ren-shuzhou").lines.length, 8);
 });
 
+t("階段 10g 教育局 PDF 對照（虞美人 KS3_13、慈烏夜啼 ks3_11b_text、天淨沙 KS3_19）: 用字及標點全部跟教育局版，舊寫法不得留下", () => {
+  const get = (id) => POETRY.find((p) => p.id === id);
+  assert.deepStrictEqual(Array.from(get("yu-mei-ren-chun-hua-qiu-yue").lines), ["春花秋月何時了？往事知多少！", "小樓昨夜又東風，故國不堪回首月明中！", "雕闌玉砌應猶在，只是朱顏改。", "問君能有幾多愁？恰似一江春水向東流！"]);
+  assert.deepStrictEqual(Array.from(get("ci-wu-ye-ti").lines), ["慈烏失其母，", "啞啞吐哀音。", "晝夜不飛去，", "經年守故林。", "夜夜夜半啼，", "聞者為霑襟。", "聲中如告訴，", "未盡反哺心。", "百鳥豈無母？", "爾獨哀怨深。", "應是母慈重，", "使爾悲不任。", "昔有吳起者，", "母歿喪不臨。", "嗟哉斯徒輩，", "其心不如禽！", "慈烏復慈烏，", "鳥中之曾參。"]);
+  assert.deepStrictEqual(Array.from(get("tian-jing-sha-qiu-si").lines), ["枯藤老樹昏鴉，", "小橋流水人家，", "古道西風瘦馬。", "夕陽西下，", "斷腸人在天涯！"]);
+  for (const id of ["yu-mei-ren-chun-hua-qiu-yue", "ci-wu-ye-ti", "tian-jing-sha-qiu-si"]) {
+    const p = get(id);
+    const all = p.lines.join("");
+    assert.ok(!/雕欄玉砌|沾襟/.test(all), id);
+    // the pinyin line ends with the same punctuation mark as its line
+    p.lines.forEach((l, i) => assert.strictEqual(l.slice(-1), p.pinyin[i].slice(-1), `${id} line ${i + 1}`));
+    p.annotations.forEach((a) => assert.ok(all.includes(a.term), id + " " + a.term));
+  }
+  assert.ok(get("ci-wu-ye-ti").annotations.some((a) => a.term === "霑襟"));
+  assert.ok(get("yu-mei-ren-chun-hua-qiu-yue").annotations.some((a) => a.term === "雕闌玉砌"));
+});
+
 t.done();
