@@ -31,7 +31,7 @@ const { POETRY_ITEMS: ITEMS } = App.Content;
 const Q = App.PoetryQuiz;
 const byId = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 const real = (l) => /[一-鿿]/.test(l);
-const LEVELS = [null, "p5", "p6", "s1"];
+const LEVELS = [null, "p5", "p6", "s1", "s2"];
 const poolFor = (lv) => (lv ? ITEMS.filter((i) => i.level === lv) : ITEMS);
 const stripDot = (m) => m.replace(/。$/, "");
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -200,8 +200,8 @@ t("5000 sessions over the full library: every question has exactly one defensibl
   assert.deepStrictEqual(bad.slice(0, 5), []);
 });
 
-t("level pools (p5 / p6 / s1, 1000 sessions each): 0 violations", () => {
-  for (const lv of ["p5", "p6", "s1"]) {
+t("level pools (p5 / p6 / s1 / s2, 1000 sessions each): 0 violations", () => {
+  for (const lv of ["p5", "p6", "s1", "s2"]) {
     let bad = [];
     for (let r = 0; r < 1000 && bad.length < 5; r++) bad = bad.concat(sessionProblems(Q.buildQuestions(poolFor(lv), 15), ITEMS));
     assert.deepStrictEqual(bad.slice(0, 5), [], lv);
@@ -231,6 +231,18 @@ t("練習錯題 (chooseFrom a small set, pool = whole library): only those poems
       const it = ITEMS[Math.floor(Math.random() * ITEMS.length)];
       if (!pick.includes(it)) pick.push(it);
     }
+    const qs = Q.buildQuestions(ITEMS, 15, pick);
+    assert.deepStrictEqual(sessionProblems(qs, ITEMS).filter((p) => !/same kind twice/.test(p) || size > 1), []);
+    qs.forEach((q) => assert.ok(pick.some((p) => p.id === q.itemId)));
+  }
+});
+
+t("練習錯題 on the 中二 poems only (階段 10g): only those poems are asked, 0 violations", () => {
+  const s2 = ITEMS.filter((i) => i.level === "s2");
+  assert.ok(s2.length >= 4);
+  for (let r = 0; r < 800; r++) {
+    const size = 1 + (r % s2.length);
+    const pick = s2.slice().sort(() => Math.random() - 0.5).slice(0, size);
     const qs = Q.buildQuestions(ITEMS, 15, pick);
     assert.deepStrictEqual(sessionProblems(qs, ITEMS).filter((p) => !/same kind twice/.test(p) || size > 1), []);
     qs.forEach((q) => assert.ok(pick.some((p) => p.id === q.itemId)));

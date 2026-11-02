@@ -1087,4 +1087,103 @@ t("history 8c: only 文天祥 is paired with a poem (過零丁洋); links are we
   for (const id of HI.HISTORY_WAR_POEM_IDS) assert.ok(poemIds.has(id), `war poem ${id} missing`);
 });
 
+// ---------------------------------------------------------------- 階段 10g 詩詞 (中二)
+// 第一批 7 首（木蘭詩、兵車行、滿江紅 follow in the second batch, then the totals become 84 / 10）
+const PO = loadContent("poetryContent.jsx");
+const POETRY = PO.POETRY_ITEMS;
+const POETRY_S2 = POETRY.filter((p) => p.level === "s2");
+const POETRY_10G_1 = {
+  "xing-xing-chong-xing-xing": { title: "行行重行行（古詩十九首）", author: "佚名", dynasty: "漢", form: "五言古詩" },
+  "tiao-tiao-qian-niu-xing": { title: "迢迢牽牛星（古詩十九首）", author: "佚名", dynasty: "漢", form: "五言古詩" },
+  "song-du-shaofu-zhi-ren-shuzhou": { title: "送杜少府之任蜀州", author: "王勃", dynasty: "唐", form: "五言律詩" },
+  "yan-shi": { title: "燕詩", author: "白居易", dynasty: "唐", form: "五言古詩" },
+  "ci-wu-ye-ti": { title: "慈烏夜啼", author: "白居易", dynasty: "唐", form: "五言古詩" },
+  "yu-mei-ren-chun-hua-qiu-yue": { title: "虞美人（春花秋月何時了）", author: "李煜", dynasty: "五代", form: "詞" },
+  "tian-jing-sha-qiu-si": { title: "天淨沙．秋思", author: "馬致遠", dynasty: "元", form: "曲" },
+};
+const PO_PUNC = /[，。？！：；、]/g;
+const poHanzi = (l) => l.replace(PO_PUNC, "").length;
+const poSyllables = (py) => py.replace(PO_PUNC, "").split(/\s+/).filter(Boolean).length;
+
+t("階段 10g: 詩詞 has 81 poems (74 + 7 中二 of the first batch); per-level counts add up, every level tag is known, ids and titles are unique", () => {
+  assert.strictEqual(POETRY.length, 81);
+  const n = {};
+  POETRY.forEach((p) => { assert.ok(LEVELS.includes(p.level), p.id + " " + p.level); n[p.level] = (n[p.level] || 0) + 1; });
+  assert.strictEqual(Object.values(n).reduce((a, b) => a + b, 0), 81);
+  assert.deepStrictEqual({ p5: n.p5, p6: n.p6, s1: n.s1, s2: n.s2 }, { p5: 11, p6: 30, s1: 33, s2: 7 });
+  assert.strictEqual(new Set(POETRY.map((p) => p.id)).size, POETRY.length);
+  assert.strictEqual(new Set(POETRY.map((p) => p.title)).size, POETRY.length);
+  for (const lv of [...FILLED_LEVELS, "s2"]) assert.ok(POETRY.some((p) => p.level === lv), `詩詞 has no ${lv} poem`);
+  assert.strictEqual(PO.POETRY_LEVEL_LABEL.s2, "中二");
+});
+
+t("階段 10g: the 7 中二 poems are exactly the approved first batch (id, title, author, dynasty, form), all type poem, and 水調歌頭 was not added twice", () => {
+  assert.deepStrictEqual(Array.from(POETRY_S2.map((p) => p.id)).sort(), Object.keys(POETRY_10G_1).sort());
+  for (const p of POETRY_S2) {
+    const w = POETRY_10G_1[p.id];
+    assert.strictEqual(p.type, "poem", p.id);
+    for (const k of ["title", "author", "dynasty", "form"]) assert.strictEqual(p[k], w[k], p.id + " " + k);
+  }
+  assert.strictEqual(POETRY.filter((p) => /水調歌頭/.test(p.title)).length, 1);
+  assert.strictEqual(POETRY_S2.filter((p) => p.form === "詞").every((p) => !!p.ciTune), true);
+});
+
+t("階段 10g: every 中二 poem has lines and pinyin of equal length, one pinyin syllable per Chinese character in every line, and every line ends with punctuation", () => {
+  for (const p of POETRY_S2) {
+    assert.ok(Array.isArray(p.lines) && p.lines.length > 0, p.id);
+    assert.strictEqual(p.pinyin.length, p.lines.length, p.id);
+    p.lines.forEach((l, i) => {
+      assert.ok(/[，。？！：；]$/.test(l), `${p.id} line ${i + 1} must end with punctuation: ${l}`);
+      assert.ok(!/[\r\n]/.test(l) && l.trim() === l, `${p.id} line ${i + 1}`);
+      assert.ok(/^[一-鿿，。？！：；]+$/.test(l), `${p.id} line ${i + 1} has a stray character: ${l}`);
+      assert.strictEqual(poSyllables(p.pinyin[i]), poHanzi(l), `${p.id} line ${i + 1}: ${l} | ${p.pinyin[i]}`);
+      assert.ok(/^[\p{L}\s，。？！：；]+$/u.test(p.pinyin[i]), `${p.id} line ${i + 1} pinyin has a stray character`);
+    });
+  }
+});
+
+t("階段 10g: every 中二 poem has all fields; 3–6 annotations whose term occurs in the poem's lines, no two meanings of one poem share a two-character word, and no jyutping (none was verified)", () => {
+  for (const p of POETRY_S2) {
+    for (const k of ["explanation", "translation", "background", "meaningQuiz"]) assert.ok(typeof p[k] === "string" && p[k].length > 5, p.id + " " + k);
+    assert.notStrictEqual(p.meaningQuiz, p.explanation, p.id + " meaningQuiz must be worded differently from explanation");
+    assert.ok(p.annotations.length >= 3 && p.annotations.length <= 6, p.id + " annotations: " + p.annotations.length);
+    const all = p.lines.join("");
+    const terms = p.annotations.map((a) => a.term);
+    assert.strictEqual(new Set(terms).size, terms.length, p.id);
+    p.annotations.forEach((a) => {
+      assert.ok(all.includes(a.term), `${p.id}: annotation term "${a.term}" is not in the lines`);
+      assert.ok(a.meaning && a.meaning.length > 1, p.id + " " + a.term);
+      assert.ok(!("jyutping" in a), `${p.id}: "${a.term}" has jyutping that was not verified`);
+    });
+    const ms = p.annotations.map((a) => a.meaning.replace(/[，。「」、（）\s]/g, ""));
+    for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
+      for (let k = 0; k + 2 <= ms[i].length; k++) assert.ok(!ms[j].includes(ms[i].slice(k, k + 2)), `${p.id}: meanings of "${p.annotations[i].term}" and "${p.annotations[j].term}" share "${ms[i].slice(k, k + 2)}"`);
+    }
+  }
+});
+
+t("階段 10g: the whole library never says 「中三」, and the 中二 poems contain no colloquial Cantonese and no 「同」 outside ordinary compounds", () => {
+  assert.ok(!JSON.stringify(POETRY).includes("中三"));
+  assert.ok(!JSON.stringify(PO.POETRY_LEVEL_LABEL).includes("中三"));
+  const colloquial = /呢個|咩|嘅|咗|唔|喺|哋|嘢|啲|佢|冇|乜|嚟|點解|邊個|而家|即刻|嗰|咁|好似/;
+  for (const p of POETRY_S2) {
+    // the poem text itself is 原文 (e.g. 同是宦遊人); only the explanatory fields are 書面語 text written for the app
+    const own = [p.explanation, p.translation, p.background, p.meaningQuiz, ...p.annotations.map((a) => a.meaning)].join("|");
+    assert.ok(!colloquial.test(own), p.id + ": " + (own.match(colloquial) || [])[0]);
+    const tongs = own.replace(/同(學|時|情|等|樣|一|類|鄉|窗|意|是)|同「|相同|共同|不同|如同|一視同仁/g, "");
+    assert.ok(!tongs.includes("同"), p.id + ": 同 used outside an ordinary compound");
+    assert.ok(!/中二|中三/.test(own), p.id + ": the level must not be claimed in the text");
+  }
+});
+
+t("階段 10g: the settled wording of the points that follow the 教育局 printed text as far as it could be seen (依 in 胡馬依北風, the punctuation of 會面安可知？ / 越鳥巢南枝！) — see the open 待核對 list in CLAUDE.md", () => {
+  const lines = POETRY.find((p) => p.id === "xing-xing-chong-xing-xing").lines;
+  assert.ok(lines.includes("胡馬依北風，") && lines.includes("會面安可知？") && lines.includes("越鳥巢南枝！"));
+  assert.strictEqual(lines.length, 16);
+  assert.strictEqual(POETRY.find((p) => p.id === "tiao-tiao-qian-niu-xing").lines.length, 10);
+  assert.strictEqual(POETRY.find((p) => p.id === "yan-shi").lines.length, 30);
+  assert.strictEqual(POETRY.find((p) => p.id === "ci-wu-ye-ti").lines.length, 18);
+  assert.strictEqual(POETRY.find((p) => p.id === "song-du-shaofu-zhi-ren-shuzhou").lines.length, 8);
+});
+
 t.done();
