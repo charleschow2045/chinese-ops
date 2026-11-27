@@ -21,8 +21,9 @@
 //  - annotation: wrong meanings come from other terms, never share a word (bigram) with the right meaning, and prefer the same kind of
 //    explanation (place / state / thing …) and a similar length so that the shape does not give the answer away.
 //  - dynasty: wrong dynasties are other dynasties of the library; 春秋 and 戰國 are never offered together as right and wrong (the Analects
-//    and Mencius are often grouped), and DYNASTY_BORDERS lists dynasties an author also lived in (陶淵明 晉／宋) which are never wrong options.
-//    If the library had fewer than four dynasties the options are padded from COMMON_DYNASTIES (the library has six, so this is not used).
+//    and Mencius are often grouped), and DYNASTY_BORDERS lists dynasties an author also lived in (陶淵明 晉／宋, 李煜 五代／宋 唐, 文天祥 宋／元)
+//    which are never wrong options. If the library had fewer than four dynasties the options are padded from COMMON_DYNASTIES.
+//  - author / dynasty: a work whose author is 「佚名」 is never asked either kind (階段 10g), and 「佚名」 is never a wrong author option.
 // Every question carries `itemId` (the work it was built from) so a wrong answer goes into 錯題本 as before.
 window.App = window.App || {};
 
@@ -34,7 +35,14 @@ window.App = window.App || {};
   const QUESTION_COUNT = 15;
   const KINDS = ["fill", "author", "meaning", "next-line", "line-title", "annotation", "dynasty"];
   // dynasties an author's life also touched; such a dynasty is never offered as a wrong option for that author
-  const DYNASTY_BORDERS = { 陶淵明: ["宋"] };
+  // Author name -> dynasties that are never offered as wrong options for that author's poems (he / she also lived in them).
+  // 陶淵明 lived into 劉宋; 李煜 was the last ruler of 南唐 (五代) and died in 宋 after the surrender, and 南唐 carries the word 唐;
+  // 文天祥 (宋) died after 元 had been founded.
+  const DYNASTY_BORDERS = { 陶淵明: ["宋"], 李煜: ["宋", "唐"], 文天祥: ["元"] };
+  // Poems whose author is unknown (古詩十九首, 木蘭詩 …) are written with this author name. They never get an 作者題 or a 朝代題
+  // (the answer would be 「佚名」 / the question text would say 「作者是「佚名」」), and 「佚名」 is never a wrong option of an 作者題.
+  const ANONYMOUS = "佚名";
+  const isAnonymous = (item) => item.author === ANONYMOUS;
   const DYNASTY_CLASH = [["春秋", "戰國"]];
   const COMMON_DYNASTIES = ["漢", "三國", "隋", "唐", "宋", "元", "明", "清"];
 
@@ -152,7 +160,7 @@ window.App = window.App || {};
   }
 
   function buildAuthorQuestion(pool, all, item) {
-    const authors = (list) => list.filter((p) => p.author !== item.author).map((p) => p.author);
+    const authors = (list) => list.filter((p) => p.author !== item.author && !isAnonymous(p)).map((p) => p.author);
     const wrong = [];
     for (const a of shuffle(authors(pool)).concat(shuffle(authors(all)))) {
       if (wrong.length >= 3) break;
@@ -240,13 +248,13 @@ window.App = window.App || {};
         case "annotation":
           return annotated(item).length > 0;
         case "dynasty":
-          return !!item.dynasty;
+          return !!item.dynasty && !isAnonymous(item);
         case "meaning":
           return !!item.meaningQuiz && item.lines.some(isRealLine);
         case "fill":
           return item.lines.some(isRealLine);
         default:
-          return !!item.author;
+          return !!item.author && !isAnonymous(item);
       }
     };
   }

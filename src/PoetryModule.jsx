@@ -25,6 +25,9 @@ window.App = window.App || {};
     { match: (f) => f.includes("古詩"), bg: "#F1E7CF", text: "#7A5D20" },
     { match: (f) => f === "詞", bg: "#F6E4E1", text: "#7A211A" },
     { match: (f) => f === "文言短文", bg: "#EAE5DB", text: "#6B6355" },
+    // 階段 10g: 元曲 (天淨沙) and 樂府民歌 (木蘭詩) — display only, the question logic never reads `form`
+    { match: (f) => f === "曲", bg: "#DDEBEA", text: "#1F4A47" },
+    { match: (f) => f.includes("樂府"), bg: "#E9E1F0", text: "#4A2F63" },
   ];
 
   // The questions themselves are built by poetryQuiz.jsx (plain objects, no screen code, 15 questions of seven kinds); this turns one into

@@ -1155,9 +1155,15 @@ t("階段 10g: every 中二 poem has all fields; 3–6 annotations whose term oc
       assert.ok(a.meaning && a.meaning.length > 1, p.id + " " + a.term);
       assert.ok(!("jyutping" in a), `${p.id}: "${a.term}" has jyutping that was not verified`);
     });
-    const ms = p.annotations.map((a) => a.meaning.replace(/[，。「」、（）\s]/g, ""));
+    const ms = p.annotations.map((a) => a.meaning.replace(/[，。「」『』、（）\s]/g, ""));
     for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
-      for (let k = 0; k + 2 <= ms[i].length; k++) assert.ok(!ms[j].includes(ms[i].slice(k, k + 2)), `${p.id}: meanings of "${p.annotations[i].term}" and "${p.annotations[j].term}" share "${ms[i].slice(k, k + 2)}"`);
+      for (let k = 0; k + 2 <= ms[i].length; k++) {
+        const w = ms[i].slice(k, k + 2);
+        // the one approved exception: the 教育局 wording the user dictated for 城闕 and 五津 (階段 10g review) both say 「這裏借…」; poetryQuiz.jsx
+        // already never offers one meaning as a wrong option of a term whose own meaning shares a word with it, so the question stays unambiguous
+        if (p.id === "song-du-shaofu-zhi-ren-shuzhou" && ["這裏", "裏借"].includes(w) && ["城闕", "五津"].includes(p.annotations[i].term) && ["城闕", "五津"].includes(p.annotations[j].term)) continue;
+        assert.ok(!ms[j].includes(w), `${p.id}: meanings of "${p.annotations[i].term}" and "${p.annotations[j].term}" share "${w}"`);
+      }
     }
   }
 });
@@ -1190,7 +1196,7 @@ t("階段 10g 教育局 PDF 對照（虞美人 KS3_13、慈烏夜啼 ks3_11b_tex
   const get = (id) => POETRY.find((p) => p.id === id);
   assert.deepStrictEqual(Array.from(get("yu-mei-ren-chun-hua-qiu-yue").lines), ["春花秋月何時了？往事知多少！", "小樓昨夜又東風，故國不堪回首月明中！", "雕闌玉砌應猶在，只是朱顏改。", "問君能有幾多愁？恰似一江春水向東流！"]);
   assert.deepStrictEqual(Array.from(get("ci-wu-ye-ti").lines), ["慈烏失其母，", "啞啞吐哀音。", "晝夜不飛去，", "經年守故林。", "夜夜夜半啼，", "聞者為霑襟。", "聲中如告訴，", "未盡反哺心。", "百鳥豈無母？", "爾獨哀怨深。", "應是母慈重，", "使爾悲不任。", "昔有吳起者，", "母歿喪不臨。", "嗟哉斯徒輩，", "其心不如禽！", "慈烏復慈烏，", "鳥中之曾參。"]);
-  assert.deepStrictEqual(Array.from(get("tian-jing-sha-qiu-si").lines), ["枯藤老樹昏鴉，", "小橋流水人家，", "古道西風瘦馬。", "夕陽西下，", "斷腸人在天涯！"]);
+  assert.deepStrictEqual(Array.from(get("tian-jing-sha-qiu-si").lines), ["枯藤老樹昏鴉，", "小橋流水人家，", "古道西風瘦馬。", "夕陽西下，", "斷腸人在天涯。"]);
   for (const id of ["yu-mei-ren-chun-hua-qiu-yue", "ci-wu-ye-ti", "tian-jing-sha-qiu-si"]) {
     const p = get(id);
     const all = p.lines.join("");
@@ -1201,6 +1207,62 @@ t("階段 10g 教育局 PDF 對照（虞美人 KS3_13、慈烏夜啼 ks3_11b_tex
   }
   assert.ok(get("ci-wu-ye-ti").annotations.some((a) => a.term === "霑襟"));
   assert.ok(get("yu-mei-ren-chun-hua-qiu-yue").annotations.some((a) => a.term === "雕闌玉砌"));
+});
+
+t("階段 10g 第一批審核後修正（教育局 Booklet 逐字對照）: 原文、標點、拼音、註釋、譯文、背景", () => {
+  const get = (id) => POETRY.find((p) => p.id === id);
+  const ann = (p, term) => (p.annotations.find((a) => a.term === term) || {}).meaning;
+  // pinyin line ends with the same punctuation mark as its line — for all 7
+  for (const p of POETRY_S2) p.lines.forEach((l, i) => assert.strictEqual(l.slice(-1), p.pinyin[i].slice(-1), `${p.id} line ${i + 1}`));
+  // 行行重行行：末句 ！
+  const xx = get("xing-xing-chong-xing-xing");
+  assert.strictEqual(xx.lines[15], "努力加餐飯！");
+  assert.strictEqual(xx.pinyin[15], "Nǔ lì jiā cān fàn！");
+  // 迢迢牽牛星：第 8 行 。 ; 章 ; 譯文
+  const tt = get("tiao-tiao-qian-niu-xing");
+  assert.strictEqual(tt.lines[7], "相去復幾許。");
+  assert.strictEqual(tt.pinyin[7], "Xiāng qù fù jǐ xǔ。");
+  assert.strictEqual(ann(tt, "章"), "布的經緯紋理。『終日不成章』指整天織布，卻織不出整幅的布來。");
+  assert.ok(tt.translation.includes("整天也織不出整幅的布") && !tt.translation.includes("花紋"));
+  assert.ok(!tt.annotations.some((a) => /花紋/.test(a.meaning)) && !/花紋/.test(tt.explanation + tt.meaningQuiz + tt.background));
+  // 送杜少府：原文不變；註釋
+  const sd = get("song-du-shaofu-zhi-ren-shuzhou");
+  assert.deepStrictEqual(Array.from(sd.lines), ["城闕輔三秦，", "風煙望五津。", "與君離別意，", "同是宦遊人。", "海內存知己，", "天涯若比鄰。", "無為在歧路，", "兒女共沾巾。"]);
+  assert.strictEqual(ann(sd, "城闕"), "宮門前的望樓，這裏借指長安。");
+  assert.strictEqual(ann(sd, "五津"), "長江流經蜀中，其中一段有五個渡口，這裏借代蜀中。");
+  // 燕詩
+  const ys = get("yan-shi");
+  assert.strictEqual(ys.lines[8], "嘴爪雖欲敝，");
+  assert.strictEqual(ys.pinyin[8], "Zuǐ zhǎo suī yù bì，");
+  assert.strictEqual(ys.lines[16], "一旦羽翼成，");
+  assert.strictEqual(ys.pinyin[16], "Yī dàn yǔ yì chéng，");
+  assert.strictEqual(ys.lines[25], "爾當反自思：");
+  assert.strictEqual(ys.pinyin[25], "Ěr dāng fǎn zì sī：");
+  assert.strictEqual(ys.lines[29], "今日爾應知！");
+  assert.strictEqual(ys.pinyin[29], "Jīn rì ěr yīng zhī！");
+  assert.ok(!/觜|弊|一朝|返自思/.test(ys.lines.join("") + ys.pinyin.join("")));
+  assert.strictEqual(ann(ys, "敝"), "毀壞，指殘損。");
+  assert.ok(!ys.annotations.some((a) => a.term === "觜"));
+  assert.strictEqual(ann(ys, "孜孜"), "雛鳥鳴叫之聲。");
+  assert.strictEqual(ann(ys, "椽"), "架在屋梁橫木上，用來承接木條及屋頂的木材。");
+  assert.strictEqual(ys.background, "此詩原題《燕詩示劉叟》，白居易作。教育局篇章附有序文，大意是：有位老人的愛子背着他離家出走，他十分悲傷思念；而他年少時也曾這樣，所以詩人作《燕詩》來勸喻。");
+  // 「劉叟」 only in the sentence that gives the original title
+  assert.strictEqual((JSON.stringify(ys).match(/劉叟/g) || []).length, 1);
+  // 慈烏夜啼：任 讀平聲 rén
+  const cw = get("ci-wu-ye-ti");
+  assert.strictEqual(cw.lines[11], "使爾悲不任。");
+  assert.strictEqual(cw.pinyin[11], "Shǐ ěr bēi bù rén。");
+  assert.ok(!cw.pinyin.join(" ").includes("rèn"));
+  assert.strictEqual(ann(cw, "不任"), "承受不了。因叶韻讀平聲。");
+  // 天淨沙：末句還原為句號，待核對（Booklet 句號，KS3_19 歎號）
+  const ts = get("tian-jing-sha-qiu-si");
+  assert.strictEqual(ts.lines[4], "斷腸人在天涯。");
+  assert.strictEqual(ts.pinyin[4], "Duàn cháng rén zài tiān yá。");
+  // 全部 7 首：background 不得有「某字又作某字，此處採用／依……寫法」
+  for (const p of POETRY_S2) assert.ok(!/又作|又有版本|一作|此處採用|此處依|寫法/.test(p.background), p.id + " background still has a variant sentence");
+  // 譯文 / 說明與註釋沒有互相矛盾：註釋裏的詞仍在譯文／說明裏找到對應（抽查三處）
+  assert.ok(ys.translation.includes("嘴和爪") && ann(ys, "敝").includes("毀壞"));
+  assert.ok(sd.translation.includes("長安") && ann(sd, "城闕").includes("長安"));
 });
 
 t.done();

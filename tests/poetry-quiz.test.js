@@ -364,4 +364,98 @@ t("new strings contain no colloquial Cantonese, and the question wording uses no
   });
 });
 
+// ---------------------------------------------------------------- 階段 10g review: 佚名, 朝代 borders, form labels
+const ANON = "佚名";
+const anonIds = new Set(ITEMS.filter((p) => p.author === ANON).map((p) => p.id));
+
+t("佚名 (階段 10g): in 5000 full-library sessions no 作者題 has 佚名 as the answer or as an option, and no 作者題 / 朝代題 is built on a 佚名 poem", () => {
+  assert.ok(anonIds.size >= 2, "the library must contain 佚名 poems for this test to mean anything");
+  let authorQ = 0, dynastyQ = 0;
+  for (let r = 0; r < 5000; r++) {
+    Q.buildQuestions(ITEMS, 15).forEach((q) => {
+      if (q.kind === "author") {
+        authorQ++;
+        assert.ok(!q.options.includes(ANON), "佚名 offered in an 作者題");
+        assert.ok(!anonIds.has(q.itemId), "作者題 built on a 佚名 poem");
+        assert.notStrictEqual(q.options[q.correctIndex], ANON);
+      }
+      if (q.kind === "dynasty") {
+        dynastyQ++;
+        assert.ok(!anonIds.has(q.itemId), "朝代題 built on a 佚名 poem");
+        assert.ok(!/「佚名」/.test(q.ask));
+      }
+    });
+  }
+  assert.ok(authorQ > 5000 && dynastyQ > 5000);
+});
+
+t("佚名 (階段 10g): sessions of 佚名 poems only (練習錯題, a pool of just those) still give 15 valid questions with no 作者題 / 朝代題", () => {
+  const anon = ITEMS.filter((p) => anonIds.has(p.id));
+  for (let r = 0; r < 600; r++) {
+    const pick = anon.slice(0, 1 + (r % anon.length));
+    const qs = Q.buildQuestions(ITEMS, 15, pick);
+    assert.strictEqual(qs.length, 15);
+    qs.forEach((q) => {
+      assert.ok(q.kind !== "author" && q.kind !== "dynasty", q.kind);
+      assert.deepStrictEqual(problems(q, ITEMS), []);
+      assert.ok(anonIds.has(q.itemId));
+    });
+  }
+  // the s2 pool (which holds 佚名 poems among others) as well
+  for (let r = 0; r < 600; r++) assert.deepStrictEqual(sessionProblems(Q.buildQuestions(poolFor("s2"), 15), ITEMS), []);
+});
+
+t("佚名 (階段 10g): a synthetic library whose only author is 佚名 never makes an 作者題 or 朝代題 and never fails", () => {
+  const lib = clone(ITEMS.slice(0, 8)).map((p) => ({ ...p, author: ANON }));
+  for (let r = 0; r < 300; r++) {
+    const qs = Q.buildQuestions(lib, 15, lib, lib);
+    assert.strictEqual(qs.length, 15);
+    qs.forEach((q) => assert.ok(q.kind !== "author" && q.kind !== "dynasty"));
+  }
+});
+
+t("朝代 borders (階段 10g): 李煜 (五代) never gets 宋 or 唐 as a wrong option, 文天祥 (宋) never gets 元, 陶淵明 still never gets 宋; the answer is always unique", () => {
+  const byAuthor = (a) => ITEMS.filter((p) => p.author === a);
+  const cases = [["李煜", "五代", ["宋", "唐"]], ["文天祥", "宋", ["元"]], ["陶淵明", "晉", ["宋"]]];
+  for (const [author, dynasty, banned] of cases) {
+    const poems = byAuthor(author);
+    assert.ok(poems.length >= 1, author + " missing from the library");
+    poems.forEach((p) => assert.strictEqual(p.dynasty, dynasty, p.id));
+    let asked = 0;
+    for (let r = 0; r < 1500; r++) {
+      Q.buildQuestions(ITEMS, 15, poems).forEach((q) => {
+        if (q.kind !== "dynasty") return;
+        asked++;
+        assert.strictEqual(q.options[q.correctIndex], dynasty);
+        banned.forEach((b) => assert.ok(!q.options.includes(b), `${author}: ${b} offered`));
+        assert.strictEqual(new Set(q.options).size, 4);
+      });
+    }
+    assert.ok(asked > 300, author + ": too few 朝代題 sampled");
+  }
+  // the 5000-session full-library check for the same rule
+  for (let r = 0; r < 5000; r++) {
+    Q.buildQuestions(ITEMS, 15).forEach((q) => {
+      if (q.kind !== "dynasty") return;
+      const it = byId[q.itemId];
+      if (it.author === "李煜") assert.ok(!q.options.includes("宋") && !q.options.includes("唐"));
+      if (it.author === "文天祥") assert.ok(!q.options.includes("元"));
+    });
+  }
+});
+
+t("體裁標籤 (階段 10g): the form pill of PoetryModule.jsx knows 「曲」 and 「樂府民歌」 as well as the older forms (display only)", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "src", "PoetryModule.jsx"), "utf8");
+  const m = /const FORM_PILL_TONES = (\[[\s\S]*?\n  \]);/.exec(src);
+  assert.ok(m, "FORM_PILL_TONES not found");
+  const tones = vm.runInNewContext("(" + m[1].replace(/\/\/.*$/gm, "") + ")");
+  const toneOf = (f) => tones.find((x) => x.match(f));
+  for (const f of ["五言絕句", "七言絕句", "五言律詩", "七言律詩", "五言古詩", "七言古詩", "詞", "文言短文", "曲", "樂府民歌"]) assert.ok(toneOf(f), f + " has no tone");
+  assert.ok(toneOf("曲") !== toneOf("樂府民歌"));
+  // every form that really occurs in the library has a tone (so no poem shows without its pill)
+  for (const f of new Set(ITEMS.map((p) => p.form))) assert.ok(toneOf(f), "no pill for the form " + f);
+  // the pill logic is the only reader of `form` — the quiz generator never looks at it
+  assert.ok(!/\.form\b/.test(fs.readFileSync(path.join(__dirname, "..", "src", "poetryQuiz.jsx"), "utf8")));
+});
+
 t.done();
