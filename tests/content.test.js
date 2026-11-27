@@ -1088,7 +1088,7 @@ t("history 8c: only 文天祥 is paired with a poem (過零丁洋); links are we
 });
 
 // ---------------------------------------------------------------- 階段 10g 詩詞 (中二)
-// 第一批 7 首（木蘭詩、兵車行、滿江紅 follow in the second batch, then the totals become 84 / 10）
+// 第一批 7 首 + 第二批 3 首（木蘭詩、兵車行、滿江紅）= 中二 10 首，詩詞共 84 首
 const PO = loadContent("poetryContent.jsx");
 const POETRY = PO.POETRY_ITEMS;
 const POETRY_S2 = POETRY.filter((p) => p.level === "s2");
@@ -1100,24 +1100,28 @@ const POETRY_10G_1 = {
   "ci-wu-ye-ti": { title: "慈烏夜啼", author: "白居易", dynasty: "唐", form: "五言古詩" },
   "yu-mei-ren-chun-hua-qiu-yue": { title: "虞美人（春花秋月何時了）", author: "李煜", dynasty: "五代", form: "詞" },
   "tian-jing-sha-qiu-si": { title: "天淨沙．秋思", author: "馬致遠", dynasty: "元", form: "曲" },
+  // 第二批（階段 10g second batch）
+  "mu-lan-shi": { title: "木蘭詩", author: "佚名", dynasty: "南北朝", form: "樂府民歌" },
+  "bing-che-xing": { title: "兵車行", author: "杜甫", dynasty: "唐", form: "七言古詩" },
+  "man-jiang-hong-nu-fa-chong-guan": { title: "滿江紅（怒髮衝冠）", author: "岳飛", dynasty: "宋", form: "詞" },
 };
-const PO_PUNC = /[，。？！：；、]/g;
+const PO_PUNC = /[，。？！：；、「」]/g;
 const poHanzi = (l) => l.replace(PO_PUNC, "").length;
 const poSyllables = (py) => py.replace(PO_PUNC, "").split(/\s+/).filter(Boolean).length;
 
-t("階段 10g: 詩詞 has 81 poems (74 + 7 中二 of the first batch); per-level counts add up, every level tag is known, ids and titles are unique", () => {
-  assert.strictEqual(POETRY.length, 81);
+t("階段 10g: 詩詞 has 84 poems (74 + 7 中二 of the first batch + 3 of the second); per-level counts add up, every level tag is known, ids and titles are unique", () => {
+  assert.strictEqual(POETRY.length, 84);
   const n = {};
   POETRY.forEach((p) => { assert.ok(LEVELS.includes(p.level), p.id + " " + p.level); n[p.level] = (n[p.level] || 0) + 1; });
-  assert.strictEqual(Object.values(n).reduce((a, b) => a + b, 0), 81);
-  assert.deepStrictEqual({ p5: n.p5, p6: n.p6, s1: n.s1, s2: n.s2 }, { p5: 11, p6: 30, s1: 33, s2: 7 });
+  assert.strictEqual(Object.values(n).reduce((a, b) => a + b, 0), 84);
+  assert.deepStrictEqual({ p5: n.p5, p6: n.p6, s1: n.s1, s2: n.s2 }, { p5: 11, p6: 30, s1: 33, s2: 10 });
   assert.strictEqual(new Set(POETRY.map((p) => p.id)).size, POETRY.length);
   assert.strictEqual(new Set(POETRY.map((p) => p.title)).size, POETRY.length);
   for (const lv of [...FILLED_LEVELS, "s2"]) assert.ok(POETRY.some((p) => p.level === lv), `詩詞 has no ${lv} poem`);
   assert.strictEqual(PO.POETRY_LEVEL_LABEL.s2, "中二");
 });
 
-t("階段 10g: the 7 中二 poems are exactly the approved first batch (id, title, author, dynasty, form), all type poem, and 水調歌頭 was not added twice", () => {
+t("階段 10g: the 10 中二 poems are exactly the approved two batches (id, title, author, dynasty, form), all type poem, and 水調歌頭 was not added twice", () => {
   assert.deepStrictEqual(Array.from(POETRY_S2.map((p) => p.id)).sort(), Object.keys(POETRY_10G_1).sort());
   for (const p of POETRY_S2) {
     const w = POETRY_10G_1[p.id];
@@ -1133,11 +1137,11 @@ t("階段 10g: every 中二 poem has lines and pinyin of equal length, one pinyi
     assert.ok(Array.isArray(p.lines) && p.lines.length > 0, p.id);
     assert.strictEqual(p.pinyin.length, p.lines.length, p.id);
     p.lines.forEach((l, i) => {
-      assert.ok(/[，。？！：；]$/.test(l), `${p.id} line ${i + 1} must end with punctuation: ${l}`);
+      assert.ok(/[，。？！：；]」?$/.test(l), `${p.id} line ${i + 1} must end with punctuation (a closing 」 may follow it): ${l}`);
       assert.ok(!/[\r\n]/.test(l) && l.trim() === l, `${p.id} line ${i + 1}`);
-      assert.ok(/^[一-鿿，。？！：；]+$/.test(l), `${p.id} line ${i + 1} has a stray character: ${l}`);
+      assert.ok(/^[一-鿿，。？！：；、「」]+$/.test(l), `${p.id} line ${i + 1} has a stray character: ${l}`);
       assert.strictEqual(poSyllables(p.pinyin[i]), poHanzi(l), `${p.id} line ${i + 1}: ${l} | ${p.pinyin[i]}`);
-      assert.ok(/^[\p{L}\s，。？！：；]+$/u.test(p.pinyin[i]), `${p.id} line ${i + 1} pinyin has a stray character`);
+      assert.ok(/^[\p{L}\s，。？！：；、「」]+$/u.test(p.pinyin[i]), `${p.id} line ${i + 1} pinyin has a stray character`);
     });
   }
 });
@@ -1264,5 +1268,118 @@ t("階段 10g 第一批審核後修正（教育局 Booklet 逐字對照）: 原�
   assert.ok(ys.translation.includes("嘴和爪") && ann(ys, "敝").includes("毀壞"));
   assert.ok(sd.translation.includes("長安") && ann(sd, "城闕").includes("長安"));
 });
+
+// ---------------------------------------------------------------- 階段 10g 第二批 (木蘭詩、兵車行、滿江紅)
+// 原文 below is the text the user copied page by page from the 教育局 Booklet (KS3_uploadver2); the lines of each poem must equal it character for character.
+const MULAN_PARAGRAPHS = [
+  "唧唧復唧唧，木蘭當戶織。不聞機杼聲，惟聞女歎息。問女何所思，問女何所憶。「女亦無所思，女亦無所憶。昨夜見軍帖，可汗大點兵。軍書十二卷，卷卷有爺名。阿爺無大兒，木蘭無長兄。願為市鞍馬，從此替爺征。」",
+  "東市買駿馬，西市買鞍韉，南市買轡頭，北市買長鞭。旦辭爺娘去，暮宿黃河邊。不聞爺娘喚女聲，但聞黃河流水鳴濺濺。旦辭黃河去，暮至黑山頭。不聞爺娘喚女聲，但聞燕山胡騎聲啾啾。",
+  "萬里赴戎機，關山度若飛。朔氣傳金柝，寒光照鐵衣。將軍百戰死，壯士十年歸。",
+  "歸來見天子，天子坐明堂。策勳十二轉，賞賜百千彊。可汗問所欲，「木蘭不用尚書郎，願借明駝千里足，送兒還故鄉。」",
+  "爺娘聞女來，出郭相扶將。阿姊聞妹來，當戶理紅妝。小弟聞姊來，磨刀霍霍向豬羊。開我東閣門，坐我西閣牀；脫我戰時袍，著我舊時裳；當窗理雲鬢，對鏡帖花黃。出門看火伴，火伴皆驚惶：「同行十二年，不知木蘭是女郎！」",
+  "雄兔腳撲朔，雌兔眼迷離。兩兔傍地走，安能辨我是雄雌？",
+];
+const BING_PRINTED = [
+  "車轔轔，馬蕭蕭，行人弓箭各在腰。", "爺娘妻子走相送，塵埃不見咸陽橋。", "牽衣頓足攔道哭，哭聲直上干雲霄。", "道旁過者問行人，行人但云點行頻。",
+  "或從十五北防河，便至四十西營田。", "去時里正與裹頭，歸來頭白還戍邊。", "邊庭流血成海水，武皇開邊意未已。", "君不聞漢家山東二百州，千村萬落生荊杞。",
+  "縱有健婦把鋤犁，禾生隴畝無東西。", "況復秦兵耐苦戰，被驅不異犬與雞。", "長者雖有問，役夫敢伸恨？", "且如今年冬，未休關西卒。",
+  "縣官急索租，租稅從何出？", "信知生男惡，反是生女好；", "生女猶得嫁比鄰，生男埋沒隨百草。", "君不見青海頭，古來白骨無人收，", "新鬼煩冤舊鬼哭，天陰雨濕聲啾啾！",
+];
+const MANJIANGHONG_LINES = [
+  "怒髮衝冠，憑闌處、瀟瀟雨歇。", "抬望眼、仰天長嘯，壯懷激烈。", "三十功名塵與土，八千里路雲和月。", "莫等閒、白了少年頭，空悲切。",
+  "靖康恥，猶未雪；臣子恨，何時滅！", "駕長車、踏破賀蘭山缺。", "壯志飢餐胡虜肉，笑談渴飲匈奴血。", "待從頭、收拾舊山河，朝天闕。",
+];
+// one line per 句讀 clause, a closing 」 stays on the line it closes and an opening 「 on the line it opens
+const splitClauses = (text) => text.match(/「?[^，。？！；：」]*[，。？！；：]」?/g) || [];
+const POETRY_BY = (id) => POETRY.find((p) => p.id === id);
+const annOf = (p, term) => (p.annotations.find((a) => a.term === term) || {}).meaning;
+
+t("階段 10g 第二批: 木蘭詩、兵車行、滿江紅 lines equal the 教育局 Booklet text exactly (木蘭詩 62 lines by 句讀, 兵車行 35, 滿江紅 8), in the agreed 句讀 split", () => {
+  const mulanText = MULAN_PARAGRAPHS.join("");
+  const mulan = MULAN_PARAGRAPHS.flatMap(splitClauses);
+  assert.strictEqual(mulan.join(""), mulanText, "the split must lose nothing");
+  assert.strictEqual(mulan.length, 62); // 16 + 12 + 6 + 8 + 16 + 4 (the request said 64; a count by punctuation gives 62, nothing was invented)
+  assert.deepStrictEqual(Array.from(POETRY_BY("mu-lan-shi").lines), mulan);
+  assert.strictEqual(POETRY_BY("mu-lan-shi").lines.join(""), mulanText);
+  const bing = BING_PRINTED.flatMap((l) => l.match(/[^，。？！；：]*[，。？！；：]/g));
+  assert.strictEqual(bing.join(""), BING_PRINTED.join(""));
+  assert.strictEqual(bing.length, 35); // 3 + 16 × 2
+  assert.deepStrictEqual(Array.from(POETRY_BY("bing-che-xing").lines), bing);
+  assert.deepStrictEqual(Array.from(POETRY_BY("bing-che-xing").lines.slice(0, 3)), ["車轔轔，", "馬蕭蕭，", "行人弓箭各在腰。"]);
+  assert.deepStrictEqual(Array.from(POETRY_BY("man-jiang-hong-nu-fa-chong-guan").lines), MANJIANGHONG_LINES);
+  // the 木蘭詩 quotation marks sit on the right lines
+  const mu = POETRY_BY("mu-lan-shi").lines;
+  assert.deepStrictEqual(Array.from(mu.map((l, i) => (/「/.test(l) ? i : -1)).filter((i) => i >= 0)), [6, 39, 56]);
+  assert.deepStrictEqual(Array.from(mu.map((l, i) => (/」/.test(l) ? i : -1)).filter((i) => i >= 0)), [15, 41, 57]);
+  assert.strictEqual(mu.filter((l) => l === "不聞爺娘喚女聲，").length, 2);
+  // 教育局's variants are not written
+  assert.ok(!mu.join("").includes("流水聲濺濺") && !mu.join("").includes("胡騎鳴啾啾"));
+});
+
+t("階段 10g 第二批: pinyin — one syllable per character, the line's closing punctuation (incl. 」) repeated, the polyphones the user listed, and 「點行」 written háng (待核對)", () => {
+  for (const id of ["mu-lan-shi", "bing-che-xing", "man-jiang-hong-nu-fa-chong-guan"]) {
+    const p = POETRY_BY(id);
+    assert.strictEqual(p.pinyin.length, p.lines.length, id);
+    p.lines.forEach((l, i) => {
+      assert.strictEqual(poSyllables(p.pinyin[i]), poHanzi(l), `${id} ${i + 1}: ${l} | ${p.pinyin[i]}`);
+      assert.strictEqual(l.slice(-1), p.pinyin[i].slice(-1), `${id} line ${i + 1} closing mark`);
+      assert.strictEqual(l.slice(0, 1) === "「", p.pinyin[i].slice(0, 1) === "「", `${id} line ${i + 1} opening quote`);
+    });
+  }
+  // [poem, line text, expected syllables of the whole line without punctuation]
+  const mustBe = [
+    ["mu-lan-shi", "可汗大點兵。", "kè hán dà diǎn bīng"], ["mu-lan-shi", "可汗問所欲，", "kè hán wèn suǒ yù"],
+    ["mu-lan-shi", "爺娘聞女來，", "yé niáng wén nǚ lái"], ["mu-lan-shi", "西市買鞍韉，", "xī shì mǎi ān jiān"], ["mu-lan-shi", "南市買轡頭，", "nán shì mǎi pèi tóu"],
+    ["mu-lan-shi", "但聞黃河流水鳴濺濺。", "dàn wén huáng hé liú shuǐ míng jiān jiān"], ["mu-lan-shi", "朔氣傳金柝，", "shuò qì chuán jīn tuò"],
+    ["mu-lan-shi", "策勳十二轉，", "cè xūn shí èr zhuǎn"], ["mu-lan-shi", "賞賜百千彊。", "shǎng cì bǎi qiān qiáng"], ["mu-lan-shi", "出郭相扶將。", "chū guō xiāng fú jiāng"],
+    ["mu-lan-shi", "磨刀霍霍向豬羊。", "mó dāo huò huò xiàng zhū yáng"], ["mu-lan-shi", "著我舊時裳；", "zhuó wǒ jiù shí cháng"], ["mu-lan-shi", "對鏡帖花黃。", "duì jìng tiē huā huáng"],
+    ["mu-lan-shi", "雄兔腳撲朔，", "xióng tù jiǎo pū shuò"], ["mu-lan-shi", "兩兔傍地走，", "liǎng tù bàng dì zǒu"], ["mu-lan-shi", "木蘭無長兄。", "mù lán wú zhǎng xiōng"],
+    ["mu-lan-shi", "北市買長鞭。", "běi shì mǎi cháng biān"], ["mu-lan-shi", "送兒還故鄉。」", "sòng ér huán gù xiāng"], ["mu-lan-shi", "但聞燕山胡騎聲啾啾。", "dàn wén yàn shān hú jì shēng jiū jiū"],
+    ["bing-che-xing", "行人弓箭各在腰。", "xíng rén gōng jiàn gè zài yāo"], ["bing-che-xing", "哭聲直上干雲霄。", "kū shēng zhí shàng gān yún xiāo"], ["bing-che-xing", "行人但云點行頻。", "xíng rén dàn yún diǎn háng pín"],
+    ["bing-che-xing", "去時里正與裹頭，", "qù shí lǐ zhèng yǔ guǒ tóu"], ["bing-che-xing", "歸來頭白還戍邊。", "guī lái tóu bái huán shù biān"], ["bing-che-xing", "千村萬落生荊杞。", "qiān cūn wàn luò shēng jīng qǐ"],
+    ["bing-che-xing", "禾生隴畝無東西。", "hé shēng lǒng mǔ wú dōng xī"], ["bing-che-xing", "況復秦兵耐苦戰，", "kuàng fù qín bīng nài kǔ zhàn"], ["bing-che-xing", "信知生男惡，", "xìn zhī shēng nán è"],
+    ["bing-che-xing", "生女猶得嫁比鄰，", "shēng nǚ yóu dé jià bǐ lín"], ["bing-che-xing", "生男埋沒隨百草。", "shēng nán mái mò suí bǎi cǎo"], ["bing-che-xing", "新鬼煩冤舊鬼哭，", "xīn guǐ fán yuān jiù guǐ kū"],
+    ["bing-che-xing", "天陰雨濕聲啾啾！", "tiān yīn yǔ shī shēng jiū jiū"],
+    ["man-jiang-hong-nu-fa-chong-guan", "怒髮衝冠，憑闌處、瀟瀟雨歇。", "nù fà chōng guān píng lán chù xiāo xiāo yǔ xiē"], ["man-jiang-hong-nu-fa-chong-guan", "抬望眼、仰天長嘯，壯懷激烈。", "tái wàng yǎn yǎng tiān cháng xiào zhuàng huái jī liè"],
+    ["man-jiang-hong-nu-fa-chong-guan", "莫等閒、白了少年頭，空悲切。", "mò děng xián bái le shào nián tóu kōng bēi qiè"], ["man-jiang-hong-nu-fa-chong-guan", "駕長車、踏破賀蘭山缺。", "jià cháng chē tà pò hè lán shān quē"],
+    ["man-jiang-hong-nu-fa-chong-guan", "壯志飢餐胡虜肉，笑談渴飲匈奴血。", "zhuàng zhì jī cān hú lǔ ròu xiào tán kě yǐn xiōng nú xuè"], ["man-jiang-hong-nu-fa-chong-guan", "待從頭、收拾舊山河，朝天闕。", "dài cóng tóu shōu shí jiù shān hé cháo tiān què"],
+  ];
+  for (const [id, line, py] of mustBe) {
+    const p = POETRY_BY(id);
+    const i = p.lines.indexOf(line);
+    assert.ok(i >= 0, `${id}: ${line}`);
+    const got = p.pinyin[i].replace(PO_PUNC, "").trim().split(/\s+/).map((x) => x.toLowerCase()).join(" ");
+    assert.strictEqual(got, py, `${id}: ${line}`);
+  }
+});
+
+t("階段 10g 第二批: fields, annotations (教育局 wording, exactly the chosen ones), form pill / formNote / ciTune and the background facts of the three poems", () => {
+  const mu = POETRY_BY("mu-lan-shi");
+  const bc = POETRY_BY("bing-che-xing");
+  const mj = POETRY_BY("man-jiang-hong-nu-fa-chong-guan");
+  assert.deepStrictEqual(Array.from(mu.annotations.map((a) => a.term)), ["唧唧", "可汗", "軍書", "戎機", "策勳", "撲朔"]);
+  assert.strictEqual(annOf(mu, "唧唧"), "歎息聲，一說為織布機運作時發出的聲音。");
+  assert.strictEqual(annOf(mu, "軍書"), "徵兵名冊，十二表示數目多，不一定確指十二。");
+  assert.strictEqual(annOf(mu, "撲朔"), "跳躍的樣子。");
+  assert.deepStrictEqual(Array.from(bc.annotations.map((a) => a.term)), ["點行", "營田", "武皇", "無東西", "縣官", "青海頭"]);
+  assert.strictEqual(annOf(bc, "點行"), "依名冊徵召服兵役（「行」一解作「行陣」，普 háng；另一解作「行軍」，普 xíng）。");
+  assert.strictEqual(annOf(bc, "青海頭"), "即青海邊，唐軍與吐蕃的交戰之地。");
+  assert.deepStrictEqual(Array.from(mj.annotations.map((a) => a.term)), ["瀟瀟", "長嘯", "三十功名塵與土", "靖康", "賀蘭山", "餐"]);
+  assert.strictEqual(annOf(mj, "三十功名塵與土"), "多年來所建立的功業和名聲，就像塵土一樣微不足道。");
+  assert.strictEqual(annOf(mj, "餐"), "吃，作動詞用。");
+  // 兵車行: 新題樂府 (formNote, shown by no screen); 滿江紅: 詞 with its tune; 木蘭詩: 樂府民歌
+  assert.strictEqual(bc.formNote, "新題樂府");
+  assert.strictEqual(mj.ciTune, "滿江紅");
+  assert.ok(!("formNote" in mu) && !("formNote" in mj) && !("ciTune" in mu) && !("ciTune" in bc));
+  // backgrounds: only the 教育局 facts, no variant sentences, nothing about authorship or composition year of 滿江紅
+  assert.ok(mu.background.includes("作者不詳") && mu.background.includes("魏晉南北朝時北朝的民歌") && mu.background.includes("郭茂倩") && mu.background.includes("《樂府詩集》") && mu.background.includes("《梁鼓角橫吹曲》"));
+  assert.ok(bc.background.includes("新題樂府") && bc.background.includes("感於哀樂，緣事而發") && bc.background.includes("即事名篇") && bc.background.includes("712") && bc.background.includes("770") && bc.background.includes("詩聖"));
+  assert.ok(mj.background.includes("1103") && mj.background.includes("1142") && mj.background.includes("岳家軍") && mj.background.includes("朱仙鎮") && mj.background.includes("金字牌") && mj.background.includes("莫須有") && mj.background.includes("《岳武穆集》"));
+  assert.ok(!/偽|真偽|僞|創作年份|作於|寫於|所作|相傳/.test(mj.background + mj.explanation + mj.meaningQuiz + mj.translation), "滿江紅: nothing about authenticity or when it was written");
+  for (const p of [mu, bc, mj]) assert.ok(!/又作|又有版本|一作|此處採用|此處依|寫法|異文/.test(p.background), p.id);
+  // 點行 is the 教育局's first reading (háng) — listed as 待核對, not settled
+  assert.strictEqual(bc.pinyin[8], "Xíng rén dàn yún diǎn háng pín。");
+});
+
 
 t.done();

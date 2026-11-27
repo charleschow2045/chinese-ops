@@ -172,14 +172,15 @@ t("階段 10f: 成語學習 now has 60 中二 idioms — 中二 shows exactly th
   }
 });
 
-t("階段 10g（第一批）: 詩詞學習 has 7 中二 poems (81 in all) — 中二 shows exactly those (no fallback note), the other levels are 11 / 30 / 33 and not flagged", () => {
+t("階段 10g（第一批＋第二批）: 詩詞學習 has 10 中二 poems (84 in all) — 中二 shows exactly those (no fallback note), the other levels are 11 / 30 / 33 and not flagged", () => {
   const A = load();
   const list = A.Content.POETRY_ITEMS;
-  assert.strictEqual(list.length, 81);
+  assert.strictEqual(list.length, 84);
   const s2 = A.QuizUtils.itemsForLevel(list, "s2");
   assert.strictEqual(s2.empty, false);
-  assert.strictEqual(s2.items.length, 7);
+  assert.strictEqual(s2.items.length, 10);
   assert(s2.items.every((it) => it.level === "s2"));
+  for (const id of ["mu-lan-shi", "bing-che-xing", "man-jiang-hong-nu-fa-chong-guan"]) assert(s2.items.some((it) => it.id === id), id);
   for (const [lv, n] of [["p5", 11], ["p6", 30], ["s1", 33]]) {
     const r = A.QuizUtils.itemsForLevel(list, lv);
     assert.strictEqual(r.empty, false, lv);

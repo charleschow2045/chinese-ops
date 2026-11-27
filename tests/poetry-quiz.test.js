@@ -405,6 +405,31 @@ t("佚名 (階段 10g): sessions of 佚名 poems only (練習錯題, a pool of j
   for (let r = 0; r < 600; r++) assert.deepStrictEqual(sessionProblems(Q.buildQuestions(poolFor("s2"), 15), ITEMS), []);
 });
 
+t("階段 10g 第二批 木蘭詩 (佚名, 重複句): sessions built only from 木蘭詩 / the 10 中二 poems / the 3 new poems have exactly one defensible answer, no 作者題 / 朝代題 for 木蘭詩, and the repeated line 「不聞爺娘喚女聲，」 is never a next-line / line-title stem", () => {
+  const mulan = ITEMS.find((p) => p.id === "mu-lan-shi");
+  assert.ok(mulan && mulan.level === "s2" && mulan.author === ANON);
+  const dup = "不聞爺娘喚女聲，";
+  assert.strictEqual(mulan.lines.filter((l) => l === dup).length, 2);
+  const three = ITEMS.filter((p) => ["mu-lan-shi", "bing-che-xing", "man-jiang-hong-nu-fa-chong-guan"].includes(p.id));
+  assert.strictEqual(three.length, 3);
+  const seen = { fillDup: 0, kinds: {} };
+  for (let r = 0; r < 1200; r++) {
+    for (const pick of [[mulan], three, poolFor("s2")]) {
+      const qs = Q.buildQuestions(ITEMS, 15, pick);
+      assert.deepStrictEqual(sessionProblems(qs, ITEMS), []);
+      qs.forEach((q) => {
+        seen.kinds[q.kind] = (seen.kinds[q.kind] || 0) + 1;
+        if (q.itemId === "mu-lan-shi") {
+          assert.ok(q.kind !== "author" && q.kind !== "dynasty", q.kind);
+          if (q.kind === "next-line" || q.kind === "line-title") assert.notStrictEqual(q.stem, dup);
+          if (q.kind === "fill" && q.options[q.correctIndex] === dup) seen.fillDup++;
+        }
+      });
+    }
+  }
+  assert.ok(seen.fillDup > 0, "the repeated line should sometimes be the blanked line of a 填空 question (then the answer is still unique)");
+});
+
 t("佚名 (階段 10g): a synthetic library whose only author is 佚名 never makes an 作者題 or 朝代題 and never fails", () => {
   const lib = clone(ITEMS.slice(0, 8)).map((p) => ({ ...p, author: ANON }));
   for (let r = 0; r < 300; r++) {
