@@ -16,6 +16,10 @@
 //  - "……" (the omission marker of a 節錄 poem) is never a stem, an answer or an option: only lines containing a Chinese character count.
 //  - next-line: the stem and the answer are two neighbouring real lines of the same work; a stem line that occurs twice in its work is
 //    skipped; a wrong line never belongs to the same work (so it cannot be a second true continuation).
+//  - fill: a line that occurs twice in its poem (木蘭詩「不聞爺娘喚女聲，」) is never the blanked line (階段 10g review).
+//  - quotation marks (階段 10g review): wrong lines of fill / next-line prefer the same 「 / 」 marks as the right line (`quoteMarks`), and a line
+//    with marks is only asked as the right answer when ≥ 3 lines of other works carry the same marks (`quoteSafe`), so the right line is never
+//    the only quoted option.
 //  - line-title: only a line that occurs exactly once in the whole library (lineCount) and does not contain its own title is asked; wrong
 //    titles never share the answer's base title (憫農（其一）／（其二）) and are not named in the line.
 //  - annotation: wrong meanings come from other terms, never share a word (bigram) with the right meaning, and prefer the same kind of
@@ -36,9 +40,9 @@ window.App = window.App || {};
   const KINDS = ["fill", "author", "meaning", "next-line", "line-title", "annotation", "dynasty"];
   // dynasties an author's life also touched; such a dynasty is never offered as a wrong option for that author
   // Author name -> dynasties that are never offered as wrong options for that author's poems (he / she also lived in them).
-  // 陶淵明 lived into 劉宋; 李煜 was the last ruler of 南唐 (五代) and died in 宋 after the surrender, and 南唐 carries the word 唐;
+  // 陶淵明 lived into 劉宋 (a 南朝, so 南北朝 as well); 李煜 was the last ruler of 南唐 (五代) and died in 宋 after the surrender, and 南唐 carries the word 唐;
   // 文天祥 (宋) died after 元 had been founded.
-  const DYNASTY_BORDERS = { 陶淵明: ["宋"], 李煜: ["宋", "唐"], 文天祥: ["元"] };
+  const DYNASTY_BORDERS = { 陶淵明: ["宋", "南北朝"], 李煜: ["宋", "唐"], 文天祥: ["元"] };
   // Poems whose author is unknown (古詩十九首, 木蘭詩 …) are written with this author name. They never get an 作者題 or a 朝代題
   // (the answer would be 「佚名」 / the question text would say 「作者是「佚名」」), and 「佚名」 is never a wrong option of an 作者題.
   const ANONYMOUS = "佚名";
@@ -48,6 +52,9 @@ window.App = window.App || {};
 
   // 節錄 poems use a "……" line to mark omitted text. Such a line is not a real line of the poem.
   const isRealLine = (l) => /[一-鿿]/.test(l);
+  // The quotation marks a line carries: 「 (or 『) at its start = "o", 」 (or 』) at its end = "c". A wrong option that differs from the right line in
+  // this would give the right line away (it would be the only quoted option, or the only unquoted one).
+  const quoteMarks = (l) => (/^[「『]/.test(l) ? "o" : "") + (/[」』]$/.test(l) ? "c" : "");
   const titleKey = (t) => String(t).replace(/[（(].*?[）)]/g, "").trim();
   const titleParts = (t) => titleKey(t).split(/[·．\s]+/).filter((p) => p.length >= 2);
 
@@ -62,20 +69,37 @@ window.App = window.App || {};
         if (isRealLine(l)) lineCount.set(l, (lineCount.get(l) || 0) + 1);
       })
     );
-    c = { lineCount, dynasties: Array.from(new Set(all.map((p) => p.dynasty).filter(Boolean))) };
+    // real lines that carry quotation marks, by pattern ("o" = opens with 「, "c" = ends with 」, "oc" = both): [{ id, line }]
+    const quoteLines = new Map();
+    all.forEach((p) =>
+      p.lines.forEach((l) => {
+        const q = quoteMarks(l);
+        if (isRealLine(l) && q) quoteLines.set(q, (quoteLines.get(q) || []).concat({ id: p.id, line: l }));
+      })
+    );
+    c = { lineCount, quoteLines, dynasties: Array.from(new Set(all.map((p) => p.dynasty).filter(Boolean))) };
     ctxCache.set(all, c);
     return c;
   }
 
   // --- stems --------------------------------------------------------------------------------------------------------------------
   const countIn = (arr, x) => arr.reduce((n, y) => n + (y === x ? 1 : 0), 0);
+  // A line with quotation marks may be the right answer of a 填空 / 下一句 question only if at least three different lines of OTHER works carry the
+  // same marks, so that the wrong options can carry them too (otherwise the right line is the only quoted option). Lines without marks are always fine.
+  function quoteSafe(item, line, all) {
+    const q = quoteMarks(line);
+    if (!q) return true;
+    const others = (ctxFor(all).quoteLines.get(q) || []).filter((x) => x.id !== item.id && x.line !== line && !item.lines.includes(x.line));
+    return new Set(others.map((x) => x.line)).size >= 3;
+  }
   // indexes i such that lines[i] and lines[i + 1] are two real, neighbouring lines and lines[i] occurs once in the work
-  function nextLineStems(item) {
+  // (`all`, the library, is optional: given, the answer line lines[i + 1] must also pass `quoteSafe`)
+  function nextLineStems(item, all) {
     const out = [];
     for (let i = 0; i + 1 < item.lines.length; i++) {
       const a = item.lines[i];
       const b = item.lines[i + 1];
-      if (isRealLine(a) && isRealLine(b) && a !== b && countIn(item.lines, a) === 1 && countIn(item.lines, b) === 1) out.push(i);
+      if (isRealLine(a) && isRealLine(b) && a !== b && countIn(item.lines, a) === 1 && countIn(item.lines, b) === 1 && (!all || quoteSafe(item, b, all))) out.push(i);
     }
     return out;
   }
@@ -113,7 +137,7 @@ window.App = window.App || {};
       if (p.id === item.id) return;
       p.lines.forEach((l) => {
         if (!isRealLine(l) || own.has(l) || l === correct) return;
-        cands.push({ value: l, score: (inPool.has(p.id) ? 0 : 8) + (p.type === item.type ? 0 : 4) + lenGap(l, correct) + (endMark(l) === endMark(correct) ? 0 : 6) });
+        cands.push({ value: l, score: (inPool.has(p.id) ? 0 : 8) + (p.type === item.type ? 0 : 4) + lenGap(l, correct) + (endMark(l) === endMark(correct) ? 0 : 6) + (quoteMarks(l) === quoteMarks(correct) ? 0 : 30) });
       });
     });
     return pickBest(cands, n);
@@ -153,7 +177,12 @@ window.App = window.App || {};
   // --- the seven builders --------------------------------------------------------------------------------------------------------
   function buildFillBlankQuestion(pool, all, item) {
     const idxs = item.lines.map((l, i) => i).filter((i) => isRealLine(item.lines[i]));
-    const blankIndex = idxs[Math.floor(Math.random() * idxs.length)];
+    // a line that occurs twice in the poem is never blanked (the other copy would stay visible and give the answer away), and a quoted line
+    // only when the wrong options can be quoted too — same rules as 下一句; if nothing is left the stricter rules are dropped one by one
+    const once = idxs.filter((i) => countIn(item.lines, item.lines[i]) === 1);
+    const safe = once.filter((i) => quoteSafe(item, item.lines[i], all));
+    const from = safe.length ? safe : once.length ? once : idxs;
+    const blankIndex = from[Math.floor(Math.random() * from.length)];
     const correct = item.lines[blankIndex];
     const wrong = wrongLines(pool, all, item, correct, 3);
     return make("fill", item, { lines: item.lines, blankIndex }, shuffle([correct, ...wrong]), correct);
@@ -180,7 +209,7 @@ window.App = window.App || {};
   }
 
   function buildNextLineQuestion(pool, all, item) {
-    const stems = nextLineStems(item);
+    const stems = nextLineStems(item, all);
     const i = stems[Math.floor(Math.random() * stems.length)];
     const correct = item.lines[i + 1];
     const wrong = wrongLines(pool, all, item, correct, 3);
@@ -242,7 +271,7 @@ window.App = window.App || {};
     return (kind, item) => {
       switch (kind) {
         case "next-line":
-          return nextLineStems(item).length > 0;
+          return nextLineStems(item, all).length > 0;
         case "line-title":
           return titleStems(item, all).length > 0;
         case "annotation":

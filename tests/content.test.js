@@ -1336,7 +1336,7 @@ t("階段 10g 第二批: pinyin — one syllable per character, the line's closi
     ["mu-lan-shi", "雄兔腳撲朔，", "xióng tù jiǎo pū shuò"], ["mu-lan-shi", "兩兔傍地走，", "liǎng tù bàng dì zǒu"], ["mu-lan-shi", "木蘭無長兄。", "mù lán wú zhǎng xiōng"],
     ["mu-lan-shi", "北市買長鞭。", "běi shì mǎi cháng biān"], ["mu-lan-shi", "送兒還故鄉。」", "sòng ér huán gù xiāng"], ["mu-lan-shi", "但聞燕山胡騎聲啾啾。", "dàn wén yàn shān hú jì shēng jiū jiū"],
     ["bing-che-xing", "行人弓箭各在腰。", "xíng rén gōng jiàn gè zài yāo"], ["bing-che-xing", "哭聲直上干雲霄。", "kū shēng zhí shàng gān yún xiāo"], ["bing-che-xing", "行人但云點行頻。", "xíng rén dàn yún diǎn háng pín"],
-    ["bing-che-xing", "去時里正與裹頭，", "qù shí lǐ zhèng yǔ guǒ tóu"], ["bing-che-xing", "歸來頭白還戍邊。", "guī lái tóu bái huán shù biān"], ["bing-che-xing", "千村萬落生荊杞。", "qiān cūn wàn luò shēng jīng qǐ"],
+    ["bing-che-xing", "去時里正與裹頭，", "qù shí lǐ zhèng yǔ guǒ tóu"], ["bing-che-xing", "歸來頭白還戍邊。", "guī lái tóu bái hái shù biān"], ["bing-che-xing", "千村萬落生荊杞。", "qiān cūn wàn luò shēng jīng qǐ"],
     ["bing-che-xing", "禾生隴畝無東西。", "hé shēng lǒng mǔ wú dōng xī"], ["bing-che-xing", "況復秦兵耐苦戰，", "kuàng fù qín bīng nài kǔ zhàn"], ["bing-che-xing", "信知生男惡，", "xìn zhī shēng nán è"],
     ["bing-che-xing", "生女猶得嫁比鄰，", "shēng nǚ yóu dé jià bǐ lín"], ["bing-che-xing", "生男埋沒隨百草。", "shēng nán mái mò suí bǎi cǎo"], ["bing-che-xing", "新鬼煩冤舊鬼哭，", "xīn guǐ fán yuān jiù guǐ kū"],
     ["bing-che-xing", "天陰雨濕聲啾啾！", "tiān yīn yǔ shī shēng jiū jiū"],
@@ -1379,6 +1379,48 @@ t("階段 10g 第二批: fields, annotations (教育局 wording, exactly the cho
   for (const p of [mu, bc, mj]) assert.ok(!/又作|又有版本|一作|此處採用|此處依|寫法|異文/.test(p.background), p.id);
   // 點行 is the 教育局's first reading (háng) — listed as 待核對, not settled
   assert.strictEqual(bc.pinyin[8], "Xíng rén dàn yún diǎn háng pín。");
+});
+
+t("階段 10g 第二批審核後修正: 譯文 (兵車行 北邊防守黃河一帶, 木蘭詩 歎息聲 / 東邊房間, 滿江紅 no 獨自), 兵車行「歸來頭白還戍邊」 的「還」 = hái (待核對), 「送兒還故鄉」 stays huán, the explanation / meaningQuiz / annotations do not contradict", () => {
+  const mu = POETRY_BY("mu-lan-shi");
+  const bc = POETRY_BY("bing-che-xing");
+  const mj = POETRY_BY("man-jiang-hong-nu-fa-chong-guan");
+  // 兵車行: 北防河 = 北邊防守黃河一帶 (教育局: 防河 = defending the land west of the Yellow River, north of 長安)
+  assert.ok(bc.translation.includes("有人十五歲就被派去北邊防守黃河一帶"));
+  assert.ok(!bc.translation.includes("黃河以北"));
+  assert.ok(bc.translation.includes("頭髮已經白了，卻還要去戍守邊疆")); // 還戍邊 = 還要 (hái), unchanged
+  // 木蘭詩
+  assert.ok(mu.translation.startsWith("歎息聲一聲接着一聲，木蘭正對着門織布。聽不到織布機的聲音，只聽到她在歎息。"));
+  assert.ok(!mu.translation.includes("唧唧的聲音") && !mu.translation.includes("可是聽不到"));
+  assert.ok(mu.translation.includes("打開我東邊房間的門，坐在我西邊房間的床上"));
+  assert.ok(!mu.translation.includes("閣樓") && !mu.translation.includes("閣"));
+  assert.strictEqual(annOf(mu, "唧唧"), "歎息聲，一說為織布機運作時發出的聲音。"); // unchanged
+  // 滿江紅: the original has no 獨自
+  assert.ok(mj.translation.startsWith("我怒髮衝冠，靠着欄杆站立，"));
+  assert.ok(!mj.translation.includes("獨自"));
+  assert.ok(!/登高/.test(mj.translation + mj.explanation + mj.meaningQuiz), "憑闌 is leaning on the balustrade, not 登高");
+  assert.ok(mj.meaningQuiz.includes("憑欄長嘯"));
+  // 兵車行「還」: 歸來頭白還戍邊 = hái (仍然、還要; the 教育局 gives no reading — 待核對); 送兒還故鄉 (木蘭詩) = huán
+  assert.strictEqual(bc.pinyin[POETRY_BY("bing-che-xing").lines.indexOf("歸來頭白還戍邊。")], "Guī lái tóu bái hái shù biān。");
+  assert.ok(!bc.pinyin.join(" ").replace(/[，。？！：；]/g, "").split(/\s+/).map((x) => x.toLowerCase()).includes("huán"));
+  assert.strictEqual(mu.pinyin[mu.lines.indexOf("送兒還故鄉。」")], "Sòng ér huán gù xiāng。」");
+  // explanation / meaningQuiz of the three keep their points
+  assert.ok(mu.explanation.includes("代父出征") && mu.meaningQuiz.includes("與親人團聚"));
+  assert.ok(bc.explanation.includes("連年開邊用兵"));
+});
+
+t("階段 10g 第二批審核後修正: the 戰爭詩詞 tab list is 12 poems — 兵車行 and 滿江紅 added (中二), 木蘭詩 not; ids unique, all in the library, order = the list's own chronological order, the two new poems have no story pairing", () => {
+  const ids = Array.from(HI.HISTORY_WAR_POEM_IDS);
+  assert.strictEqual(ids.length, 12);
+  assert.strictEqual(new Set(ids).size, 12);
+  assert.ok(ids.includes("bing-che-xing") && ids.includes("man-jiang-hong-nu-fa-chong-guan"));
+  assert.ok(!ids.includes("mu-lan-shi"));
+  for (const id of ids) assert.ok(POETRY.some((p) => p.id === id), id);
+  // 兵車行 (≈ 751) sits before 春望 (757), 滿江紅 (岳飛, d. 1142) between 夏日絕句 and 破陣子
+  assert.ok(ids.indexOf("bing-che-xing") < ids.indexOf("chunwang"));
+  assert.ok(ids.indexOf("xia-ri-jue-ju") < ids.indexOf("man-jiang-hong-nu-fa-chong-guan") && ids.indexOf("man-jiang-hong-nu-fa-chong-guan") < ids.indexOf("pozhenzi-wei-chen-tongfu"));
+  assert.deepStrictEqual(Array.from(ids.filter((id) => POETRY.find((p) => p.id === id).level === "s2")).sort(), ["bing-che-xing", "man-jiang-hong-nu-fa-chong-guan"]);
+  assert.strictEqual(Array.from(HI.HISTORY_POEM_STORY_LINKS).filter((l) => ids.slice(0, 0).concat(["bing-che-xing", "man-jiang-hong-nu-fa-chong-guan"]).includes(l.poemId)).length, 0);
 });
 
 

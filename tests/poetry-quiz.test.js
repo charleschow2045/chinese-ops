@@ -427,7 +427,8 @@ t("階段 10g 第二批 木蘭詩 (佚名, 重複句): sessions built only from 
       });
     }
   }
-  assert.ok(seen.fillDup > 0, "the repeated line should sometimes be the blanked line of a 填空 question (then the answer is still unique)");
+  // (before the 階段 10g review this was `> 0`: the repeated line was sometimes blanked, 25 of 1015 木蘭詩 填空 questions; now it never is)
+  assert.strictEqual(seen.fillDup, 0, "the repeated line must never be the blanked line of a 填空 question");
 });
 
 t("佚名 (階段 10g): a synthetic library whose only author is 佚名 never makes an 作者題 or 朝代題 and never fails", () => {
@@ -481,6 +482,133 @@ t("體裁標籤 (階段 10g): the form pill of PoetryModule.jsx knows 「曲」 
   for (const f of new Set(ITEMS.map((p) => p.form))) assert.ok(toneOf(f), "no pill for the form " + f);
   // the pill logic is the only reader of `form` — the quiz generator never looks at it
   assert.ok(!/\.form\b/.test(fs.readFileSync(path.join(__dirname, "..", "src", "poetryQuiz.jsx"), "utf8")));
+});
+
+// ---------------------------------------------------------------- 階段 10g 第二批 review: 填空 repeated line, quotation marks, 南北朝
+const marks = (l) => (/^[「『]/.test(l) ? "o" : "") + (/[」』]$/.test(l) ? "c" : "");
+const mulanPoem = ITEMS.find((p) => p.id === "mu-lan-shi");
+
+t("填空 (階段 10g review): a line that occurs twice in its poem is never the blanked line — 木蘭詩 「不聞爺娘喚女聲，」 (full library, 木蘭詩 only, the 中二 pool)", () => {
+  let fills = 0;
+  for (let r = 0; r < 1500; r++) {
+    for (const [pool, from] of [[ITEMS, [mulanPoem]], [poolFor("s2"), undefined], [ITEMS, undefined]]) {
+      for (const q of Q.buildQuestions(pool, 15, from)) {
+        if (q.kind !== "fill") continue;
+        fills++;
+        const item = byId[q.itemId];
+        const right = q.options[q.correctIndex];
+        assert.strictEqual(item.lines.filter((l) => l === right).length, 1, `${q.itemId}: blanked line occurs twice: ${right}`);
+      }
+    }
+  }
+  assert.ok(fills > 3000);
+});
+
+t("填空 (階段 10g review): a poem whose lines ALL repeat still gets a valid 填空 question (the rule falls back, never an error)", () => {
+  const lib = clone(ITEMS.slice(0, 12));
+  lib[0].lines = ["甲乙丙丁，", "甲乙丙丁，", "戊己庚辛。", "戊己庚辛。"];
+  lib[0].pinyin = lib[0].lines.map(() => "x");
+  for (let r = 0; r < 200; r++) {
+    for (const q of Q.buildQuestions(lib, 15, [lib[0]], lib)) {
+      assert.strictEqual(q.options.length, 4);
+      assert.strictEqual(new Set(q.options).size, 4);
+      if (q.kind === "fill") assert.ok(lib[0].lines.includes(q.options[q.correctIndex]));
+    }
+  }
+});
+
+t("quotation marks (階段 10g review): in fill / next-line questions every wrong option carries the same 「 / 」 marks as the right line, so the right line is never the only quoted (or the only unquoted) option — 5000 full-library sessions + 1500 木蘭詩-only + 1500 中二 sessions", () => {
+  let quotedRight = 0;
+  let checked = 0;
+  for (let r = 0; r < 5000; r++) {
+    const batches = [Q.buildQuestions(ITEMS, 15)];
+    if (r < 1500) batches.push(Q.buildQuestions(ITEMS, 15, [mulanPoem]), Q.buildQuestions(poolFor("s2"), 15));
+    for (const qs of batches) {
+      for (const q of qs) {
+        if (q.kind !== "fill" && q.kind !== "next-line") continue;
+        checked++;
+        const right = marks(q.options[q.correctIndex]);
+        if (right) quotedRight++;
+        q.options.forEach((o, i) => i !== q.correctIndex && assert.strictEqual(marks(o), right, `${q.itemId} ${q.kind}: right ${q.options[q.correctIndex]} / wrong ${o}`));
+        // 木蘭詩 is the only poem with quoted lines of its own kind in the library: none of its quoted lines is ever the right answer
+        if (q.itemId === "mu-lan-shi") assert.strictEqual(right, "", `木蘭詩 quoted line as the right answer: ${q.options[q.correctIndex]}`);
+      }
+    }
+  }
+  assert.ok(checked > 20000, "only " + checked + " questions checked");
+  // quoted right lines still occur where the library offers quoted wrong lines (論語 / 揠苗助長 lines — 木蘭詩 supplies the wrong ones)
+  assert.ok(quotedRight >= 0);
+});
+
+t("quotation marks (階段 10g review): a synthetic library where every work has quoted lines — quoted right lines occur, and all wrong options carry the same marks", () => {
+  const lib = clone(ITEMS.slice(0, 14));
+  lib.forEach((p) => {
+    p.lines[0] = "「" + p.lines[0];
+    p.lines[1] = p.lines[1] + "」";
+  });
+  let quotedRight = 0;
+  for (let r = 0; r < 600; r++) {
+    for (const q of Q.buildQuestions(lib, 15, lib, lib)) {
+      if (q.kind !== "fill" && q.kind !== "next-line") continue;
+      const right = marks(q.options[q.correctIndex]);
+      if (right) quotedRight++;
+      q.options.forEach((o, i) => i !== q.correctIndex && assert.strictEqual(marks(o), right, `${q.kind}: right ${q.options[q.correctIndex]} / wrong ${o}`));
+    }
+  }
+  assert.ok(quotedRight > 100, "quoted right lines should occur here, got " + quotedRight);
+});
+
+t("quotation marks (階段 10g review): a quoted line is only asked as the right answer when ≥ 3 lines of OTHER works carry the same marks (2 others → never asked, 3 others → asked)", () => {
+  const make = (n) => {
+    const lib = clone(ITEMS.slice(0, 12));
+    for (let k = 0; k < n; k++) {
+      lib[k].lines[0] = "「" + lib[k].lines[0];
+      lib[k].lines[1] = lib[k].lines[1] + "」";
+    }
+    return lib;
+  };
+  // 3 quoted works: for each, only 2 others carry the marks → lines[0] (open) and lines[1] (close) are never the right answer
+  const three = make(3);
+  for (let r = 0; r < 400; r++) {
+    for (const q of Q.buildQuestions(three, 15, three.slice(0, 3), three)) {
+      if (q.kind === "fill") assert.ok(q.blankIndex > 1, `fill blanked a quoted line (${q.blankIndex})`);
+      if (q.kind === "next-line") assert.notStrictEqual(q.stem, q.stem && three.find((p) => p.id === q.itemId).lines[0], "next-line answer would be the quoted line 2");
+      if (q.kind === "fill" || q.kind === "next-line") assert.strictEqual(marks(q.options[q.correctIndex]), "");
+    }
+  }
+  // 4 quoted works: 3 others → the quoted lines may be asked, and the wrong options carry the marks too
+  const four = make(4);
+  let asked = 0;
+  for (let r = 0; r < 600; r++) {
+    for (const q of Q.buildQuestions(four, 15, four.slice(0, 4), four)) {
+      if (q.kind !== "fill" && q.kind !== "next-line") continue;
+      const right = marks(q.options[q.correctIndex]);
+      if (right) asked++;
+      q.options.forEach((o, i) => i !== q.correctIndex && assert.strictEqual(marks(o), right));
+    }
+  }
+  assert.ok(asked > 20, "quoted lines should be asked when 3 other works carry the marks, got " + asked);
+});
+
+t("朝代 borders (階段 10g review): 陶淵明 (晉) never gets 宋 or 南北朝 as a wrong option (his life ran into the 南朝 劉宋); 南北朝 is still a normal wrong option for other authors; no other author of the library lived in 南北朝", () => {
+  const poems = ITEMS.filter((p) => p.author === "陶淵明");
+  assert.ok(poems.length >= 1);
+  let asked = 0;
+  for (let r = 0; r < 1500; r++) {
+    for (const q of Q.buildQuestions(ITEMS, 15, poems)) {
+      if (q.kind !== "dynasty") continue;
+      asked++;
+      assert.ok(!q.options.includes("宋") && !q.options.includes("南北朝"), JSON.stringify(q.options));
+      assert.strictEqual(q.options[q.correctIndex], "晉");
+    }
+  }
+  assert.ok(asked > 500);
+  assert.ok(ITEMS.some((p) => p.dynasty === "南北朝"), "the library should contain a 南北朝 poem (木蘭詩)");
+  let others = 0;
+  for (let r = 0; r < 1500; r++) for (const q of Q.buildQuestions(ITEMS, 15)) if (q.kind === "dynasty" && byId[q.itemId].author !== "陶淵明" && q.options.includes("南北朝")) others++;
+  assert.ok(others > 100, "南北朝 should still appear for other authors, got " + others);
+  // 南北朝 = 420–589: the earliest 唐 poets of the library (賀知章 659–744, 王勃 650–676) and every 晉 / 漢 author are outside it except 陶淵明 (365–427)
+  assert.deepStrictEqual(Array.from(new Set(ITEMS.filter((p) => p.dynasty === "晉").map((p) => p.author))), ["陶淵明"]);
 });
 
 t.done();

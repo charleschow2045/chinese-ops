@@ -2876,9 +2876,11 @@ window.App.Content = window.App.Content || {};
     "liangzhou-ci-putao", // 王翰 涼州詞
     "liangzhou-ci-huanghe", // 王之渙 涼州詞
     "cong-jun-xing-qinghai-changyun", // 王昌齡 從軍行
+    "bing-che-xing", // 杜甫 兵車行 (中二，階段 10g 第二批)
     "chunwang", // 杜甫 春望
     "niannujiao-chibi-huaigu", // 蘇軾 念奴嬌·赤壁懷古
     "xia-ri-jue-ju", // 李清照 夏日絕句
+    "man-jiang-hong-nu-fa-chong-guan", // 岳飛 滿江紅（怒髮衝冠）(中二，階段 10g 第二批)
     "pozhenzi-wei-chen-tongfu", // 辛棄疾 破陣子
     "shi-er", // 陸游 示兒
     "guo-lingdingyang", // 文天祥 過零丁洋
